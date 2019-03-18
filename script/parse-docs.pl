@@ -158,7 +158,7 @@ binary.com C<< BINARY@cpan.org >>
 Copyright binary.com 2019. Licensed under the same terms as Perl itself.
 
 }, {
-        name => $k,
+        name   => $k,
         fields => $classes{$k}
     }, 'lib/WebService/Async/Onfido/Base/' . $k . '.pm',
         { binmode => ':encoding(UTF-8)' },
