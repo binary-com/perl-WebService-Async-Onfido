@@ -239,7 +239,7 @@ sub document_upload {
         $uri,
         content_type => 'form-data',
         content => [
-            %args{grep { exists $args{$_} } qw(type side issuing_country)};
+            %args{grep { exists $args{$_} } qw(type side issuing_country)},
             file => [ undef, $args{filename}, 'Content-Type' => 'image/jpeg', Content => $args{data} ],
         ]
     );
