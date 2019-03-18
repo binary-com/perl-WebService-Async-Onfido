@@ -1,0 +1,42 @@
+#!/usr/bin/env perl 
+use strict;
+use warnings;
+
+use IO::Async::Loop;
+use WebService::Async::Onfido;
+
+use Scalar::Util qw(blessed);
+use Log::Any qw($log);
+use Getopt::Long;
+
+require Log::Any::Adapter;
+GetOptions(
+    't|token=s' => \my $token,
+    'l|log=s'   => \my $log_level,
+) or die;
+$log_level ||= 'info';
+Log::Any::Adapter->import(
+    qw(Stdout),
+    log_level => $log_level
+);
+
+my $loop = IO::Async::Loop->new;
+$loop->add(
+    my $onfido = WebService::Async::Onfido->new(
+        token => $token
+    )
+);
+
+my ($method, @args) = @ARGV or die 'need a method';
+die 'unknown method ' . $method unless $method eq lc($method) and $onfido->can($method);
+my $res = $onfido->$method(map { split /=/, $_, 2 } @args)
+    or die 'that did not return anything useful';
+if($res->isa('Future')) {
+    $log->infof('%s', $res->get);
+} elsif($res->isa('Ryu::Source')) {
+    $res->map(sub { blessed($_) && $_->can('as_string') ? $_->as_string : $_ })
+        ->each(sub { $log->infof('%s', $_); })
+        ->await;
+} else {
+    $log->infof('%s', $res);
+}
