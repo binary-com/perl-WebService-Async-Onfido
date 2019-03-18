@@ -30,6 +30,7 @@ use Ryu::Async;
 
 use Path::Tiny;
 use Net::Async::HTTP;
+use HTTP::Request::Common;
 use JSON::MaybeUTF8 qw(:v1);
 
 use WebService::Async::Onfido::Applicant;
