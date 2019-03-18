@@ -1,0 +1,7 @@
+{
+    "applicants": "/v2/applicants",
+    "applicant": "/v2/applicants/{applicant_id}",
+    "documents": "/v2/applicants/{applicant_id}/documents",
+    "checks": "/v2/applicants/{applicant_id}/checks",
+    "photos": "/v2/live_photos"
+}
