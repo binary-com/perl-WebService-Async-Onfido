@@ -2,9 +2,9 @@
 use strict;
 use warnings;
 
-use 5.006;
+use 5.014000;
 
-use ExtUtils::MakeMaker;
+use ExtUtils::MakeMaker 6.48;
 
 use File::ShareDir::Install;
 $File::ShareDir::Install::INCLUDE_DOTFILES = 1;
@@ -13,10 +13,10 @@ install_share dist => "share";
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "unofficial support for the Onfido identity verification service",
+  "ABSTRACT" => "Webservice to connect to Onfido API",
   "AUTHOR" => "binary.com <BINARY\@cpan.org>",
   "CONFIGURE_REQUIRES" => {
-    "ExtUtils::MakeMaker" => 0,
+    "ExtUtils::MakeMaker" => "6.64",
     "File::ShareDir::Install" => "0.06"
   },
   "DISTNAME" => "WebService-Async-Onfido",
@@ -24,11 +24,10 @@ my %WriteMakefileArgs = (
     "bin/onfido-tool"
   ],
   "LICENSE" => "perl",
-  "MIN_PERL_VERSION" => "5.006",
+  "MIN_PERL_VERSION" => "5.014000",
   "NAME" => "WebService::Async::Onfido",
   "PREREQ_PM" => {
     "Dir::Self" => 0,
-    "Getopt::Long" => 0,
     "HTML::TreeBuilder" => 0,
     "IO::Async::Loop" => 0,
     "IO::Async::Notifier" => 0,
@@ -39,18 +38,13 @@ my %WriteMakefileArgs = (
     "Net::Async::HTTP" => 0,
     "Path::Tiny" => 0,
     "Ryu::Async" => 0,
-    "Scalar::Util" => 0,
     "Syntax::Keyword::Try" => 0,
     "Template" => 0,
     "URI" => 0,
     "URI::QueryParam" => 0,
     "URI::Template" => 0,
     "indirect" => 0,
-    "mro" => 0,
-    "parent" => 0,
-    "strict" => 0,
-    "utf8" => 0,
-    "warnings" => 0
+    "mro" => 0
   },
   "TEST_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
@@ -58,8 +52,7 @@ my %WriteMakefileArgs = (
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
     "Test::CheckDeps" => "0.010",
-    "Test::More" => "0.94",
-    "blib" => "1.01"
+    "Test::More" => "0.94"
   },
   "VERSION" => "0.001",
   "test" => {
@@ -72,7 +65,6 @@ my %FallbackPrereqs = (
   "Dir::Self" => 0,
   "ExtUtils::MakeMaker" => 0,
   "File::Spec" => 0,
-  "Getopt::Long" => 0,
   "HTML::TreeBuilder" => 0,
   "IO::Async::Loop" => 0,
   "IO::Async::Notifier" => 0,
@@ -85,7 +77,6 @@ my %FallbackPrereqs = (
   "Net::Async::HTTP" => 0,
   "Path::Tiny" => 0,
   "Ryu::Async" => 0,
-  "Scalar::Util" => 0,
   "Syntax::Keyword::Try" => 0,
   "Template" => 0,
   "Test::CheckDeps" => "0.010",
@@ -93,13 +84,8 @@ my %FallbackPrereqs = (
   "URI" => 0,
   "URI::QueryParam" => 0,
   "URI::Template" => 0,
-  "blib" => "1.01",
   "indirect" => 0,
-  "mro" => 0,
-  "parent" => 0,
-  "strict" => 0,
-  "utf8" => 0,
-  "warnings" => 0
+  "mro" => 0
 );
 
 

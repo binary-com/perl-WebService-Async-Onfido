@@ -9,6 +9,9 @@ requires 'URI::Template', 0;
 requires 'Net::Async::HTTP', 0;
 requires 'JSON::MaybeUTF8', 0;
 
+requires 'Ryu::Async', 0;
+requires 'IO::Async::Notifier', 0;
+requires 'Syntax::Keyword::Try', 0;
 requires 'IO::Async::Loop', 0;
 requires 'Net::Async::HTTP', 0;
 requires 'Path::Tiny', 0;
@@ -18,5 +21,9 @@ requires 'List::UtilsBy', 0;
 
 requires 'Log::Any', 0;
 requires 'Log::Any::Adapter', 0;
+
+on configure => sub {
+    requires 'ExtUtils::MakeMaker', '6.64';
+};
 
 

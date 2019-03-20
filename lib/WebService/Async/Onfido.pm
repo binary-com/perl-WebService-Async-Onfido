@@ -1,4 +1,5 @@
 package WebService::Async::Onfido;
+# ABSTRACT: Webservice to connect to Onfido API
 
 use strict;
 use warnings;
