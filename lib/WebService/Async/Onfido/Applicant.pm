@@ -38,6 +38,13 @@ sub delete : method {
     );
 }
 
+sub get : method {
+    my ($self) = @_;
+    return $self->onfido->applicant_get(
+        applicant_id => $self->id,
+    );
+}
+
 1;
 
 __END__

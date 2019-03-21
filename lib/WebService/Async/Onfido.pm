@@ -160,6 +160,40 @@ sub applicant_delete {
     })
 }
 
+=head2 applicant_get
+
+Retreive a single applicant.
+
+Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
+
+=cut
+
+sub applicant_get {
+    my ($self, %args) = @_;
+    my $src = $self->source;
+    $self->ua->GET(
+        uri => $self->endpoint('applicants', %args),
+        $self->auth_headers,
+    )->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->decoded_content);
+            $log->tracef('Have response %s', $data);
+            $src->emit(
+                WebService::Async::Onfido::Applicant->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+            return Future->done;
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
 =head2 document_list
 
 List all documents for a given L<WebService::Async::Onfido::Applicant>.
