@@ -275,11 +275,11 @@ sub document_upload {
         content => [
             %args{grep { exists $args{$_} } qw(type side issuing_country)},
             file => [ undef, $args{filename}, 'Content-Type' => 'image/jpeg', Content => $args{data} ],
-        ]
+        ],
+        %{$self->auth_headers},
     );
     $self->ua->do_request(
         request => $req,
-        $self->auth_headers,
     )->then(sub {
         try {
             my ($res) = @_;
