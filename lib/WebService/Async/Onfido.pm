@@ -170,22 +170,21 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
 sub applicant_get {
     my ($self, %args) = @_;
-    my $src = $self->source;
-    $self->ua->GET(
-        uri => $self->endpoint('applicants', %args),
+    $self->ua->do_request(
+        uri => $self->endpoint('applicant', %args),
+        method => 'GET',
         $self->auth_headers,
     )->then(sub {
         try {
             my ($res) = @_;
             my $data = decode_json_utf8($res->decoded_content);
             $log->tracef('Have response %s', $data);
-            $src->emit(
+            return Future->done(
                 WebService::Async::Onfido::Applicant->new(
                     %$data,
                     onfido => $self
                 )
             );
-            return Future->done;
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
