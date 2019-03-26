@@ -33,6 +33,7 @@ use Path::Tiny;
 use Net::Async::HTTP;
 use HTTP::Request::Common;
 use JSON::MaybeUTF8 qw(:v1);
+use File::ShareDir;
 
 use WebService::Async::Onfido::Applicant;
 use WebService::Async::Onfido::Address;
@@ -238,6 +239,7 @@ sub document_list {
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
+            $src->completed->fail('Failed to get document list.') unless $src->completed->is_ready;
             return Future->fail($err);
         }
     })->retain;
@@ -289,6 +291,7 @@ sub photo_list {
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
+            $src->completed->fail('Failed to get photo list.') unless $src->completed->is_ready;
             return Future->fail($err);
         }
     })->retain;
@@ -463,6 +466,7 @@ sub ua {
                 fail_on_error            => 1,
                 decode_content           => 1,
                 pipeline                 => 0,
+                timeout                  => 5,
                 max_connections_per_host => 4,
                 user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; BINARY@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
