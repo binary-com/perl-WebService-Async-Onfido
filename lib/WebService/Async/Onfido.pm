@@ -244,6 +244,57 @@ sub document_list {
     return $src;
 }
 
+=head2 photo_list
+
+List all photos for a given L<WebService::Async::Onfido::Applicant>.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<applicant_id> - the L<WebService::Async::Onfido::Applicant/id> for the applicant to query
+
+=back
+
+Returns a L<Ryu::Source> which will emit one L<WebService::Async::Onfido::Photo> for
+each photo found.
+
+=cut
+
+sub photo_list {
+    my ($self, %args) = @_;
+    my $src = $self->source;
+    my $uri = $self->endpoint('photos', %args);
+    $self->ua->GET(
+        $uri,
+        $self->auth_headers,
+    )->then(sub {
+        try {
+            my ($res) = @_;
+            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+            my $data = decode_json_utf8($res->decoded_content);
+            my $f = $src->completed;
+            $log->tracef('Have response %s', $data);
+            for(@{$data->{live_photos}}) {
+                return $f if $f->is_ready;
+                $src->emit(
+                    WebService::Async::Onfido::Photo->new(
+                        %$_,
+                        onfido => $self
+                    )
+                );
+            }
+            $f->done unless $f->is_ready;
+            return Future->done;
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })->retain;
+    return $src;
+}
+
 =head2 document_upload
 
 Uploads a single document for a given applicant.
