@@ -90,6 +90,10 @@ sub applicant_list {
             $log->errorf('Failed - %s', $err);
             return Future->fail($err);
         }
+    }, sub {
+        my ($err, @details) = @_;
+        $log->errorf('Failed to request document_list: %s', $err);
+        $src->completed->fail($err, @details) unless $src->completed->is_ready;
     })->retain;
     return $src;
 }
