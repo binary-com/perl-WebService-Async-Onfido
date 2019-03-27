@@ -29,8 +29,15 @@ $loop->add(
 
 my ($method, @args) = @ARGV or die 'need a method';
 die 'unknown method ' . $method unless $method eq lc($method) and $onfido->can($method);
-my $res = $onfido->$method(map { split /=/, $_, 2 } @args)
+
+# Some things expect an arrayref, let's use , for those since we do not expect it anywhere else
+my %param = map { split /=/, $_, 2 } @args;
+$_ = [ split /,/, $_ ] for grep /,/, values %param;
+
+$log->infof('Calling method [%s] with [%s]', $method, \%param);
+my $res = $onfido->$method(%param)
     or die 'that did not return anything useful';
+
 if($res->isa('Future')) {
     $log->infof('%s', $res->get);
 } elsif($res->isa('Ryu::Source')) {
