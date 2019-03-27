@@ -394,6 +394,10 @@ Returns a L<Future> which will resolve with the result.
 
 sub applicant_check {
     my ($self, %args) = @_;
+    $args{type} //= 'standard';
+    $_ = $_ ? JSON->true : JSON->false for @args{qw(
+        suppress_form_emails async charge_applicant_for_check
+    )};
     $self->ua->POST(
         $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
         encode_json_utf8(\%args),
