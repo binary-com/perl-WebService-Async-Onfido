@@ -340,6 +340,17 @@ sub document_upload {
     );
     $self->ua->do_request(
         request => $req,
+    )->catch(
+        http => sub {
+            my ($message, undef, $response, $request) = @_;
+            $log->errorf('Request %s received %s with full response as %s',
+                $request->as_string("\n"),
+                $message,
+                $response->as_string("\n"),
+            );
+            # Just pass it on
+            Future->fail($message, http => $response, $request);
+        }
     )->then(sub {
         try {
             my ($res) = @_;
