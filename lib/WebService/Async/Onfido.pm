@@ -401,8 +401,7 @@ sub applicant_check {
     )};
     $self->ua->POST(
         $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
-        encode_json_utf8(\%args),
-        content_type => 'application/json',
+        [ %args ],
         $self->auth_headers,
     )->then(sub {
         try {
