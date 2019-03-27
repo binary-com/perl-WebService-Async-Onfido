@@ -391,7 +391,7 @@ Returns a L<Future> which will resolve with the result.
 sub applicant_check {
     my ($self, %args) = @_;
     $self->ua->POST(
-        $self->endpoint('checks'),
+        $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
         encode_json_utf8(\%args),
         content_type => 'application/json',
         $self->auth_headers,
