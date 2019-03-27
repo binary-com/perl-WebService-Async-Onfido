@@ -423,7 +423,7 @@ sub live_photo_upload {
             my $data = decode_json_utf8($res->decoded_content);
             $log->tracef('Have response %s', $data);
             return Future->done(
-                WebService::Async::Onfido::LivePhoto->new(
+                WebService::Async::Onfido::Photo->new(
                     %$data,
                     onfido => $self
                 )
