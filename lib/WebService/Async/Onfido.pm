@@ -403,6 +403,7 @@ sub live_photo_upload {
         ],
         %{$self->auth_headers},
     );
+    $log->tracef('Photo upload: %s', $req->as_string("\n"));
     $self->ua->do_request(
         request => $req,
     )->catch(
