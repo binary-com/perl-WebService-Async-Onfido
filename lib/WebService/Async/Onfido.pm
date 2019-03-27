@@ -370,6 +370,71 @@ sub document_upload {
     })
 }
 
+=head2 live_photo_upload
+
+Uploads a single "live photo" for a given applicant.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<applicant_id> - ID for the person this photo relates to
+
+=item * C<advanced_validation> - perform additional validation (ensure we only have a single face)
+
+=item * C<filename> - the file name to use for this item
+
+=item * C<data> - the bytes for this image file (must be in JPEG format)
+
+=back
+
+=cut
+
+sub live_photo_upload {
+    my ($self, %args) = @_;
+    my $uri = $self->endpoint('live_photos');
+    $args{advanced_validation} = $args{advanced_validation} ? 1 : 0;
+    my $req = HTTP::Request::Common::POST(
+        $uri,
+        content_type => 'form-data',
+        content => [
+            %args{grep { exists $args{$_} } qw(advanced_validation applicant_id)},
+            file => [ undef, $args{filename}, 'Content-Type' => 'image/jpeg', Content => $args{data} ],
+        ],
+        %{$self->auth_headers},
+    );
+    $self->ua->do_request(
+        request => $req,
+    )->catch(
+        http => sub {
+            my ($message, undef, $response, $request) = @_;
+            $log->errorf('Request %s received %s with full response as %s',
+                $request->as_string("\n"),
+                $message,
+                $response->as_string("\n"),
+            );
+            # Just pass it on
+            Future->fail($message, http => $response, $request);
+        }
+    )->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->decoded_content);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::LivePhoto->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
 =head2 applicant_check
 
 Perform an identity check on an applicant.
