@@ -392,7 +392,7 @@ Takes the following named parameters:
 
 sub live_photo_upload {
     my ($self, %args) = @_;
-    my $uri = $self->endpoint('live_photos');
+    my $uri = $self->endpoint('photo_upload');
     $args{advanced_validation} = $args{advanced_validation} ? 1 : 0;
     my $req = HTTP::Request::Common::POST(
         $uri,
