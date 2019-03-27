@@ -5,6 +5,7 @@ requires 'Dir::Self', 0;
 requires 'URI', 0;
 requires 'URI::QueryParam', 0;
 requires 'URI::Template', 0;
+requires 'URI::Escape', 0;
 
 requires 'Net::Async::HTTP', 0;
 requires 'JSON::MaybeUTF8', 0;

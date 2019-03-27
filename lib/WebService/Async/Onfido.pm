@@ -35,6 +35,7 @@ use HTTP::Request::Common;
 use JSON::MaybeUTF8 qw(:v1);
 use JSON::MaybeXS;
 use File::ShareDir;
+use URI::Escape qw(uri_escape_utf8);
 
 use WebService::Async::Onfido::Applicant;
 use WebService::Async::Onfido::Address;
@@ -399,9 +400,15 @@ sub applicant_check {
     $_ = $_ ? JSON()->true : JSON()->false for @args{qw(
         suppress_form_emails async charge_applicant_for_check
     )};
+    my $reports = delete $args{reports};
+    my $tags = delete $args{tags};
+    my @content = map { uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_}) } sort keys %args;
+    push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+    push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
     $self->ua->POST(
         $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
-        [ %args ],
+        join('&', @content),
+        content_type => 'application/x-www-form-urlencoded',
         $self->auth_headers,
     )->then(sub {
         try {
