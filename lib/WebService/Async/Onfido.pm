@@ -344,7 +344,7 @@ sub document_upload {
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
-                $request->as_string("\n"),
+                $request->uri,
                 $message,
                 $response->as_string("\n"),
             );
@@ -410,7 +410,7 @@ sub live_photo_upload {
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
-                $request->as_string("\n"),
+                $request->uri,
                 $message,
                 $response->as_string("\n"),
             );
