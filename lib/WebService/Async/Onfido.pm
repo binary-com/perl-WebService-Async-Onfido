@@ -29,6 +29,7 @@ use URI::QueryParam;
 use URI::Template;
 use Ryu::Async;
 
+use File::Basename;
 use Path::Tiny;
 use Net::Async::HTTP;
 use HTTP::Request::Common;
@@ -46,6 +47,15 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
+
+# Mapping file extension to mime type for currently
+# supported document types
+my %FILE_MIME_TYPE_MAPPING = (
+    jpg  => 'image/jpeg',
+    jpeg => 'image/jpeg',
+    png  => 'image/png',
+    pdf  => 'application/pdf',
+);
 
 sub configure {
     my ($self, %args) = @_;
@@ -334,7 +344,7 @@ sub document_upload {
         content_type => 'form-data',
         content => [
             %args{grep { exists $args{$_} } qw(type side issuing_country)},
-            file => [ undef, $args{filename}, 'Content-Type' => 'image/jpeg', Content => $args{data} ],
+            file => [ undef, $args{filename}, 'Content-Type' => _get_mime_type($args{filename}), Content => $args{data} ],
         ],
         %{$self->auth_headers},
     );
@@ -399,7 +409,7 @@ sub live_photo_upload {
         content_type => 'form-data',
         content => [
             %args{grep { exists $args{$_} } qw(advanced_validation applicant_id)},
-            file => [ undef, $args{filename}, 'Content-Type' => 'image/jpeg', Content => $args{data} ],
+            file => [ undef, $args{filename}, 'Content-Type' => _get_mime_type($args{filename}), Content => $args{data} ],
         ],
         %{$self->auth_headers},
     );
@@ -598,6 +608,14 @@ sub ryu {
 sub source {
     my ($self) = shift;
     $self->ryu->source(@_)
+}
+
+sub _get_mime_type {
+    my $filename = shift;
+
+    my $ext = (fileparse($filename, "[^.]+"))[2];
+
+    return $FILE_MIME_TYPE_MAPPING{lc($ext // '')} // 'application/octet-stream';
 }
 
 1;
