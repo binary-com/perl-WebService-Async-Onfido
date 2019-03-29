@@ -579,7 +579,7 @@ sub ua {
                 fail_on_error            => 1,
                 decode_content           => 1,
                 pipeline                 => 0,
-                timeout                  => 5,
+                stall_timeout            => 60,
                 max_connections_per_host => 4,
                 user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; BINARY@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
