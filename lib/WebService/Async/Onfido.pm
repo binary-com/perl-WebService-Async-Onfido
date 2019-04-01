@@ -403,7 +403,7 @@ Takes the following named parameters:
 sub live_photo_upload {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo_upload');
-    $args{advanced_validation} = $args{advanced_validation} ? 1 : 0;
+    $args{advanced_validation} = $args{advanced_validation} ? 'true' : 'false';
     my $req = HTTP::Request::Common::POST(
         $uri,
         content_type => 'form-data',
