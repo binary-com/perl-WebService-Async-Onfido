@@ -110,6 +110,33 @@ sub applicant_list {
     return $src;
 }
 
+=head2 extract_links
+
+Given a set of strings representing the C<Link> headers in an HTTP response,
+extracts the URIs based on the C<rel> attribute as described in
+L<RFC5988|http://tools.ietf.org/html/rfc5988>.
+
+Returns a list of key, value pairs where the key contains the lowercase C<rel> value
+and the value is a L<URI> instance.
+
+ my %links = $self->extract_links($res->header('Link'))
+ print "Last page would be $links{last}"
+
+=cut
+
+sub extract_links {
+    my ($self, @links) = @_;
+    my %links;
+    for (map { split /\h*,\h*/ } @links) {
+        # Format is like:
+        # <https://api.onfido.com/v2/applicants?page=2>; rel="next"
+        if(my ($url, $rel) = m{<(http[^>]+)>;\h*rel="([^"]+)"}) {
+            $links{lc $rel} = URI->new($url);
+        }
+    }
+    return %links
+}
+
 =head2 applicant_create
 
 Creates a new applicant record.
