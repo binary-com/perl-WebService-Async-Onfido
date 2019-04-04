@@ -29,6 +29,8 @@ use URI::QueryParam;
 use URI::Template;
 use Ryu::Async;
 
+use Future;
+use Future::Utils qw(repeat);
 use File::Basename;
 use Path::Tiny;
 use Net::Async::HTTP;
@@ -77,36 +79,49 @@ each applicant found.
 sub applicant_list {
     my ($self, %args) = @_;
     my $src = $self->source;
-    $self->ua->GET(
-        $self->endpoint('applicants'),
-        $self->auth_headers,
-    )->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
-            my $f = $src->completed;
-            $log->tracef('Have response %s', $data);
-            for(@{$data->{applicants}}) {
-                return $f if $f->is_ready;
-                $src->emit(
-                    WebService::Async::Onfido::Applicant->new(
-                        %$_,
-                        onfido => $self
-                    )
-                );
+    my $f = $src->completed;
+    my $uri = $self->endpoint('applicants');
+    (repeat {
+        $log->tracef('GET %s', "$uri");
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )->then(sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8($res->content);
+                $log->tracef('Have response %s', $data);
+                my ($total) = $res->header('X-Total-Count');
+                $log->tracef('Expected total count %d', $total);
+                for(@{$data->{applicants}}) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Applicant->new(
+                            %$_,
+                            onfido => $self
+                        )
+                    );
+                }
+                $log->tracef('Links are %s', [ $res->header('Link') ]);
+                my %links = $self->extract_links($res->header('Link'));
+                if(my $next = $links{next}) {
+                    ($uri) = $next;
+                } else {
+                    $f->done unless $f->is_ready;
+                }
+                return Future->done;
+            } catch {
+                my ($err) = $@;
+                $log->errorf('Failed - %s', $err);
+                return Future->fail($err);
             }
-            $f->done unless $f->is_ready;
-            return Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
-        }
-    }, sub {
-        my ($err, @details) = @_;
-        $log->errorf('Failed to request document_list: %s', $err);
-        $src->completed->fail($err, @details) unless $src->completed->is_ready;
-    })->retain;
+        }, sub {
+            my ($err, @details) = @_;
+            $log->errorf('Failed to request document_list: %s', $err);
+            $src->completed->fail($err, @details) unless $src->completed->is_ready;
+            Future->fail($err, @details);
+        })
+    } until => sub { $f->is_ready })->retain;
     return $src;
 }
 
