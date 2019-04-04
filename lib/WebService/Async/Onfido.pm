@@ -29,6 +29,8 @@ use URI::QueryParam;
 use URI::Template;
 use Ryu::Async;
 
+use Future;
+use Future::Utils qw(repeat);
 use File::Basename;
 use Path::Tiny;
 use Net::Async::HTTP;
@@ -77,37 +79,77 @@ each applicant found.
 sub applicant_list {
     my ($self, %args) = @_;
     my $src = $self->source;
-    $self->ua->GET(
-        $self->endpoint('applicants'),
-        $self->auth_headers,
-    )->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
-            my $f = $src->completed;
-            $log->tracef('Have response %s', $data);
-            for(@{$data->{applicants}}) {
-                return $f if $f->is_ready;
-                $src->emit(
-                    WebService::Async::Onfido::Applicant->new(
-                        %$_,
-                        onfido => $self
-                    )
-                );
+    my $f = $src->completed;
+    my $uri = $self->endpoint('applicants');
+    (repeat {
+        $log->tracef('GET %s', "$uri");
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )->then(sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8($res->content);
+                $log->tracef('Have response %s', $data);
+                my ($total) = $res->header('X-Total-Count');
+                $log->tracef('Expected total count %d', $total);
+                for(@{$data->{applicants}}) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Applicant->new(
+                            %$_,
+                            onfido => $self
+                        )
+                    );
+                }
+                $log->tracef('Links are %s', [ $res->header('Link') ]);
+                my %links = $self->extract_links($res->header('Link'));
+                if(my $next = $links{next}) {
+                    ($uri) = $next;
+                } else {
+                    $f->done unless $f->is_ready;
+                }
+                return Future->done;
+            } catch {
+                my ($err) = $@;
+                $log->errorf('Failed - %s', $err);
+                return Future->fail($err);
             }
-            $f->done unless $f->is_ready;
-            return Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
-        }
-    }, sub {
-        my ($err, @details) = @_;
-        $log->errorf('Failed to request document_list: %s', $err);
-        $src->completed->fail($err, @details) unless $src->completed->is_ready;
-    })->retain;
+        }, sub {
+            my ($err, @details) = @_;
+            $log->errorf('Failed to request document_list: %s', $err);
+            $src->completed->fail($err, @details) unless $src->completed->is_ready;
+            Future->fail($err, @details);
+        })
+    } until => sub { $f->is_ready })->retain;
     return $src;
+}
+
+=head2 extract_links
+
+Given a set of strings representing the C<Link> headers in an HTTP response,
+extracts the URIs based on the C<rel> attribute as described in
+L<RFC5988|http://tools.ietf.org/html/rfc5988>.
+
+Returns a list of key, value pairs where the key contains the lowercase C<rel> value
+and the value is a L<URI> instance.
+
+ my %links = $self->extract_links($res->header('Link'))
+ print "Last page would be $links{last}"
+
+=cut
+
+sub extract_links {
+    my ($self, @links) = @_;
+    my %links;
+    for (map { split /\h*,\h*/ } @links) {
+        # Format is like:
+        # <https://api.onfido.com/v2/applicants?page=2>; rel="next"
+        if(my ($url, $rel) = m{<(http[^>]+)>;\h*rel="([^"]+)"}) {
+            $links{lc $rel} = URI->new($url);
+        }
+    }
+    return %links
 }
 
 =head2 applicant_create
@@ -132,7 +174,7 @@ sub applicant_create {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Applicant->new(
@@ -166,7 +208,7 @@ sub applicant_delete {
         try {
             my ($res) = @_;
             return Future->done if $res->code == 204;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->fail($data);
         } catch {
@@ -194,7 +236,7 @@ sub applicant_get {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Applicant->new(
@@ -238,7 +280,7 @@ sub document_list {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             my $f = $src->completed;
             $log->tracef('Have response %s', $data);
             for(@{$data->{documents}}) {
@@ -290,7 +332,7 @@ sub photo_list {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             my $f = $src->completed;
             $log->tracef('Have response %s', $data);
             for(@{$data->{live_photos}}) {
@@ -364,7 +406,7 @@ sub document_upload {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Document->new(
@@ -430,7 +472,7 @@ sub live_photo_upload {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Photo->new(
@@ -511,7 +553,7 @@ sub applicant_check {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Check->new(
