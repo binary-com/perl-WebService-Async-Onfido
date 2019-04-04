@@ -10,6 +10,9 @@ use Log::Any qw($log);
 use Getopt::Long;
 use JSON::MaybeXS;
 
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+
 require Log::Any::Adapter;
 GetOptions(
     't|token=s' => \my $token,
