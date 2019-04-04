@@ -174,7 +174,7 @@ sub applicant_create {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Applicant->new(
@@ -208,7 +208,7 @@ sub applicant_delete {
         try {
             my ($res) = @_;
             return Future->done if $res->code == 204;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->fail($data);
         } catch {
@@ -236,7 +236,7 @@ sub applicant_get {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Applicant->new(
@@ -280,7 +280,7 @@ sub document_list {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             my $f = $src->completed;
             $log->tracef('Have response %s', $data);
             for(@{$data->{documents}}) {
@@ -332,7 +332,7 @@ sub photo_list {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             my $f = $src->completed;
             $log->tracef('Have response %s', $data);
             for(@{$data->{live_photos}}) {
@@ -406,7 +406,7 @@ sub document_upload {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Document->new(
@@ -472,7 +472,7 @@ sub live_photo_upload {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Photo->new(
@@ -553,7 +553,7 @@ sub applicant_check {
     )->then(sub {
         try {
             my ($res) = @_;
-            my $data = decode_json_utf8($res->decoded_content);
+            my $data = decode_json_utf8($res->content);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Check->new(
