@@ -61,7 +61,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token)) {
+    for my $k (qw(token requests_per_minute)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -736,7 +736,7 @@ sub rate_limiting {
             delete $self->{rate_limit};
         })
     };
-    return Future->done unless ++$self->{request_count} >= $self->requests_per_minute;
+    return Future->done unless $self->requests_per_minute and ++$self->{request_count} >= $self->requests_per_minute;
     return $self->{rate_limit};
 }
 
