@@ -680,7 +680,7 @@ sub ua {
                 decode_content           => 1,
                 pipeline                 => 0,
                 stall_timeout            => 60,
-                max_connections_per_host => 4,
+                max_connections_per_host => 2,
                 user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; BINARY@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
         );
