@@ -569,6 +569,44 @@ sub applicant_check {
     })
 }
 
+sub check_list {
+    my ($self, %args) = @_;
+    my $applicant_id = delete $args{applicant_id} or die 'Need an applicant ID';
+    my $src = $self->source;
+    my $f = $src->completed;
+    my $uri = $self->endpoint('checks', applicant_id => $applicant_id);
+    $log->tracef('GET %s', "$uri");
+    $self->ua->do_request(
+        uri    => $uri,
+        method => 'GET',
+        $self->auth_headers,
+    )->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            my ($total) = $res->header('X-Total-Count');
+            $log->tracef('Expected total count %d', $total);
+            for(@{$data->{checks}}) {
+                return $f if $f->is_ready;
+                $src->emit(
+                    WebService::Async::Onfido::Check->new(
+                        %$_,
+                        onfido => $self
+                    )
+                );
+            }
+            $f->done unless $f->is_ready;
+            Future->done;
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })->retain;
+    return $src;
+}
+
 =head2 endpoints
 
 Returns an accessor for the endpoints data. This is a hashref containing URI
