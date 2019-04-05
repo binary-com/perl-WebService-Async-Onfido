@@ -552,7 +552,11 @@ sub applicant_check {
     } sort keys %args;
     for my $report (@$reports) {
         if(ref $report) {
-            push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %$report;
+            my %copy = %$report;
+            my $docs = delete($copy{documents}) || [];
+            $docs = [ $docs ] unless ref $docs;
+            push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
+            push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
         } else {
             push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
         }
