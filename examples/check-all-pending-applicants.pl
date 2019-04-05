@@ -38,10 +38,12 @@ $loop->add(
 
 # When submitting checks, Onfido expects an identity document,
 # so we prioritise the IDs that have a better chance of a good
-# match.
+# match. This does not cover all the types, but anything without
+# a photo is unlikely to work well anyway.
 my %document_priority = (
     uk_biometric_residence_permit => 5,
     passport                      => 4,
+    passport_card                 => 4,
     national_identity_card        => 3,
     driving_licence               => 2,
     voter_id                      => 1,
