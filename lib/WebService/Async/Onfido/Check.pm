@@ -15,6 +15,12 @@ WebService::Async::Onfido::Check - represents data for Onfido
 
 =cut
 
+sub as_string {
+    my ($self) = @_;
+    sprintf 'Check %s, result was %s (created %s as ID %s)', $self->status, $self->result, $self->created_at, $self->id
+}
+
+sub applicant { shift->{applicant} // die 'no applicant defined' }
 
 1;
 
