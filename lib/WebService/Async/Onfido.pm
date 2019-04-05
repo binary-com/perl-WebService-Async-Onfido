@@ -61,7 +61,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token)) {
+    for my $k (qw(token requests_per_minute)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -83,10 +83,12 @@ sub applicant_list {
     my $uri = $self->endpoint('applicants');
     (repeat {
         $log->tracef('GET %s', "$uri");
-        $self->ua->GET(
-            $uri,
-            $self->auth_headers,
-        )->then(sub {
+        $self->rate_limiting->then(sub {
+            $self->ua->GET(
+                $uri,
+                $self->auth_headers,
+            )
+        })->then(sub {
             try {
                 my ($res) = @_;
                 my $data = decode_json_utf8($res->content);
@@ -166,12 +168,14 @@ instance on successful completion.
 
 sub applicant_create {
     my ($self, %args) = @_;
-    $self->ua->POST(
-        $self->endpoint('applicants'),
-        encode_json_utf8(\%args),
-        content_type => 'application/json',
-        $self->auth_headers,
-    )->then(sub {
+    $self->rate_limiting->then(sub {
+        $self->ua->POST(
+            $self->endpoint('applicants'),
+            encode_json_utf8(\%args),
+            content_type => 'application/json',
+            $self->auth_headers,
+        )
+    })->then(sub {
         try {
             my ($res) = @_;
             my $data = decode_json_utf8($res->content);
@@ -200,11 +204,13 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_delete {
     my ($self, %args) = @_;
-    $self->ua->do_request(
-        uri => $self->endpoint('applicant', %args),
-        method => 'DELETE',
-        $self->auth_headers,
-    )->then(sub {
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri => $self->endpoint('applicant', %args),
+            method => 'DELETE',
+            $self->auth_headers,
+        )
+    })->then(sub {
         try {
             my ($res) = @_;
             return Future->done if $res->code == 204;
@@ -229,11 +235,13 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
 sub applicant_get {
     my ($self, %args) = @_;
-    $self->ua->do_request(
-        uri => $self->endpoint('applicant', %args),
-        method => 'GET',
-        $self->auth_headers,
-    )->then(sub {
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri => $self->endpoint('applicant', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
         try {
             my ($res) = @_;
             my $data = decode_json_utf8($res->content);
@@ -273,10 +281,12 @@ sub document_list {
     my ($self, %args) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('documents', %args);
-    $self->ua->GET(
-        $uri,
-        $self->auth_headers,
-    )->then(sub {
+    $self->rate_limiting->then(sub {
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )
+    })->then(sub {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
@@ -325,10 +335,12 @@ sub photo_list {
     my ($self, %args) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('photos', %args);
-    $self->ua->GET(
-        $uri,
-        $self->auth_headers,
-    )->then(sub {
+    $self->rate_limiting->then(sub {
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )
+    })->then(sub {
         try {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
@@ -390,9 +402,11 @@ sub document_upload {
         ],
         %{$self->auth_headers},
     );
-    $self->ua->do_request(
-        request => $req,
-    )->catch(
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            request => $req,
+        )
+    })->catch(
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
@@ -456,9 +470,11 @@ sub live_photo_upload {
         %{$self->auth_headers},
     );
     $log->tracef('Photo upload: %s', $req->as_string("\n"));
-    $self->ua->do_request(
-        request => $req,
-    )->catch(
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            request => $req,
+        )
+    })->catch(
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
@@ -529,17 +545,31 @@ sub applicant_check {
     $_ = $_ ? 'true' : 'false' for @args{qw(
         suppress_form_emails async charge_applicant_for_check
     )};
-    my $reports = delete $args{reports};
+    my $reports = delete($args{reports}) || [];
     my $tags = delete $args{tags};
-    my @content = map { uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_}) } sort keys %args;
-    push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+    my @content = map {
+        uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_})
+    } sort keys %args;
+    for my $report (@$reports) {
+        if(ref $report) {
+            my %copy = %$report;
+            my $docs = delete($copy{documents}) || [];
+            $docs = [ $docs ] unless ref $docs;
+            push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
+            push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
+        } else {
+            push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+        }
+    }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
-    $self->ua->POST(
-        $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
-        join('&', @content),
-        content_type => 'application/x-www-form-urlencoded',
-        $self->auth_headers,
-    )->catch(
+    $self->rate_limiting->then(sub {
+        $self->ua->POST(
+            $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
+            join('&', @content),
+            content_type => 'application/x-www-form-urlencoded',
+            $self->auth_headers,
+        )
+    })->catch(
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
@@ -567,6 +597,46 @@ sub applicant_check {
             return Future->fail($err);
         }
     })
+}
+
+sub check_list {
+    my ($self, %args) = @_;
+    my $applicant_id = delete $args{applicant_id} or die 'Need an applicant ID';
+    my $src = $self->source;
+    my $f = $src->completed;
+    my $uri = $self->endpoint('checks', applicant_id => $applicant_id);
+    $log->tracef('GET %s', "$uri");
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri    => $uri,
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            my ($total) = $res->header('X-Total-Count');
+            $log->tracef('Expected total count %d', $total);
+            for(@{$data->{checks}}) {
+                return $f if $f->is_ready;
+                $src->emit(
+                    WebService::Async::Onfido::Check->new(
+                        %$_,
+                        onfido => $self
+                    )
+                );
+            }
+            $f->done unless $f->is_ready;
+            Future->done;
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })->retain;
+    return $src;
 }
 
 =head2 endpoints
@@ -622,7 +692,7 @@ sub ua {
                 decode_content           => 1,
                 pipeline                 => 0,
                 stall_timeout            => 60,
-                max_connections_per_host => 4,
+                max_connections_per_host => 2,
                 user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; BINARY@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
         );
@@ -646,6 +716,43 @@ sub ryu {
         $ryu
     }
 }
+
+=head2 is_rate_limited
+
+Returns true if we are currently rate limited, false otherwise.
+
+May eventually be updated to return number of seconds that you need to wait.
+
+=cut
+
+sub is_rate_limited {
+    my ($self) = @_;
+    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_minute; 
+}
+
+=head2 rate_limiting
+
+Applies rate limiting check.
+
+Returns a L<Future> which will resolve once it's safe to send further requests.
+
+=cut
+
+sub rate_limiting {
+    my ($self) = @_;
+    $self->{rate_limit} //= do {
+        $self->loop->delay_future(
+            after => 60
+        )->on_ready(sub {
+            $self->{request_count} = 0;
+            delete $self->{rate_limit};
+        })
+    };
+    return Future->done unless $self->requests_per_minute and ++$self->{request_count} >= $self->requests_per_minute;
+    return $self->{rate_limit};
+}
+
+sub requests_per_minute { shift->{requests_per_minute} //= 300 }
 
 sub source {
     my ($self) = shift;

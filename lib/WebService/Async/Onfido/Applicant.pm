@@ -30,12 +30,38 @@ sub documents {
     )->map(sub { $_->{applicant} = $self; $_ });
 }
 
+sub photos {
+    my ($self, %args) = @_;
+    $self->onfido->photo_list(
+        applicant_id => $self->id,
+        %args
+    )->map(sub { $_->{applicant} = $self; $_ });
+}
+
+sub checks {
+    my ($self, %args) = @_;
+    $self->onfido->check_list(
+        applicant_id => $self->id,
+        %args
+    )->map(sub { $_->{applicant} = $self; $_ });
+}
+
 sub delete : method {
     my ($self, %args) = @_;
     return $self->onfido->applicant_delete(
         applicant_id => $self->id,
         %args
     );
+}
+
+sub check {
+    my ($self, %args) = @_;
+    return $self->onfido->applicant_check(
+        applicant_id => $self->id,
+        %args,
+    )->on_done(sub {
+        shift->{applicant} = $self;
+    });
 }
 
 sub get : method {
