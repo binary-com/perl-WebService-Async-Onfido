@@ -545,10 +545,18 @@ sub applicant_check {
     $_ = $_ ? 'true' : 'false' for @args{qw(
         suppress_form_emails async charge_applicant_for_check
     )};
-    my $reports = delete $args{reports};
+    my $reports = delete($args{reports}) || [];
     my $tags = delete $args{tags};
-    my @content = map { uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_}) } sort keys %args;
-    push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+    my @content = map {
+        uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_})
+    } sort keys %args;
+    for my $report (@$reports) {
+        if(ref $report) {
+            push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %$report;
+        } else {
+            push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+        }
+    }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
     $self->rate_limiting->then(sub {
         $self->ua->POST(
