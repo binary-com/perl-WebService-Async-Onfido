@@ -3,6 +3,7 @@
     "applicant": "/v2/applicants/{applicant_id}",
     "documents": "/v2/applicants/{applicant_id}/documents",
     "checks": "/v2/applicants/{applicant_id}/checks",
+    "check": "/v2/checks/{check_id}",
     "photos": "/v2/live_photos{?applicant_id}",
     "photo_upload": "/v2/live_photos",
     "reports": "/v2/checks/{check_id}/reports",

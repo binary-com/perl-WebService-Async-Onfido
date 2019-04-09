@@ -260,6 +260,33 @@ sub applicant_get {
     })
 }
 
+sub check_get {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri    => $self->endpoint('check', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::Check->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
 =head2 document_list
 
 List all documents for a given L<WebService::Async::Onfido::Applicant>.
