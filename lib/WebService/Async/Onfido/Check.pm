@@ -22,6 +22,16 @@ sub as_string {
 
 sub applicant { shift->{applicant} // die 'no applicant defined' }
 
+sub reports {
+	my ($self, %args) = @_;
+	
+	return Ryu::Source->from($self->{reports}) if $self->{reports};
+	return $self->onfido->report_list(
+		check_id => $self->id,
+		%args
+	)->map(sub { $_->{check} = $self; $_ });
+}
+
 1;
 
 __END__
