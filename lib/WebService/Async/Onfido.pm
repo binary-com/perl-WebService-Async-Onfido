@@ -715,7 +715,7 @@ sub report_list {
             my ($res) = @_;
 
             my $data = decode_json_utf8($res->content);
-            for(@{$data->{checks}}) {
+            for(@{$data->{reports}}) {
                 return $f if $f->is_ready;
                 $src->emit(
                     WebService::Async::Onfido::Report->new(
