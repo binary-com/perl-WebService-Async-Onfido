@@ -15,12 +15,26 @@ WebService::Async::Onfido::Check - represents data for Onfido
 
 =cut
 
+use Log::Any qw($log);
+
 sub as_string {
     my ($self) = @_;
     sprintf 'Check %s, result was %s (created %s as ID %s)', $self->status, $self->result, $self->created_at, $self->id
 }
 
 sub applicant { shift->{applicant} // die 'no applicant defined' }
+
+sub onfido { shift->{onfido} }
+
+sub reports {
+	my ($self, %args) = @_;
+	
+	# return Ryu::Source->from($self->{reports}) if $self->{reports};
+	return $self->onfido->report_list(
+		check_id => $self->id,
+		%args
+	)->map(sub { $log->infof('Have report %s', $_->as_string);  $_->{check} = $self; $_ });
+}
 
 1;
 

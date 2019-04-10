@@ -90,6 +90,11 @@ my $handler = async sub {
                     name      => 'document',
                     documents => [ $doc->id ],
                 },
+                {
+                    name      => 'facial_similarity',
+                    variant   => 'standard',
+                    documents => [ $doc->id ],
+                }
             ],
             # async flag if true will queue checks for processing and
             # return a response immediately
