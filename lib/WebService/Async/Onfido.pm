@@ -260,6 +260,33 @@ sub applicant_get {
     })
 }
 
+sub check_get {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri    => $self->endpoint('check', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::Check->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
 =head2 document_list
 
 List all documents for a given L<WebService::Async::Onfido::Applicant>.
@@ -623,6 +650,75 @@ sub check_list {
                 return $f if $f->is_ready;
                 $src->emit(
                     WebService::Async::Onfido::Check->new(
+                        %$_,
+                        onfido => $self
+                    )
+                );
+            }
+            $f->done unless $f->is_ready;
+            Future->done;
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })->retain;
+    return $src;
+}
+
+sub report_get {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri => $self->endpoint('report', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::Report->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
+sub report_list {
+    my ($self, %args) = @_;
+
+    my $check_id = delete $args{check_id} or die 'Need a check ID';
+
+    my $src = $self->source;
+    my $f = $src->completed;
+
+    my $uri = $self->endpoint('reports', check_id => $check_id);
+    $log->tracef('GET %s', "$uri");
+
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri    => $uri,
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+
+            my $data = decode_json_utf8($res->content);
+            for(@{$data->{reports}}) {
+                return $f if $f->is_ready;
+                $src->emit(
+                    WebService::Async::Onfido::Report->new(
                         %$_,
                         onfido => $self
                     )
