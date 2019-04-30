@@ -194,6 +194,33 @@ sub applicant_create {
     })
 }
 
+=head2 applicant_update
+
+=cut
+
+sub applicant_update {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->PUT(
+            $self->endpoint('applicants'),
+            encode_json_utf8(\%args),
+            content_type => 'application/json',
+            $self->auth_headers,
+        )
+    })->then( sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done();
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Update failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
 =head2 applicant_delete
 
 Deletes a single applicant.
