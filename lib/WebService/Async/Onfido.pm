@@ -196,6 +196,10 @@ sub applicant_create {
 
 =head2 applicant_update
 
+Updates a single applicant.
+
+Returns a L<Future> which resolves to empty on success.
+
 =cut
 
 sub applicant_update {
