@@ -188,7 +188,7 @@ sub applicant_create {
             );
         } catch {
             my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
+            $log->errorf('Applicant creation failed - %s', $err);
             return Future->fail($err);
         }
     })
@@ -219,7 +219,7 @@ sub applicant_update {
             return Future->done();
         } catch {
             my ($err) = $@;
-            $log->errorf('Update failed - %s', $err);
+            $log->errorf('Applicant update failed - %s', $err);
             return Future->fail($err);
         }
     })
@@ -250,7 +250,7 @@ sub applicant_delete {
             return Future->fail($data);
         } catch {
             my ($err) = $@;
-            $log->errorf('Applicant update failed - %s', $err);
+            $log->errorf('Applicant delete failed - %s', $err);
             return Future->fail($err);
         }
     })
