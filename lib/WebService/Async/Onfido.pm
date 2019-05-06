@@ -250,7 +250,7 @@ sub applicant_delete {
             return Future->fail($data);
         } catch {
             my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
+            $log->errorf('Applicant update failed - %s', $err);
             return Future->fail($err);
         }
     })
