@@ -127,6 +127,70 @@ sub applicant_list {
     return $src;
 }
 
+=head2 paging
+
+Supports paging through HTTP GET requests.
+
+=over 4
+
+=item * C<$starting_uri> - the initial L<URI> to request
+
+=item * C<$factory> - a C<sub> that we will call with a L<Ryu::Source> and expect to return
+a second response-processing C<sub>.
+
+=back
+
+Returns a L<Ryu::Source>.
+
+=cut
+
+sub paging {
+    my ($self, $starting_uri, $factory) = @_;
+    my $uri = ref($starting_uri)
+    ? $starting_uri->clone
+    : URI->new($starting_uri);
+
+    my $src = $self->source;
+    my $f = $src->completed;
+    my $code = $factory->($src);
+    (repeat {
+        $log->tracef('GET %s', "$uri");
+        $self->rate_limiting->then(sub {
+            $self->ua->GET(
+                $uri,
+                $self->auth_headers,
+            )
+        })->then(sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8($res->content);
+                $log->tracef('Have response %s', $data);
+                my ($total) = $res->header('X-Total-Count');
+                $log->tracef('Expected total count %d', $total);
+                $code->($data);
+                $log->tracef('Links are %s', [ $res->header('Link') ]);
+                my %links = $self->extract_links($res->header('Link'));
+                if(my $next = $links{next}) {
+                    ($uri) = $next;
+                } else {
+                    $f->done unless $f->is_ready;
+                }
+                return Future->done;
+            } catch {
+                my ($err) = $@;
+                $log->errorf('Failed - %s', $err);
+                return Future->fail($err);
+            }
+        }, sub {
+            my ($err, @details) = @_;
+            $log->errorf('Failed to request %s: %s', $uri, $err);
+            $src->completed->fail($err, @details) unless $src->completed->is_ready;
+            Future->fail($err, @details);
+        })
+    } until => sub { $f->is_ready })->retain;
+    return $src;
+}
+
 =head2 extract_links
 
 Given a set of strings representing the C<Link> headers in an HTTP response,
