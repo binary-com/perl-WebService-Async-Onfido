@@ -206,7 +206,7 @@ sub applicant_update {
     my ($self, %args) = @_;
     $self->rate_limiting->then(sub {
         $self->ua->PUT(
-            $self->endpoint('applicants'),
+            $self->endpoint('applicant', %args),
             encode_json_utf8(\%args),
             content_type => 'application/json',
             $self->auth_headers,
