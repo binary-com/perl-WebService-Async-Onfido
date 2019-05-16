@@ -7,5 +7,6 @@
     "photos": "/v2/live_photos{?applicant_id}",
     "photo_upload": "/v2/live_photos",
     "reports": "/v2/checks/{check_id}/reports",
-    "report": "/v2/checks/{check_id}/reports/{report_id}"
+    "report": "/v2/checks/{check_id}/reports/{report_id}",
+    "sdk_token": "/v2/sdk_token"
 }

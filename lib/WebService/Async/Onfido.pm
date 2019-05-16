@@ -659,6 +659,8 @@ service account
 
 Returns a L<Future> which will resolve with the result.
 
+=back
+
 =cut
 
 sub applicant_check {
@@ -830,6 +832,47 @@ sub report_list {
     return $src;
 }
 
+=head2 sdk_token
+
+Returns the generated Onfido Web SDK token for the applicant.
+
+L<https://documentation.onfido.com/#web-sdk-tokens>
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<applicant_id> - ID of the applicant to request the token for
+
+=item * C<referrer> - the URL of the web page where the Web SDK will be used
+
+=back
+
+=cut
+
+sub sdk_token {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->POST(
+            $self->endpoint('sdk_token'),
+            encode_json_utf8(\%args),
+            content_type => 'application/json',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done($data);
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Token generation failed - %s', $err);
+            return Future->fail($err);
+        }
+    });
+}
+
 =head2 endpoints
 
 Returns an accessor for the endpoints data. This is a hashref containing URI
@@ -918,7 +961,7 @@ May eventually be updated to return number of seconds that you need to wait.
 
 sub is_rate_limited {
     my ($self) = @_;
-    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_minute; 
+    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_minute;
 }
 
 =head2 rate_limiting
