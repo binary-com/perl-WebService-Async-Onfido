@@ -39,6 +39,7 @@ use JSON::MaybeUTF8 qw(:v1);
 use JSON::MaybeXS;
 use File::ShareDir;
 use URI::Escape qw(uri_escape_utf8);
+use Locale::Codes::Country qw(country_code2code);
 
 use WebService::Async::Onfido::Applicant;
 use WebService::Async::Onfido::Address;
@@ -49,6 +50,8 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
+
+use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
 
 # Mapping file extension to mime type for currently
 # supported document types
@@ -830,6 +833,32 @@ sub report_list {
         }
     })->retain;
     return $src;
+}
+
+=head2 countries_list
+
+Returns a hashref containing 2-letter country codes as keys and supporting status
+as their value.
+
+=cut
+
+sub countries_list {
+    my ($self) = @_;
+
+    $self->ua->GET(SUPPORTED_COUNTRIES_URL)->then(sub {
+        try {
+            my ($res) = @_;
+            my $onfido_countries = decode_json_utf8($res->content);
+
+            my $countries_list = {};
+            $countries_list->{uc(country_code2code($_->{alpha3}, 'alpha-3', 'alpha-2'))} = $_->{supported_identity_report} + 0 for @$onfido_countries;
+            return Future->done($countries_list);
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    });
 }
 
 =head2 sdk_token
