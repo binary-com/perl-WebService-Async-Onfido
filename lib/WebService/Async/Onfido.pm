@@ -850,9 +850,8 @@ sub countries_list {
             my ($res) = @_;
             my $onfido_countries = decode_json_utf8($res->content);
 
-            my $countries_list = {};
-            $countries_list->{uc(country_code2code($_->{alpha3}, 'alpha-3', 'alpha-2'))} = $_->{supported_identity_report} + 0 for @$onfido_countries;
-            return Future->done($countries_list);
+            my %countries_list = map { uc(country_code2code($_->{alpha3}, 'alpha-3', 'alpha-2')) => $_->{supported_identity_report} + 0 } @$onfido_countries;
+            return Future->done({%countries_list});
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
