@@ -660,9 +660,9 @@ service account
 
 =item * C<consider> - used for sandbox API testing only
 
-Returns a L<Future> which will resolve with the result.
-
 =back
+
+Returns a L<Future> which will resolve with the result.
 
 =cut
 
