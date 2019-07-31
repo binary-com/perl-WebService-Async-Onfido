@@ -1014,7 +1014,7 @@ sub rate_limiting {
     return $self->{rate_limit};
 }
 
-sub requests_per_minute { shift->{requests_per_minute} //= 120 }
+sub requests_per_minute { shift->{requests_per_minute} //= 300 }
 
 sub source {
     my ($self) = shift;
