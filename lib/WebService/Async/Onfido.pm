@@ -439,6 +439,44 @@ sub document_list {
     return $src;
 }
 
+# sub get_document {
+#     my ($self, %args) = @_;
+#     my $src = $self->source;
+#     my $uri = $self->endpoint('document', %args);
+#     $self->rate_limiting->then(sub {
+#         $self->ua->GET(
+#             $uri,
+#             $self->auth_headers,
+#         )
+#     })->then(sub {
+#         try {
+#             my ($res) = @_;
+#             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+#             my $data = decode_json_utf8($res->content);
+#             my $f = $src->completed;
+#             $log->tracef('Have response %s', $data);
+#             for(@{$data->{documents}}) {
+#                 return $f if $f->is_ready;
+#                 $src->emit(
+#                     WebService::Async::Onfido::Document->new(
+#                         %$_,
+#                         onfido => $self
+#                     )
+#                 );
+#             }
+#             $f->done unless $f->is_ready;
+#             return Future->done;
+#         } catch {
+#             my ($err) = $@;
+#             $log->errorf('Failed - %s', $err);
+#             $src->completed->fail('Failed to get document.') unless $src->completed->is_ready;
+#             return Future->fail($err);
+#         }
+#     })->retain;
+#     return $src;
+# }
+
+
 =head2 photo_list
 
 List all photos for a given L<WebService::Async::Onfido::Applicant>.
@@ -833,6 +871,36 @@ sub report_list {
         }
     })->retain;
     return $src;
+}
+
+# TEST: NEED TO FINALIZE
+sub download_photo {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        $self->ua->do_request(
+            uri => $self->endpoint('photo_download', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            # should be a blob
+            my $data = $res->content;
+            # $log->tracef('Have response %s', $data);
+            return Future->done(
+                $data
+                # WebService::Async::Onfido::Report->new(
+                #     %$data,
+                #     onfido => $self
+                # )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
 }
 
 =head2 countries_list
