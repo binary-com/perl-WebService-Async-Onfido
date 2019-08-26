@@ -439,42 +439,36 @@ sub document_list {
     return $src;
 }
 
-# sub get_document {
-#     my ($self, %args) = @_;
-#     my $src = $self->source;
-#     my $uri = $self->endpoint('document', %args);
-#     $self->rate_limiting->then(sub {
-#         $self->ua->GET(
-#             $uri,
-#             $self->auth_headers,
-#         )
-#     })->then(sub {
-#         try {
-#             my ($res) = @_;
-#             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-#             my $data = decode_json_utf8($res->content);
-#             my $f = $src->completed;
-#             $log->tracef('Have response %s', $data);
-#             for(@{$data->{documents}}) {
-#                 return $f if $f->is_ready;
-#                 $src->emit(
-#                     WebService::Async::Onfido::Document->new(
-#                         %$_,
-#                         onfido => $self
-#                     )
-#                 );
-#             }
-#             $f->done unless $f->is_ready;
-#             return Future->done;
-#         } catch {
-#             my ($err) = $@;
-#             $log->errorf('Failed - %s', $err);
-#             $src->completed->fail('Failed to get document.') unless $src->completed->is_ready;
-#             return Future->fail($err);
-#         }
-#     })->retain;
-#     return $src;
-# }
+# NEEDS POD
+sub get_document_details {
+    my ($self, %args) = @_;
+    my $uri = $self->endpoint('document', %args);
+    $self->rate_limiting->then(sub {
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+            my $data = decode_json_utf8($res->content);
+            use Data::Dumper;
+            warn Dumper($data);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::Document->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
 
 
 =head2 photo_list
@@ -529,6 +523,35 @@ sub photo_list {
         }
     })->retain;
     return $src;
+}
+
+# TODO: ADD POD 
+sub get_photo_details {
+    my ($self, %args) = @_;
+    my $uri = $self->endpoint('photo', %args);
+    $self->rate_limiting->then(sub {
+        $self->ua->GET(
+            $uri,
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            my ($res) = @_;
+            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+            my $data = decode_json_utf8($res->content);
+            $log->tracef('Have response %s', $data);
+            return Future->done(
+                WebService::Async::Onfido::Photo->new(
+                    %$data,
+                    onfido => $self
+                )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
 }
 
 =head2 document_upload
@@ -877,6 +900,7 @@ sub report_list {
 sub download_photo {
     my ($self, %args) = @_;
     $self->rate_limiting->then(sub {
+        warn "IN DLP";
         $self->ua->do_request(
             uri => $self->endpoint('photo_download', %args),
             method => 'GET',
@@ -884,16 +908,39 @@ sub download_photo {
         )
     })->then(sub {
         try {
+            warn "pass1 ";
             my ($res) = @_;
-            # should be a blob
+            # return a blob
             my $data = $res->content;
-            # $log->tracef('Have response %s', $data);
             return Future->done(
                 $data
-                # WebService::Async::Onfido::Report->new(
-                #     %$data,
-                #     onfido => $self
-                # )
+            );
+        } catch {
+            my ($err) = $@;
+            $log->errorf('Failed - %s', $err);
+            return Future->fail($err);
+        }
+    })
+}
+
+# TEST: NEED TO FINALIZE
+sub download_document {
+    my ($self, %args) = @_;
+    $self->rate_limiting->then(sub {
+        warn "IN DLP";
+        $self->ua->do_request(
+            uri => $self->endpoint('document_download', %args),
+            method => 'GET',
+            $self->auth_headers,
+        )
+    })->then(sub {
+        try {
+            warn "pass1 ";
+            my ($res) = @_;
+            # return a blob
+            my $data = $res->content;
+            return Future->done(
+                $data
             );
         } catch {
             my ($err) = $@;
