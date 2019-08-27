@@ -973,7 +973,9 @@ Takes the following named parameters:
 
 =over 4
 
-=item * C<live_photo_id> - the L<WebService::Async::Onfido::Document/id> for the document to query
+=item * C<applicant_id> - the L<WebService::Async::Onfido::Applicant/id> for the applicant to query
+
+=item * C<document_id> - the L<WebService::Async::Onfido::Document/id> for the document to query
 
 =back
 
