@@ -439,7 +439,24 @@ sub document_list {
     return $src;
 }
 
-# NEEDS POD
+=head2 get_document_details
+
+Gets a document object for a given L<WebService::Async::Onfido::Applicant>.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<applicant_id> - the L<WebService::Async::Onfido::Applicant/id> for the applicant to query
+
+=item * C<document_id> - the L<WebService::Async::Onfido::Document/id> for the document to query
+
+=back
+
+Returns a Future object which consists of a L<WebService::Async::Onfido::Document>
+
+=cut
+
 sub get_document_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('document', %args);
@@ -453,8 +470,6 @@ sub get_document_details {
             my ($res) = @_;
             $log->tracef("GET %s => %s", $uri, $res->decoded_content);
             my $data = decode_json_utf8($res->content);
-            use Data::Dumper;
-            warn Dumper($data);
             $log->tracef('Have response %s', $data);
             return Future->done(
                 WebService::Async::Onfido::Document->new(
@@ -525,7 +540,22 @@ sub photo_list {
     return $src;
 }
 
-# TODO: ADD POD 
+=head2 get_photo_details
+
+Gets a live_photo object for a given L<WebService::Async::Onfido::Applicant>.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<live_photo_id> - the L<WebService::Async::Onfido::Photo/id> for the document to query
+
+=back
+
+Returns a Future object which consists of a L<WebService::Async::Onfido::Photo>
+
+=cut
+
 sub get_photo_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo', %args);
@@ -896,11 +926,25 @@ sub report_list {
     return $src;
 }
 
-# TEST: NEED TO FINALIZE
+=head2 download_photo
+
+Gets a live_photo in a form of binary data for a given L<WebService::Async::Onfido::Photo>.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<live_photo_id> - the L<WebService::Async::Onfido::Photo/id> for the document to query
+
+=back
+
+Returns a photo file blob
+
+=cut
+
 sub download_photo {
     my ($self, %args) = @_;
     $self->rate_limiting->then(sub {
-        warn "IN DLP";
         $self->ua->do_request(
             uri => $self->endpoint('photo_download', %args),
             method => 'GET',
@@ -908,9 +952,7 @@ sub download_photo {
         )
     })->then(sub {
         try {
-            warn "pass1 ";
             my ($res) = @_;
-            # return a blob
             my $data = $res->content;
             return Future->done(
                 $data
@@ -923,11 +965,25 @@ sub download_photo {
     })
 }
 
-# TEST: NEED TO FINALIZE
+=head2 download_document
+
+Gets a document in a form of binary data for a given L<WebService::Async::Onfido::Document>.
+
+Takes the following named parameters:
+
+=over 4
+
+=item * C<live_photo_id> - the L<WebService::Async::Onfido::Document/id> for the document to query
+
+=back
+
+Returns a document file blob
+
+=cut
+
 sub download_document {
     my ($self, %args) = @_;
     $self->rate_limiting->then(sub {
-        warn "IN DLP";
         $self->ua->do_request(
             uri => $self->endpoint('document_download', %args),
             method => 'GET',
@@ -935,9 +991,7 @@ sub download_document {
         )
     })->then(sub {
         try {
-            warn "pass1 ";
             my ($res) = @_;
-            # return a blob
             my $data = $res->content;
             return Future->done(
                 $data
