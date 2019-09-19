@@ -942,27 +942,83 @@ Returns a photo file blob
 
 =cut
 
+use Net::Async::Webservice::S3;
+use BOM::Platform::S3Client;
+use BOM::Config;
+use IO::Async::Loop;
+use List::Util qw( first );
+
+my $pending_futures = [];
+
+sub wait_for_chunks_and_upload_to_s3 {
+    my ($s3, $file_name) = @_;
+    
+    return $s3->put_object(
+        key          => $file_name,
+        value        => sub { wait_for_chunk() },
+        value_length => 76982,
+    )->on_fail(sub { warn shift; });
+    
+}
+
+sub wait_for_chunk {
+    my $upload_future = get_oldest_pending_future(1);
+
+    return $upload_future->on_ready(sub { shift @$pending_futures });
+}
+
+sub resolve_with_received_chunk {
+    my $received_chunk = shift;
+
+    my $upload_future = get_oldest_pending_future();
+
+    return $upload_future->done($received_chunk);
+}
+
+sub get_oldest_pending_future {
+    my ($include_ready_futures) = @_;
+
+    my $first_pending_future = first { not $_->is_ready unless $include_ready_futures } @$pending_futures;
+
+    my $pending_future = $first_pending_future || IO::Async::Loop->new()->new_future;
+
+    push @$pending_futures, $pending_future unless $first_pending_future;
+
+    return $pending_future;
+}
+
 sub download_photo {
     my ($self, %args) = @_;
+    
+    my $s3_client = BOM::Platform::S3Client->new(BOM::Config::s3()->{document_auth});
+    wait_for_chunks_and_upload_to_s3($s3_client->{s3}, 'hello_4.jpeg')->retain;
+
     $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('photo_download', %args),
             method => 'GET',
             $self->auth_headers,
+            on_header => sub {
+                my ($resp) = @_;
+                die 'invalid response' unless $resp->code =~ /^2/;
+                warn "Starting to stream data";
+                my $total = 0;
+                sub {
+                    if(my ($chunk) = @_) {
+                        $total += length($chunk);
+                        warn "Had chunk with " . length($chunk) . " bytes";
+                        resolve_with_received_chunk($chunk);
+                    } 
+                    else {
+                        warn "End of request, total " . $total . " bytes";
+                        return HTTP::Response->new(200);
+                    }
+                }
+            }
         )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = $res->content;
-            return Future->done(
-                $data
-            );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
-        }
     })
+    ->on_done( sub{ warn "ITS DOOOOOOOOOONE"; })
+    ->on_fail( sub{ warn "ITS FAAAAAAAIIIIL"; })
 }
 
 =head2 download_document
