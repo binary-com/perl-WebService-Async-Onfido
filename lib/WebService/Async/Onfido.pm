@@ -40,6 +40,7 @@ use JSON::MaybeXS;
 use File::ShareDir;
 use URI::Escape qw(uri_escape_utf8);
 use Locale::Codes::Country qw(country_code2code);
+use Scalar::Util qw(blessed);
 
 use WebService::Async::Onfido::Applicant;
 use WebService::Async::Onfido::Address;
@@ -50,7 +51,8 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
-
+#require Log::Any::Adapter;
+#Log::Any::Adapter->import(qw(Stderr), log_level => 'trace');
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
 
 # Mapping file extension to mime type for currently
@@ -64,7 +66,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token requests_per_minute)) {
+    for my $k (qw(token requests_per_minute base_uri)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -1112,7 +1114,12 @@ sub endpoint {
     )->process(%args);
 }
 
-sub base_uri { shift->{base_uri} //= URI->new('https://api.onfido.com') }
+sub base_uri {
+    my $self = shift;
+    return $self->{base_uri} if blessed($self->{base_uri});
+    $self->{base_uri} = URI->new($self->{base_uri} // 'https://api.onfido.com');
+    return $self->{base_uri};
+}
 
 sub token { shift->{token} }
 
