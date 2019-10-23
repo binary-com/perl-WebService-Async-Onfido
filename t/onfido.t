@@ -54,16 +54,15 @@ isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
 is($src->as_arrayref->get->[0]->id, $app->id, 'the most recent applicants is the one we created just now');
 
 #document upload
-my $tmpfile = Path::Tiny->tempfile;
-$tmpfile->spew('x' x 5);
-$tmpfile = "$tmpfile.png";
 my $doc;
+my $content = 'x' x 500;
 lives_ok {
     $doc = $onfido->document_upload(
         applicant_id    => $app->id,
-        filename        => $tmpfile,
+        filename        => "document1.png",
         type            => 'passport',
-        issuing_country => 'China'
+        issuing_country => 'China',
+        data            => $content,
         )->get
 }
 "upload document ok";
@@ -80,6 +79,11 @@ my $doc2;
 lives_ok { $doc2 = $onfido->get_document_details(applicant_id => $app->id, document_id => $doc->id)->get } 'get doc ok';
 is($doc2->id, $doc->id, 'id is right');
 
+# download_document
+my $content2;
+lives_ok { $content2 = $onfido->download_document(applicant_id => $app->id, document_id => $doc->id)->get }, 'download doc ok';
+
+is($content2, $content, "the content is right");
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 

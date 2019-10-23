@@ -7,6 +7,7 @@ use Data::UUID;
 use File::Basename;
 use Path::Tiny;
 
+plugin 'RenderFile';
 # try https://metacpan.org/source/MASAKI/Test-Fake-HTTPD-0.08/t/10_http.t this one
 # Route with placeholder
 my $applicant_template;
@@ -102,14 +103,11 @@ post '/v2/applicants/:applicant_id/documents' => sub {
 get '/v2/applicants/:applicant_id/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
-    warn "all app id" . Dumper([keys %files]);
     unless (exists($documents{$applicant_id})) {
-        warn "no found $applicant_id";
         return $c->render(json => {status => 'Not Found'});
     }
     my @documents = values $documents{$applicant_id}->%*;
     @documents = sort { $b->{created_at} cmp $a->{created_at} } @documents;
-    warn "documents " . Dumper(\@documents);
     return $c->render(json => {documents => \@documents});
 };
 
@@ -121,6 +119,20 @@ get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => $documents{$applicant_id}{$document_id});
+};
+
+get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    my $document_id  = $c->stash('document_id');
+    unless (exists($documents{$applicant_id}) && exists($documents{$applicant_id}{$document_id})) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    return $c->render_file(
+        'filepath'     => $files{$document_id}->stringify,
+        'filename'     => $documents{$applicant_id}{$document_id}{file_name},
+        'content_type' => $documents{$applicant_id}{$document_id}{file_type},
+    );
 };
 
 $applicant_template = {
