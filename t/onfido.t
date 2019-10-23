@@ -60,9 +60,12 @@ lives_ok {$document = $onfido->document_upload(applicant_id => $app->id, filenam
 isa_ok($document, 'WebService::Async::Onfido::Document', "document type is ok");
 is($document->type, 'passport', 'data is correct');
 
+# document list
+lives_ok {$src = $onfido->document_list(applicant_id => $app->id)} "document list ok";
+isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
+is($src->as_arrayref->get->[0]->id, $document->id, 'the most recent applicants is the one we created just now');
 
-
-
+# applicant delete
 lives_ok {$onfido->applicant_delete(applicant_id => $app->id)->get} "delete ok";
 
 done_testing();

@@ -11,9 +11,12 @@ use Path::Tiny;
 # Route with placeholder
 my $applicant_template;
 my $check_template;
+# $applicants{$app_id}
 my %applicants;
 my %deleted_applicants;
+# $documents{$app_id}{$doc_id}
 my %documents;
+# $files{$doc_id}
 my %files;
 ################################################################################
 # applicants
@@ -94,6 +97,20 @@ post '/v2/applicants/:applicant_id/documents' => sub {
     $file->move_to($files{$document_id}->stringify);
     $documents{$applicant_id}{$document_id} = $document;
     return $c->render(json => $document);
+};
+
+get '/v2/applicants/:applicant_id/documents' => sub {
+    my $c = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    warn "all app id" . Dumper([keys %files]);
+    unless(exists($documents{$applicant_id})){
+        warn "no found $applicant_id";
+        return $c->render(json => {status => 'Not Found'});
+    }
+    my @documents = values $documents{$applicant_id}->%*;
+    @documents = sort {$b->{created_at} cmp $a->{created_at}} @documents;
+    warn "documents " . Dumper(\@documents);
+    return $c->render(json => {documents => \@documents});
 };
 
 $applicant_template = {
