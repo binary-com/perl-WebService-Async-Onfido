@@ -113,6 +113,16 @@ get '/v2/applicants/:applicant_id/documents' => sub {
     return $c->render(json => {documents => \@documents});
 };
 
+get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    my $document_id  = $c->stash('document_id');
+    unless (exists($documents{$applicant_id}) && exists($documents{$applicant_id}{$document_id})) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    return $c->render(json => $documents{$applicant_id}{$document_id});
+};
+
 $applicant_template = {
     "id"                  => "123456",
     "created_at"          => "2014-05-23T13:50:33Z",

@@ -57,9 +57,9 @@ is($src->as_arrayref->get->[0]->id, $app->id, 'the most recent applicants is the
 my $tmpfile = Path::Tiny->tempfile;
 $tmpfile->spew('x' x 5);
 $tmpfile = "$tmpfile.png";
-my $document;
+my $doc;
 lives_ok {
-    $document = $onfido->document_upload(
+    $doc = $onfido->document_upload(
         applicant_id    => $app->id,
         filename        => $tmpfile,
         type            => 'passport',
@@ -67,13 +67,18 @@ lives_ok {
         )->get
 }
 "upload document ok";
-isa_ok($document, 'WebService::Async::Onfido::Document', "document type is ok");
-is($document->type, 'passport', 'data is correct');
+isa_ok($doc, 'WebService::Async::Onfido::Document', "document type is ok");
+is($doc->type, 'passport', 'data is correct');
 
 # document list
 lives_ok { $src = $onfido->document_list(applicant_id => $app->id) } "document list ok";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
-is($src->as_arrayref->get->[0]->id, $document->id, 'the most recent applicants is the one we created just now');
+is($src->as_arrayref->get->[0]->id, $doc->id, 'the most recent applicants is the one we created just now');
+
+# get document
+my $doc2;
+lives_ok { $doc2 = $onfido->get_document_details(applicant_id => $app->id, document_id => $doc->id)->get } 'get doc ok';
+is($doc2->id, $doc->id, 'id is right');
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
