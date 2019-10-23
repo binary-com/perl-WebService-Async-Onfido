@@ -4,6 +4,8 @@ use Clone 'clone';
 use Data::Dumper;
 use Date::Utility;
 use Data::UUID;
+use File::Basename;
+use Path::Tiny;
 
 # try https://metacpan.org/source/MASAKI/Test-Fake-HTTPD-0.08/t/10_http.t this one
 # Route with placeholder
@@ -12,7 +14,7 @@ my $check_template;
 my %applicants;
 my %deleted_applicants;
 my %documents;
-
+my %files;
 ################################################################################
 # applicants
 # create applicant
@@ -80,18 +82,18 @@ post '/v2/applicants/:applicant_id/documents' => sub {
                     created_at => Date::Utility->new()->datetime_iso8601,
                     href => "/v2/applicants/$applicant_id/documents/$document_id",
                     download_href => "/v2/applicants/$applicant_id/documents/$document_id/download",
-                    file_name => undef,
-                    file_type => undef,
-                    file_size => undef,
                    };
     for my $param (qw(type side issuing_country)){
         $document->{$param} = $c->param($param);
     }
-    warn "doc is " . Dumper($document);
-    #warn $c->req->headers->to_string;
-
+    my $file = $c->param('file');
+    $document->{file_name} = basename($file->filename);
+    $document->{file_size} = $file->size;
+    $document->{file_type} = $file->headers->content_type;
+    $files{$document_id} = Path::Tiny->tempfile;
+    $file->move_to($files{$document_id}->stringify);
     $documents{$applicant_id}{$document_id} = $document;
-      return $c->render(json => $document);
+    return $c->render(json => $document);
 };
 
 $applicant_template = {
@@ -167,3 +169,10 @@ $check_template = {
 # Start the Mojolicious command system
 app->start;
 
+
+sub END{
+    for my $f (values %files) {
+        print "removing $f\n";
+        $f->remove;
+    }
+}
