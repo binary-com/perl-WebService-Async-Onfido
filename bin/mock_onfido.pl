@@ -15,9 +15,12 @@ my $check_template;
 # $applicants{$app_id}
 my %applicants;
 my %deleted_applicants;
-# $documents{$app_id}{$doc_id}
+# $documents{$app_id}{$doc_id} file
 my %documents;
+# $photos{$photo_id}
+my %photos;
 # $files{$doc_id}
+# $files{$photo_id}
 my %files;
 ################################################################################
 # applicants
@@ -133,6 +136,39 @@ get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
         'filename'     => $documents{$applicant_id}{$document_id}{file_name},
         'content_type' => $documents{$applicant_id}{$document_id}{file_type},
     );
+};
+
+post '/v2/live_photos' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->param('applicant_id');
+    # don't know how to used yet
+    #my $advanced_validation = $c->param('advanced_validation');
+    my $photo_id = Data::UUID->new->create_str();
+    my $photo    = {
+        id            => $photo_id,
+        created_at    => Date::Utility->new()->datetime_iso8601,
+        href          => "/v2/live_photos/$photo_id",
+        download_href => "/v2/live_photos/$photo_id/download",
+    };
+    my $file = $c->param('file');
+    $photo->{file_name} = basename($file->filename);
+    $photo->{file_size} = $file->size;
+    $photo->{file_type} = $file->headers->content_type;
+    $files{$photo_id}   = Path::Tiny->tempfile;
+    $file->move_to($files{$photo_id}->stringify);
+    $photo->{applicant_id} = $applicant_id;
+    $photos{$photo_id} = $photo;
+
+    $photo = clone($photo);
+    delete @$photo{qw(applicant_id)};
+    return $c->render(json => $photo);
+};
+
+get '/v2/live_photos' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->param('applicant_id');
+    my @applications = map { my $p = clone($_); delete $p->{applicant_id}; $p } grep { $_->{applicant_id} eq $applicant_id } values %photos;
+    return $c->render(json => {live_photos => \@applications});
 };
 
 $applicant_template = {

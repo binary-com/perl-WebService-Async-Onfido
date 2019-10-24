@@ -72,7 +72,7 @@ is($doc->type, 'passport', 'data is correct');
 # document list
 lives_ok { $src = $onfido->document_list(applicant_id => $app->id) } "document list ok";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
-is($src->as_arrayref->get->[0]->id, $doc->id, 'the most recent applicants is the one we created just now');
+is($src->as_arrayref->get->[0]->id, $doc->id, 'the most recent doc is the one we created just now');
 
 # get document
 my $doc2;
@@ -84,6 +84,19 @@ my $content2;
 lives_ok { $content2 = $onfido->download_document(applicant_id => $app->id, document_id => $doc->id)->get }, 'download doc ok';
 
 is($content2, $content, "the content is right");
+
+# photo upload
+my $photo;
+lives_ok { $photo = $onfido->live_photo_upload(applicant_id => $app->id, filename => 'photo1.jpg', data => 'photo ' x 50)->get }, 'upload photo ok';
+isa_ok($photo, 'WebService::Async::Onfido::Photo', 'result type is ok');
+is($photo->file_name, 'photo1.jpg', 'result is ok');
+
+# photo list
+
+lives_ok { $src = $onfido->photo_list(applicant_id => $app->id) } "photo list ok";
+isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
+is($src->as_arrayref->get->[0]->id, $photo->id, 'the most recent photo is the one we created just now');
+
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
