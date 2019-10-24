@@ -180,6 +180,20 @@ get '/v2/live_photos/:photo_id' => sub {
     return $c->render(json => $photo);
 };
 
+get '/v2/live_photos/:photo_id/download' => sub {
+    my $c        = shift;
+    my $photo_id = $c->stash('photo_id');
+    unless (exists($photos{$photo_id})) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    return $c->render_file(
+        'filepath'     => $files{$photo_id}->stringify,
+        'filename'     => $photos{$photo_id}{file_name},
+        'content_type' => $photos{$photo_id}{file_type},
+    );
+
+};
+
 $applicant_template = {
     "id"                  => "123456",
     "created_at"          => "2014-05-23T13:50:33Z",

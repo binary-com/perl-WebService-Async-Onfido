@@ -101,6 +101,11 @@ my $photo2;
 lives_ok { $photo2 = $onfido->get_photo_details(live_photo_id => $photo->id)->get } 'get photo ok';
 is($photo2->id, $photo->id, 'id is right');
 
+# download_photo
+lives_ok { $content = $onfido->download_photo(live_photo_id => $photo->id)->get }, 'download doc ok';
+
+is($content, 'photo ' x 50, "the content is right");
+
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
