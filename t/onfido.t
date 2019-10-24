@@ -92,10 +92,14 @@ isa_ok($photo, 'WebService::Async::Onfido::Photo', 'result type is ok');
 is($photo->file_name, 'photo1.jpg', 'result is ok');
 
 # photo list
-
 lives_ok { $src = $onfido->photo_list(applicant_id => $app->id) } "photo list ok";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
 is($src->as_arrayref->get->[0]->id, $photo->id, 'the most recent photo is the one we created just now');
+
+# get document
+my $photo2;
+lives_ok { $photo2 = $onfido->get_photo_details(live_photo_id => $photo->id)->get } 'get photo ok';
+is($photo2->id, $photo->id, 'id is right');
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";

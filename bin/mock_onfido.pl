@@ -157,9 +157,8 @@ post '/v2/live_photos' => sub {
     $files{$photo_id}   = Path::Tiny->tempfile;
     $file->move_to($files{$photo_id}->stringify);
     $photo->{applicant_id} = $applicant_id;
-    $photos{$photo_id} = $photo;
-
-    $photo = clone($photo);
+    $photos{$photo_id}     = $photo;
+    $photo                 = clone($photo);
     delete @$photo{qw(applicant_id)};
     return $c->render(json => $photo);
 };
@@ -167,8 +166,18 @@ post '/v2/live_photos' => sub {
 get '/v2/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
-    my @applications = map { my $p = clone($_); delete $p->{applicant_id}; $p } grep { $_->{applicant_id} eq $applicant_id } values %photos;
-    return $c->render(json => {live_photos => \@applications});
+    my @photos       = map { my $p = clone($_); delete $p->{applicant_id}; $p } grep { $_->{applicant_id} eq $applicant_id } values %photos;
+    return $c->render(json => {live_photos => \@photos});
+};
+
+get '/v2/live_photos/:photo_id' => sub {
+    my $c        = shift;
+    my $photo_id = $c->stash('photo_id');
+    my $photo    = clone($photos{$photo_id});
+    return $c->render(json => {status => 'Not Found'}) unless $photo;
+
+    delete $photo->{application_id};
+    return $c->render(json => $photo);
 };
 
 $applicant_template = {
