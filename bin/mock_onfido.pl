@@ -7,6 +7,7 @@ use Data::UUID;
 use File::Basename;
 use Path::Tiny;
 
+# In this script we think the key like '_xxxxx' in hash as private keys. Will not send them
 plugin 'RenderFile';
 # try https://metacpan.org/source/MASAKI/Test-Fake-HTTPD-0.08/t/10_http.t this one
 # Route with placeholder
@@ -156,27 +157,23 @@ post '/v2/live_photos' => sub {
     $photo->{file_type} = $file->headers->content_type;
     $files{$photo_id}   = Path::Tiny->tempfile;
     $file->move_to($files{$photo_id}->stringify);
-    $photo->{applicant_id} = $applicant_id;
-    $photos{$photo_id}     = $photo;
-    $photo                 = clone($photo);
-    delete @$photo{qw(applicant_id)};
-    return $c->render(json => $photo);
+    $photo->{_applicant_id} = $applicant_id;
+    $photos{$photo_id} = $photo;
+    return $c->render(json => clone_and_remove_private($photo));
 };
 
 get '/v2/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
-    my @photos       = map { my $p = clone($_); delete $p->{applicant_id}; $p } grep { $_->{applicant_id} eq $applicant_id } values %photos;
+    my @photos       = map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %photos;
     return $c->render(json => {live_photos => \@photos});
 };
 
 get '/v2/live_photos/:photo_id' => sub {
     my $c        = shift;
     my $photo_id = $c->stash('photo_id');
-    my $photo    = clone($photos{$photo_id});
+    my $photo    = clone_and_remove_private($photos{$photo_id});
     return $c->render(json => {status => 'Not Found'}) unless $photo;
-
-    delete $photo->{application_id};
     return $c->render(json => $photo);
 };
 
@@ -193,6 +190,18 @@ get '/v2/live_photos/:photo_id/download' => sub {
     );
 
 };
+
+sub clone_and_remove_private {
+    my $result = shift;
+    return $result unless $result && ref($result) eq 'HASH';
+    $result = clone($result);
+    for my $k (keys %$result) {
+        if ($k =~ /^_/) {
+            delete $result->{$k};
+        }
+    }
+    return $result;
+}
 
 $applicant_template = {
     "id"                  => "123456",
