@@ -23,6 +23,8 @@ my %photos;
 # $files{$doc_id}
 # $files{$photo_id}
 my %files;
+my %reports;
+my %checks;
 ################################################################################
 # applicants
 # create applicant
@@ -189,6 +191,63 @@ get '/v2/live_photos/:photo_id/download' => sub {
         'content_type' => $photos{$photo_id}{file_type},
     );
 
+};
+
+sub create_report{
+    my ($c, $check_id) = @_;
+    use URI::Escape qw(uri_unescape);
+    my $params = $c->req->params->to_string;
+    $params = uri_unescape($params);
+    my @params = map {s/reports|\[|\]//g; $_}grep {/reports/} split '&', $params;
+    my @reports;
+    my $report;
+    for my $param (@params) {
+        my @pair = split '=', $param;
+        warn "pair is @pair";
+        # name always be first pair
+        if ($pair[0] eq 'name') {
+            push @reports, $report if $report;
+            $report = {@pair};
+        } else {
+            $report->{$pair[0]} = $pair[1];
+        }
+    }
+    push @reports, $report;
+    warn "reports are " . Dumper(\@reports);
+    my $report_req = $c->param('reports');
+    my @reports;
+    for my $req (@$report_req){
+        my $report_id = Data::UUID->new->create_str();
+        my $report = {id =>  $report_id,
+                      _check_id => $check_id,
+                      created_at    => Date::Utility->new()->datetime_iso8601,
+                     };
+          $reports{$report_id} = @_;
+        push @reports, $report_id;
+    }
+    return \@reports;
+}
+
+post '/v2/applicants/:applicant_id/checks' => sub {
+    my $c = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    my $check_id = Data::UUID->new->create_str();
+    my $check = {
+                 id            => $check_id,
+                 created_at    => Date::Utility->new()->datetime_iso8601,
+                 href          => "/v2/applicants/$applicant_id/checks/$check_id",
+                 type => $c->param('type'),
+                 status => 'complete',
+                 result => 'clear',
+                 redirect_uri => 'https://somewhere.else',
+                 results_uri => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
+                 download_uri => "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
+                 reports => create_report($c),
+                 tags => $c->req->params->to_hash->{'tags[]'},
+                 _applicant_id => $applicant_id,
+                };
+    $checks{$check_id} = $check;
+    return $c->render(json => clone_and_remove_private($check));
 };
 
 sub clone_and_remove_private {
