@@ -775,10 +775,13 @@ sub applicant_check {
             my %copy = %$report;
             my $docs = delete($copy{documents}) || [];
             $docs = [ $docs ] unless ref $docs;
+            # Since name is necessary, we make it as the first parameter of report, and we can split the reports by it in the mocked server
+            my $name = delete($copy{name});
+            push @content, "reports[][" . uri_escape_utf8('name') . ']=' . uri_escape_utf8($report->{name});
             push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
             push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
         } else {
-            push @content, "reports[][name]=" . uri_escape_utf8($report);
+            push @content, "reports[][name]=" . uri_escape_utf8($report); # TODO chylli check the caller to test the case that the reports include string report name
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
