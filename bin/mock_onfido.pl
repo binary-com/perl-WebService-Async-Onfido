@@ -222,7 +222,7 @@ sub create_report {
             _check_id  => $check_id,
             created_at => Date::Utility->new()->datetime_iso8601,
         };
-        $reports{$report_id} = @_;
+        $reports{$report_id} = $report;
         push @reports, $report_id;
     }
     return \@reports;
@@ -267,6 +267,15 @@ get '/v2/applicants/:applicant_id/checks' => sub {
         sort { $b->{created_at} cmp $a->{created_at} }
         map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %checks;
     return $c->render(json => {checks => \@checks});
+};
+
+get '/v2/checks/:check_id/reports' => sub {
+    my $c        = shift;
+    my $check_id = $c->stash('check_id');
+    my @reports =
+        sort { $b->{created_at} cmp $a->{created_at} }
+        map { clone_and_remove_private($_) } grep { $_->{_check_id} eq $check_id } values %reports;
+    return $c->render(json => {reports => \@reports});
 };
 
 sub clone_and_remove_private {
