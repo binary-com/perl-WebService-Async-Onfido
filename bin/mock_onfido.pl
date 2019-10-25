@@ -193,61 +193,70 @@ get '/v2/live_photos/:photo_id/download' => sub {
 
 };
 
-sub create_report{
+sub create_report {
     my ($c, $check_id) = @_;
     use URI::Escape qw(uri_unescape);
     my $params = $c->req->params->to_string;
     $params = uri_unescape($params);
-    my @params = map {s/reports|\[|\]//g; $_}grep {/reports/} split '&', $params;
-    my @reports;
-    my $report;
+    my @params = map { s/reports|\[|\]//g; $_ } grep { /reports/ } split '&', $params;
+    my @req_reports;
+    my $req_report;
     for my $param (@params) {
         my @pair = split '=', $param;
         warn "pair is @pair";
         # name always be first pair
         if ($pair[0] eq 'name') {
-            push @reports, $report if $report;
-            $report = {@pair};
+            push @req_reports, $req_report if $req_report;
+            $req_report = {@pair};
         } else {
-            $report->{$pair[0]} = $pair[1];
+            $req_report->{$pair[0]} = $pair[1];
         }
     }
-    push @reports, $report;
-    warn "reports are " . Dumper(\@reports);
-    my $report_req = $c->param('reports');
+    push @req_reports, $req_report;
     my @reports;
-    for my $req (@$report_req){
+    for my $req (@req_reports) {
         my $report_id = Data::UUID->new->create_str();
-        my $report = {id =>  $report_id,
-                      _check_id => $check_id,
-                      created_at    => Date::Utility->new()->datetime_iso8601,
-                     };
-          $reports{$report_id} = @_;
+        my $report    = {
+            id         => $report_id,
+            _check_id  => $check_id,
+            created_at => Date::Utility->new()->datetime_iso8601,
+        };
+        $reports{$report_id} = @_;
         push @reports, $report_id;
     }
     return \@reports;
 }
 
 post '/v2/applicants/:applicant_id/checks' => sub {
-    my $c = shift;
+    my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
-    my $check_id = Data::UUID->new->create_str();
-    my $check = {
-                 id            => $check_id,
-                 created_at    => Date::Utility->new()->datetime_iso8601,
-                 href          => "/v2/applicants/$applicant_id/checks/$check_id",
-                 type => $c->param('type'),
-                 status => 'complete',
-                 result => 'clear',
-                 redirect_uri => 'https://somewhere.else',
-                 results_uri => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
-                 download_uri => "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
-                 reports => create_report($c),
-                 tags => $c->req->params->to_hash->{'tags[]'},
-                 _applicant_id => $applicant_id,
-                };
+    my $check_id     = Data::UUID->new->create_str();
+    my $check        = {
+        id            => $check_id,
+        created_at    => Date::Utility->new()->datetime_iso8601,
+        href          => "/v2/applicants/$applicant_id/checks/$check_id",
+        type          => $c->param('type'),
+        status        => 'complete',
+        result        => 'clear',
+        redirect_uri  => 'https://somewhere.else',
+        results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
+        download_uri  => "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
+        reports       => create_report($c),
+        tags          => $c->req->params->to_hash->{'tags[]'},
+        _applicant_id => $applicant_id,
+    };
     $checks{$check_id} = $check;
     return $c->render(json => clone_and_remove_private($check));
+};
+
+get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    my $check_id     = $c->stash('check_id');
+    unless (exists($applicants{$applicant_id}) && exists($checks{$check_id})) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    return $c->render(json => clone_and_remove_private($checks{$check_id}));
 };
 
 sub clone_and_remove_private {

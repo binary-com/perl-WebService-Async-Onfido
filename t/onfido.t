@@ -108,19 +108,38 @@ is($content, 'photo ' x 50, "the content is right");
 
 # applicant_check
 my $check;
-lives_ok { $check = $onfido->applicant_check(applicant_id => $app->id,
-                                             type => 'standard',
-                                             reports => [{name => 'document'},
-                                                         {name => 'facial_similarity', variant => 'standard'}
-                                                        ],
-                                             tags => ['tag1', 'tag2'],
-                                             suppress_from_email => 0,
-                                             async => 1,
-                                             charge_applicant_for_check => 0,
-                                            )->get} "create check ok";
+lives_ok {
+    $check = $onfido->applicant_check(
+        applicant_id => $app->id,
+        type         => 'standard',
+        reports      => [
+            {name => 'document'},
+            {
+                name    => 'facial_similarity',
+                variant => 'standard'
+            }
+        ],
+        tags                       => ['tag1', 'tag2'],
+        suppress_from_email        => 0,
+        async                      => 1,
+        charge_applicant_for_check => 0,
+        )->get
+}
+"create check ok";
 isa_ok($check, "WebService::Async::Onfido::Check", "check class is right");
 is_deeply($check->tags, ['tag1', 'tag2'], 'result is ok');
 
+# get check
+my $check2;
+lives_ok {
+    $check2 = $onfido->check_get(
+        applicant_id => $app->id,
+        check_id     => $check->id,
+        )->get
+}
+"get check ok";
+isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
+is_deeply($check2, $check, 'result is ok');
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
