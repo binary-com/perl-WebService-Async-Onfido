@@ -167,7 +167,9 @@ post '/v2/live_photos' => sub {
 get '/v2/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
-    my @photos       = map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %photos;
+    my @photos =
+        sort { $b->{created_at} cmp $a->{created_at} }
+        map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %photos;
     return $c->render(json => {live_photos => \@photos});
 };
 
@@ -203,7 +205,6 @@ sub create_report {
     my $req_report;
     for my $param (@params) {
         my @pair = split '=', $param;
-        warn "pair is @pair";
         # name always be first pair
         if ($pair[0] eq 'name') {
             push @req_reports, $req_report if $req_report;
@@ -257,6 +258,15 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
+};
+
+get '/v2/applicants/:applicant_id/checks' => sub {
+    my $c            = shift;
+    my $applicant_id = $c->stash('applicant_id');
+    my @checks =
+        sort { $b->{created_at} cmp $a->{created_at} }
+        map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %checks;
+    return $c->render(json => {checks => \@checks});
 };
 
 sub clone_and_remove_private {
