@@ -225,7 +225,7 @@ sub create_report {
         $reports{$report_id} = $report;
         push @reports, $report_id;
     }
-    return \@reports;
+    return [map {clone_and_remove_private($_)} @reports];
 }
 
 post '/v2/applicants/:applicant_id/checks' => sub {
@@ -242,7 +242,7 @@ post '/v2/applicants/:applicant_id/checks' => sub {
         redirect_uri  => 'https://somewhere.else',
         results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
         download_uri  => "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
-        reports       => create_report($c),
+        reports       => create_report($c, $check_id),
         tags          => $c->req->params->to_hash->{'tags[]'},
         _applicant_id => $applicant_id,
     };
@@ -272,9 +272,13 @@ get '/v2/applicants/:applicant_id/checks' => sub {
 get '/v2/checks/:check_id/reports' => sub {
     my $c        = shift;
     my $check_id = $c->stash('check_id');
+    warn (Dumper(\%reports));
     my @reports =
         sort { $b->{created_at} cmp $a->{created_at} }
-        map { clone_and_remove_private($_) } grep { $_->{_check_id} eq $check_id } values %reports;
+        map { clone_and_remove_private($_) }
+        grep { $_->{_check_id} eq $check_id }
+        values %reports;
+
     return $c->render(json => {reports => \@reports});
 };
 
