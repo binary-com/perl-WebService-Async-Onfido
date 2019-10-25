@@ -53,7 +53,11 @@ lives_ok { $src = $onfido->applicant_list; } "get applicant list ok ";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
 is_deeply($src->as_arrayref->get->[0], $app, 'the most recent applicants is the one we created just now');
 
-# TODO applicant get
+# get applicant
+my $app2;
+lives_ok { $app2 = $onfido->applicant_get(applicant_id => $app->id)->get; } "get applicant ok ";
+isa_ok($app2, 'WebService::Async::Onfido::Applicant', 'the applicant type is ok');
+is_deeply($app2, $app, 'get applicant result ok');
 
 #document upload
 my $doc;
