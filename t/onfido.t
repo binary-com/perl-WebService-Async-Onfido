@@ -51,7 +51,9 @@ like($app->as_string, qr/^Jack Smith/, 'application string is correct');
 my $src;
 lives_ok { $src = $onfido->applicant_list; } "get applicant list ok ";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
-is($src->as_arrayref->get->[0]->id, $app->id, 'the most recent applicants is the one we created just now');
+is_deeply($src->as_arrayref->get->[0], $app, 'the most recent applicants is the one we created just now');
+
+# TODO applicant get
 
 #document upload
 my $doc;
@@ -72,12 +74,12 @@ is($doc->type, 'passport', 'data is correct');
 # document list
 lives_ok { $src = $onfido->document_list(applicant_id => $app->id) } "document list ok";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
-is($src->as_arrayref->get->[0]->id, $doc->id, 'the most recent doc is the one we created just now');
+is_deeply($src->as_arrayref->get->[0], $doc, 'the most recent doc is the one we created just now');
 
 # get document
 my $doc2;
 lives_ok { $doc2 = $onfido->get_document_details(applicant_id => $app->id, document_id => $doc->id)->get } 'get doc ok';
-is($doc2->id, $doc->id, 'id is right');
+is_deeply($doc2, $doc, 'get doc result is right');
 
 # download_document
 my $content2;
@@ -94,12 +96,12 @@ is($photo->file_name, 'photo1.jpg', 'result is ok');
 # photo list
 lives_ok { $src = $onfido->photo_list(applicant_id => $app->id) } "photo list ok";
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
-is($src->as_arrayref->get->[0]->id, $photo->id, 'the most recent photo is the one we created just now');
+is_deeply($src->as_arrayref->get->[0], $photo, 'the most recent photo is the one we created just now');
 
 # get document
 my $photo2;
 lives_ok { $photo2 = $onfido->get_photo_details(live_photo_id => $photo->id)->get } 'get photo ok';
-is($photo2->id, $photo->id, 'id is right');
+is_deeply($photo2, $photo, 'get result is right');
 
 # download_photo
 lives_ok { $content = $onfido->download_photo(live_photo_id => $photo->id)->get }, 'download doc ok';
