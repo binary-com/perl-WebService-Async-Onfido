@@ -221,11 +221,15 @@ sub create_report {
             id         => $report_id,
             _check_id  => $check_id,
             created_at => Date::Utility->new()->datetime_iso8601,
+            name       => $req->{name},
+            status     => 'complete',
+            result     => 'clear',
+
         };
         $reports{$report_id} = $report;
         push @reports, $report_id;
     }
-    return [map {clone_and_remove_private($_)} @reports];
+    return [map { clone_and_remove_private($_) } @reports];
 }
 
 post '/v2/applicants/:applicant_id/checks' => sub {
@@ -272,14 +276,22 @@ get '/v2/applicants/:applicant_id/checks' => sub {
 get '/v2/checks/:check_id/reports' => sub {
     my $c        = shift;
     my $check_id = $c->stash('check_id');
-    warn (Dumper(\%reports));
     my @reports =
         sort { $b->{created_at} cmp $a->{created_at} }
-        map { clone_and_remove_private($_) }
-        grep { $_->{_check_id} eq $check_id }
-        values %reports;
+        map  { clone_and_remove_private($_) }
+        grep { $_->{_check_id} eq $check_id } values %reports;
 
     return $c->render(json => {reports => \@reports});
+};
+
+get '/v2/checks/:check_id/reports/:report_id' => sub {
+    my $c         = shift;
+    my $check_id  = $c->stash('check_id');
+    my $report_id = $c->stash('report_id');
+    unless (exists($checks{$check_id}) && exists($reports{$report_id})) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    return $c->render(json => clone_and_remove_private($reports{$report_id}));
 };
 
 sub clone_and_remove_private {
