@@ -152,17 +152,22 @@ lives_ok { $src = $onfido->check_list(applicant_id => $app->id) } "check list ok
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
 is_deeply($src->as_arrayref->get->[0], $check, 'the most recent check is the one we created just now');
 
-#explain($check->reports->as_arrayref->get->[0]);
 #get report
-my $report;
+my ($report, $report2);
+lives_ok { $report = $check->reports->as_arrayref->get->[0] } "get report from check ok";
+isa_ok($report, 'WebService::Async::Onfido::Report');
+
 lives_ok {
-    $report = $onfido->report_get(
+    $report2 = $onfido->report_get(
         check_id  => $check->id,
-        report_id => $check->reports->as_arrayref->get->[0]->{id},
+        report_id => $report->{id},
         )->get
 }
 "get report ok";
-is($report->id, $check->reports->as_arrayref->get->[0]->id, 'id is correct');
+
+isa_ok($report2, 'WebService::Async::Onfido::Report');
+$report2->{check} = $check;    # set check for test.
+is_deeply($report2, $report, 'id is correct');
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
