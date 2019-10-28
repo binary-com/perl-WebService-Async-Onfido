@@ -9,16 +9,16 @@ use IO::Async::Loop;
 use WebService::Async::Onfido;
 use URI;
 use FindBin qw($Bin);
+
 my $pid = fork();
 die "fork error " unless defined($pid);
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
-    warn "mock_server $mock_server";
-    warn "pid is $pid";
+    open(STDOUT, '>/dev/null');
+    open(STDERR, '>/dev/null');
     exec('perl', $mock_server, 'daemon');
 }
 
-warn "pid is $pid";
 sleep 1;
 my $loop = IO::Async::Loop->new;
 $loop->add(
