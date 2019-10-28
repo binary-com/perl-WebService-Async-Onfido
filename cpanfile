@@ -39,5 +39,6 @@ on test => sub {
     requires 'Date::Utility', 0;
     requires 'Data::UUID', 0;
     requires 'File::Basename', 0;
+    requires 'Mojolicious::Plugin::RenderFile', 0;
 };
 
