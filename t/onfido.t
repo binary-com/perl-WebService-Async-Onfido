@@ -1,7 +1,8 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 50;
 use Test::Exception;
+use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
@@ -100,13 +101,13 @@ is_deeply($doc2, $doc, 'get doc result is right');
 
 # download_document
 my $content2;
-lives_ok { $content2 = $onfido->download_document(applicant_id => $app->id, document_id => $doc->id)->get }, 'download doc ok';
+lives_ok { $content2 = $onfido->download_document(applicant_id => $app->id, document_id => $doc->id)->get } 'download doc ok';
 
 is($content2, $content, "the content is right");
 
 # photo upload
 my $photo;
-lives_ok { $photo = $onfido->live_photo_upload(applicant_id => $app->id, filename => 'photo1.jpg', data => 'photo ' x 50)->get }, 'upload photo ok';
+lives_ok { $photo = $onfido->live_photo_upload(applicant_id => $app->id, filename => 'photo1.jpg', data => 'photo ' x 50)->get } 'upload photo ok';
 isa_ok($photo, 'WebService::Async::Onfido::Photo', 'result type is ok');
 is($photo->file_name, 'photo1.jpg', 'result is ok');
 
@@ -121,7 +122,7 @@ lives_ok { $photo2 = $onfido->get_photo_details(live_photo_id => $photo->id)->ge
 is_deeply($photo2, $photo, 'get result is right');
 
 # download_photo
-lives_ok { $content = $onfido->download_photo(live_photo_id => $photo->id)->get }, 'download doc ok';
+lives_ok { $content = $onfido->download_photo(live_photo_id => $photo->id)->get } 'download doc ok';
 
 is($content, 'photo ' x 50, "the content is right");
 
@@ -192,4 +193,3 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
 kill('TERM', $pid);
-done_testing();
