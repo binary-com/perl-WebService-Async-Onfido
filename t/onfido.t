@@ -8,7 +8,18 @@ use IO::Async::Loop;
 
 use WebService::Async::Onfido;
 use URI;
-#TODO https://metacpan.org/pod/IO::Async::Test
+use FindBin qw($Bin);
+my $pid = fork();
+die "fork error " unless defined($pid);
+unless ($pid) {
+    my $mock_server = "$Bin/../bin/mock_onfido.pl";
+    warn "mock_server $mock_server";
+    warn "pid is $pid";
+    exec('perl', $mock_server, 'daemon');
+}
+
+warn "pid is $pid";
+sleep 1;
 my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
@@ -180,4 +191,5 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
+kill('TERM', $pid);
 done_testing();

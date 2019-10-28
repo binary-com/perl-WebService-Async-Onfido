@@ -9,7 +9,6 @@ use Path::Tiny;
 
 # In this script we think the key like '_xxxxx' in hash as private keys. Will not send them
 plugin 'RenderFile';
-# try https://metacpan.org/source/MASAKI/Test-Fake-HTTPD-0.08/t/10_http.t this one
 # Route with placeholder
 my $applicant_template;
 my $check_template;
