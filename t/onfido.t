@@ -14,8 +14,8 @@ my $pid = fork();
 die "fork error " unless defined($pid);
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
-    open(STDOUT, '>/dev/null');
-    open(STDERR, '>/dev/null');
+    #open(STDOUT, '>/dev/null');
+    #open(STDERR, '>/dev/null');
     exec('perl', $mock_server, 'daemon');
 }
 
