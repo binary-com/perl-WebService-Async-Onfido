@@ -89,33 +89,32 @@ post '/v2/applicants/:applicant_id/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = Data::UUID->new->create_str();
+    my $file         = $c->param('file');
     my $document     = {
         id            => $document_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
         href          => "/v2/applicants/$applicant_id/documents/$document_id",
         download_href => "/v2/applicants/$applicant_id/documents/$document_id/download",
+        _applicant_id => $applicant_id,
+        file_name     => basename($file->filename),
+        file_size     => $file->size,
+        file_type     => $file->headers->content_type,
     };
     for my $param (qw(type side issuing_country)) {
         $document->{$param} = $c->param($param);
     }
-    my $file = $c->param('file');
-    $document->{file_name} = basename($file->filename);
-    $document->{file_size} = $file->size;
-    $document->{file_type} = $file->headers->content_type;
-    $files{$document_id}   = Path::Tiny->tempfile;
+    $files{$document_id} = Path::Tiny->tempfile;
     $file->move_to($files{$document_id}->stringify);
-    $documents{$applicant_id}{$document_id} = $document;
-    return $c->render(json => $document);
+    $documents{$document_id} = $document;
+    return $c->render(json => clone_and_remove_private($document));
 };
 
 get '/v2/applicants/:applicant_id/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
-    unless (exists($documents{$applicant_id})) {
-        return $c->render(json => {status => 'Not Found'});
-    }
-    my @documents = values $documents{$applicant_id}->%*;
-    @documents = sort { $b->{created_at} cmp $a->{created_at} } @documents;
+    my @documents =
+        sort { $b->{created_at} cmp $a->{created_at} }
+        map { clone_and_remove_private($_) } grep { $_->{_applicant_id} eq $applicant_id } values %documents;
     return $c->render(json => {documents => \@documents});
 };
 
@@ -123,23 +122,23 @@ get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$applicant_id}) && exists($documents{$applicant_id}{$document_id})) {
+    unless (exists($documents{$document_id}) && $documents{$document_id}{_applicant_id} eq $applicant_id) {
         return $c->render(json => {status => 'Not Found'});
     }
-    return $c->render(json => $documents{$applicant_id}{$document_id});
+    return $c->render(json => clone_and_remove_private($documents{$document_id}));
 };
 
 get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$applicant_id}) && exists($documents{$applicant_id}{$document_id})) {
+    unless (exists($documents{$document_id}) && $documents{$document_id}{_applicant_id} eq $applicant_id) {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render_file(
         'filepath'     => $files{$document_id}->stringify,
-        'filename'     => $documents{$applicant_id}{$document_id}{file_name},
-        'content_type' => $documents{$applicant_id}{$document_id}{file_type},
+        'filename'     => $documents{$document_id}{file_name},
+        'content_type' => $documents{$document_id}{file_type},
     );
 };
 
@@ -260,6 +259,8 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
+    # TODO fix it , check 'check' 's applicant_id
+    # and other types
     unless (exists($applicants{$applicant_id}) && exists($checks{$check_id})) {
         return $c->render(json => {status => 'Not Found'});
     }
