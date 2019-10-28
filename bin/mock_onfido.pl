@@ -16,7 +16,7 @@ my $check_template;
 # $applicants{$app_id}
 my %applicants;
 my %deleted_applicants;
-# $documents{$app_id}{$doc_id} file
+# $documents{$doc_id}
 my %documents;
 # $photos{$photo_id}
 my %photos;
@@ -259,9 +259,7 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
-    # TODO fix it , check 'check' 's applicant_id
-    # and other types
-    unless (exists($applicants{$applicant_id}) && exists($checks{$check_id})) {
+    unless (exists($checks{$check_id}) && $checks{$check_id}{_applicant_id} eq $applicant_id) {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
@@ -291,7 +289,7 @@ get '/v2/checks/:check_id/reports/:report_id' => sub {
     my $c         = shift;
     my $check_id  = $c->stash('check_id');
     my $report_id = $c->stash('report_id');
-    unless (exists($checks{$check_id}) && exists($reports{$report_id})) {
+    unless (exists($reports{$report_id}) && $reports{$report_id}{_check_id} eq $check_id) {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => clone_and_remove_private($reports{$report_id}));
