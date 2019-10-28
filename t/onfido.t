@@ -171,6 +171,12 @@ isa_ok($report2, 'WebService::Async::Onfido::Report');
 $report2->{check} = $check;    # set check for test.
 is_deeply($report2, $report, 'id is correct');
 
+# sdk_token
+my $token;
+lives_ok { $token = $onfido->sdk_token(applicant_id => $app->id, referrer => 'https://*.example.com/example_page/*')->get };
+ok($token->{token}, 'there is a token in the result');
+is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok in the result');
+
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 

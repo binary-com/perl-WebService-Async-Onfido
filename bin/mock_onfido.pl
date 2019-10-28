@@ -295,6 +295,24 @@ get '/v2/checks/:check_id/reports/:report_id' => sub {
     return $c->render(json => clone_and_remove_private($reports{$report_id}));
 };
 
+my @sdk_tokens;
+post '/v2/sdk_token' => sub {
+    my $c            = shift;
+    my $data         = $c->req->json;
+    my $applicant_id = $data->{applicant_id};
+    my $referrer     = $data->{referrer};
+    unless (exists($applicants{$applicant_id}) && $referrer) {
+        return $c->render(json => {status => 'Not Found'});
+    }
+    my $sdk_token = {
+        token        => Data::UUID->new->create_str(),
+        applicant_id => $applicant_id,
+        referrer     => $referrer,
+    };
+    push @sdk_tokens, $sdk_token;
+    return $c->render(json => $sdk_token);
+};
+
 sub clone_and_remove_private {
     my $result = shift;
     return $result unless $result && ref($result) eq 'HASH';
