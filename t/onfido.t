@@ -90,8 +90,6 @@ is($doc->type, 'passport', 'data is correct');
 # document list
 lives_ok { $src = $onfido->document_list(applicant_id => $app->id) } "document list ok";
 isa_ok($src, 'Ryu::Source', 'the document list is a Ryu::Source');
-#diag(explain($src->as_arrayref->get->[0]->{created_at}));
-#diag(explain($doc->{created_at}));
 is_deeply($src->as_arrayref->get->[0], $doc, 'the most recent doc is the one we created just now');
 
 # get document
