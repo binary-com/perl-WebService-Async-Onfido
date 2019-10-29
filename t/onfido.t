@@ -24,10 +24,9 @@ sleep 1;
 my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
-        token => 'test_token',
-#                                                       base_uri => 'http://localhost:3000'
+        token    => 'test_token',
+        base_uri => 'http://localhost:3000'
     ));
-$onfido->{base_uri} = 'http://localhost:3000';
 
 #applicant create
 my $app;
