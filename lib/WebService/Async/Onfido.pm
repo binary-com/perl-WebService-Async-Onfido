@@ -51,8 +51,6 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
-#require Log::Any::Adapter;
-#Log::Any::Adapter->import(qw(Stderr), log_level => 'trace');
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
 
 # Mapping file extension to mime type for currently
