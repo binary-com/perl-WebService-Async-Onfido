@@ -58,7 +58,7 @@ sub href : method { shift->{ href } }
 
 =head2 title
 
-The applicant’s title. Valid values are Mr, Mrs, Miss and Ms.
+The applicant's title. Valid values are Mr, Mrs, Miss and Ms.
 
 =cut
 
@@ -66,7 +66,7 @@ sub title : method { shift->{ title } }
 
 =head2 first_name
 
-The applicant’s first name.
+The applicant's first name.
 
 =cut
 
@@ -74,7 +74,7 @@ sub first_name : method { shift->{ first_name } }
 
 =head2 middle_name
 
-The applicant’s middle name(s) or initial.
+The applicant's middle name(s) or initial.
 
 =cut
 
@@ -82,7 +82,7 @@ sub middle_name : method { shift->{ middle_name } }
 
 =head2 last_name
 
-The applicant’s surname.
+The applicant's surname.
 
 =cut
 
@@ -90,7 +90,7 @@ sub last_name : method { shift->{ last_name } }
 
 =head2 email
 
-The applicant’s email address.
+The applicant's email address.
 
 =cut
 
@@ -98,7 +98,7 @@ sub email : method { shift->{ email } }
 
 =head2 gender
 
-The applicant’s gender. Valid values are male and female.
+The applicant's gender. Valid values are male and female.
 
 =cut
 
@@ -106,7 +106,7 @@ sub gender : method { shift->{ gender } }
 
 =head2 dob
 
-The applicant’s date of birth in yyyy-mm-dd format.
+The applicant's date of birth in yyyy-mm-dd format.
 
 =cut
 
@@ -114,7 +114,7 @@ sub dob : method { shift->{ dob } }
 
 =head2 telephone
 
-The applicant’s landline phone number.
+The applicant's landline phone number.
 
 =cut
 
@@ -122,7 +122,7 @@ sub telephone : method { shift->{ telephone } }
 
 =head2 mobile
 
-The applicant’s mobile phone number.
+The applicant's mobile phone number.
 
 =cut
 
@@ -138,7 +138,7 @@ sub country : method { shift->{ country } }
 
 =head2 mothers_maiden_name
 
-The applicant’s mother’s maiden name.
+The applicant's mother's maiden name.
 
 =cut
 
@@ -146,7 +146,7 @@ sub mothers_maiden_name : method { shift->{ mothers_maiden_name } }
 
 =head2 previous_last_name
 
-The applicant’s previous surname.
+The applicant's previous surname.
 
 =cut
 
@@ -154,7 +154,7 @@ sub previous_last_name : method { shift->{ previous_last_name } }
 
 =head2 nationality
 
-The applicant’s current nationality.  This must be a three-letter ISO code e.g. GBR or USA.
+The applicant's current nationality.  This must be a three-letter ISO code e.g. GBR or USA.
 
 =cut
 
@@ -162,7 +162,7 @@ sub nationality : method { shift->{ nationality } }
 
 =head2 country_of_birth
 
-The applicant’s country of birth.  This must be a three-letter ISO code e.g. GBR or USA.
+The applicant's country of birth.  This must be a three-letter ISO code e.g. GBR or USA.
 
 =cut
 
@@ -170,7 +170,7 @@ sub country_of_birth : method { shift->{ country_of_birth } }
 
 =head2 town_of_birth
 
-The applicant’s town of birth.
+The applicant's town of birth.
 
 =cut
 

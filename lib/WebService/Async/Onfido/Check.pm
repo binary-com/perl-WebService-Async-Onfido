@@ -28,7 +28,7 @@ sub onfido { shift->{onfido} }
 
 sub reports {
 	my ($self, %args) = @_;
-	
+
 	# return Ryu::Source->from($self->{reports}) if $self->{reports};
 	return $self->onfido->report_list(
 		check_id => $self->id,

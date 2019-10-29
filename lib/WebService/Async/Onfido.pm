@@ -82,7 +82,7 @@ each applicant found.
 =cut
 
 sub applicant_list {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     my $src = $self->source;
     my $f = $src->completed;
     my $uri = $self->endpoint('applicants');
@@ -327,7 +327,7 @@ sub applicant_delete {
 
 =head2 applicant_get
 
-Retreive a single applicant.
+Retrieve a single applicant.
 
 Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
@@ -777,7 +777,7 @@ sub applicant_check {
             $docs = [ $docs ] unless ref $docs;
             # Since name is necessary, we make it as the first parameter of report, and we can split the reports by it in the mocked server
             my $name = delete($copy{name});
-            push @content, "reports[][" . uri_escape_utf8('name') . ']=' . uri_escape_utf8($report->{name});
+            push @content, "reports[][" . uri_escape_utf8('name') . ']=' . uri_escape_utf8($name);
             push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
             push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
         } else {
