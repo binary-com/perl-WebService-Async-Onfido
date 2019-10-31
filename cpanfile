@@ -32,13 +32,11 @@ on test => sub {
     requires 'Test::NoWarnings', 0;
     requires 'Path::Tiny', 0;
     requires 'URI', 0;
-    requires 'FindBin', 0;
     requires 'Test::Exception', 0;
     requires 'Mojolicious::Lite', 0;
     requires 'Clone', 0;
     requires 'Date::Utility', 0;
     requires 'Data::UUID', 0;
-    requires 'File::Basename', 0;
     requires 'Mojolicious::Plugin::RenderFile', 0;
 };
 
