@@ -40,6 +40,7 @@ use JSON::MaybeXS;
 use File::ShareDir;
 use URI::Escape qw(uri_escape_utf8);
 use Locale::Codes::Country qw(country_code2code);
+use Scalar::Util qw(blessed);
 
 use WebService::Async::Onfido::Applicant;
 use WebService::Async::Onfido::Address;
@@ -50,7 +51,6 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
-
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
 
 # Mapping file extension to mime type for currently
@@ -64,7 +64,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token requests_per_minute)) {
+    for my $k (qw(token requests_per_minute base_uri)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -80,7 +80,7 @@ each applicant found.
 =cut
 
 sub applicant_list {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     my $src = $self->source;
     my $f = $src->completed;
     my $uri = $self->endpoint('applicants');
@@ -325,7 +325,7 @@ sub applicant_delete {
 
 =head2 applicant_get
 
-Retreive a single applicant.
+Retrieve a single applicant.
 
 Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
@@ -773,10 +773,13 @@ sub applicant_check {
             my %copy = %$report;
             my $docs = delete($copy{documents}) || [];
             $docs = [ $docs ] unless ref $docs;
+            # Since name is necessary, we make it as the first parameter of report, and we can split the reports by it in the mocked server
+            my $name = delete($copy{name});
+            push @content, "reports[][" . uri_escape_utf8('name') . ']=' . uri_escape_utf8($name);
             push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
             push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
         } else {
-            push @content, "reports[][name]=" . uri_escape_utf8($_) for @{$reports || []};
+            push @content, "reports[][name]=" . uri_escape_utf8($report); # TODO chylli check the caller to test the case that the reports include string report name
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
@@ -1112,7 +1115,12 @@ sub endpoint {
     )->process(%args);
 }
 
-sub base_uri { shift->{base_uri} //= URI->new('https://api.onfido.com') }
+sub base_uri {
+    my $self = shift;
+    return $self->{base_uri} if blessed($self->{base_uri});
+    $self->{base_uri} = URI->new($self->{base_uri} // 'https://api.onfido.com');
+    return $self->{base_uri};
+}
 
 sub token { shift->{token} }
 

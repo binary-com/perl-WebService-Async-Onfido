@@ -118,6 +118,8 @@ use utf8;
 
 # VERSION
 
+=encoding utf8
+
 =head1 NAME
 
 WebService::Async::Onfido::Base::[% name %] - represents data for Onfido

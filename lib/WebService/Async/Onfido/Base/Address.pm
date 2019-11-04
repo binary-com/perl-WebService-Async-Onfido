@@ -50,7 +50,7 @@ sub building_name : method { shift->{ building_name } }
 
 =head2 street
 
-The street of the applicant’s address. There is a 32-character limit on this field for UK addresses.
+The street of the applicant's address. There is a 32-character limit on this field for UK addresses.
 
 =cut
 
@@ -58,7 +58,7 @@ sub street : method { shift->{ street } }
 
 =head2 sub_street
 
-The sub-street of the applicant’s address.
+The sub-street of the applicant's address.
 
 =cut
 
@@ -66,7 +66,7 @@ sub sub_street : method { shift->{ sub_street } }
 
 =head2 town
 
-The town of the applicant’s address.
+The town of the applicant's address.
 
 =cut
 
@@ -82,7 +82,7 @@ sub state : method { shift->{ state } }
 
 =head2 postcode
 
-The postcode or ZIP of the applicant’s address. For UK postcode, specify the value in the following format: SW4 6EH.
+The postcode or ZIP of the applicant's address. For UK postcode, specify the value in the following format: SW4 6EH.
 
 =cut
 
