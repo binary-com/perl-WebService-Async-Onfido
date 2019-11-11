@@ -240,7 +240,7 @@ post '/v2/applicants/:applicant_id/checks' => sub {
         created_at    => Date::Utility->new()->datetime_iso8601,
         href          => "/v2/applicants/$applicant_id/checks/$check_id",
         type          => $c->param('type'),
-        status        => 'complete',
+        status        => 'in_progress',
         result        => 'clear',
         redirect_uri  => 'https://somewhere.else',
         results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
@@ -257,9 +257,11 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
+    
     unless (exists($checks{$check_id}) && $checks{$check_id}{_applicant_id} eq $applicant_id) {
         return $c->render(json => {status => 'Not Found'});
     }
+    $checks{$check_id}{status} = 'complete';
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
 };
 
