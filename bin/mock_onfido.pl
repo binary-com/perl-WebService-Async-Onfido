@@ -257,7 +257,7 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
-    
+
     unless (exists($checks{$check_id}) && $checks{$check_id}{_applicant_id} eq $applicant_id) {
         return $c->render(json => {status => 'Not Found'});
     }
