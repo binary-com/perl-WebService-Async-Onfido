@@ -223,7 +223,8 @@ sub create_report {
             name       => $req->{name},
             status     => 'complete',
             result     => 'clear',
-
+            breakdown  => {},
+            properties => {},
         };
         $reports{$report_id} = $report;
         push @reports, $report_id;
