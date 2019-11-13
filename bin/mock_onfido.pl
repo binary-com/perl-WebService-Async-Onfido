@@ -230,7 +230,7 @@ get '/v2/live_photos/:photo_id/download' => sub {
 };
 
 sub create_report {
-    my ( $c, $check_id ) = @_;
+    my ( $c, $check_id, $applicant_id ) = @_;
     use URI::Escape qw(uri_unescape);
     my $params = $c->req->params->to_string;
     $params = uri_unescape($params);
@@ -252,6 +252,9 @@ sub create_report {
     }
     push @req_reports, $req_report;
     my @reports;
+    my @document_ids =
+      map  { $_->{id} }
+      grep { $_->{_applicant_id} eq $applicant_id } values %documents;
     for my $req (@req_reports) {
         my $report_id = Data::UUID->new->create_str();
         my $report    = {
@@ -263,6 +266,9 @@ sub create_report {
             result     => 'clear',
             breakdown  => {},
             properties => { document_type => 'passport' },
+            $req->{name} eq 'document'
+            ? ( documents => [ map { { id => $_ } } @document_ids ] )
+            : (),
         };
         $reports{$report_id} = $report;
         push @reports, $report_id;
@@ -286,7 +292,7 @@ post '/v2/applicants/:applicant_id/checks' => sub {
           "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
         download_uri =>
           "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
-        reports       => create_report( $c, $check_id ),
+        reports => create_report( $c, $check_id, $applicant_id ),
         tags          => $c->req->params->to_hash->{'tags[]'},
         _applicant_id => $applicant_id,
     };
