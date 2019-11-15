@@ -367,7 +367,7 @@ post '/backdoor' => sub {
     $global{$type}{$id} = $new_data;
     return $c->render(
         status => 204,
-        json   => {status => 'delete ok'});
+        json   => {status => 'update ok'});
 };
 
 sub clone_and_remove_private {
