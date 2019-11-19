@@ -29,15 +29,6 @@ my %files;
 my %reports;
 my %checks;
 
-# This variable is used to open a backdoor for test
-my %global = (
-    applicants => \%applicants,
-    documents  => \%documents,
-    photos     => \%photos,
-    files      => \%files,
-    reports    => \%reports,
-    checks     => \%checks,
-);
 ################################################################################
 # applicants
 # create applicant
@@ -349,25 +340,6 @@ post '/v2/sdk_token' => sub {
     };
     push @sdk_tokens, $sdk_token;
     return $c->render(json => $sdk_token);
-};
-
-post '/backdoor' => sub {
-    my $c        = shift;
-    my $data     = $c->req->json;
-    my $type     = $data->{type};
-    my $id       = $data->{id};
-    my $new_data = $data->{data};
-    my $old_data = $global{$type}{$id};
-    die "some data missed" unless $type && $id && $new_data && $old_data;
-
-    # keep private keys
-    for my $key (keys %$old_data) {
-        $new_data->{$key} = $old_data->{$key} if $key =~ /^_/;
-    }
-    $global{$type}{$id} = $new_data;
-    return $c->render(
-        status => 204,
-        json   => {status => 'update ok'});
 };
 
 sub clone_and_remove_private {
