@@ -156,6 +156,7 @@ lives_ok {
 }
 "get check ok";
 isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
+$check->{status} = 'complete'; # after get check, it will be 'complete';
 is_deeply($check2, $check, 'result is ok');
 
 # check list
