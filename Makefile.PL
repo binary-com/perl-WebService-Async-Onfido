@@ -21,6 +21,7 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "WebService-Async-Onfido",
   "EXE_FILES" => [
+    "bin/mock_onfido.pl",
     "bin/onfido-tool"
   ],
   "LICENSE" => "perl",
@@ -48,12 +49,21 @@ my %WriteMakefileArgs = (
     "mro" => 0
   },
   "TEST_REQUIRES" => {
+    "Clone" => 0,
+    "Data::UUID" => 0,
+    "Date::Utility" => 0,
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
+    "Mojolicious::Lite" => 0,
+    "Mojolicious::Plugin::RenderFile" => 0,
+    "Path::Tiny" => 0,
     "Test::CheckDeps" => "0.010",
-    "Test::More" => "0.94"
+    "Test::Exception" => 0,
+    "Test::More" => "0.98",
+    "Test::NoWarnings" => 0,
+    "URI" => 0
   },
   "VERSION" => "0.001",
   "test" => {
@@ -63,6 +73,9 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "Clone" => 0,
+  "Data::UUID" => 0,
+  "Date::Utility" => 0,
   "Dir::Self" => 0,
   "ExtUtils::MakeMaker" => 0,
   "File::Spec" => 0,
@@ -75,13 +88,17 @@ my %FallbackPrereqs = (
   "List::UtilsBy" => 0,
   "Log::Any" => 0,
   "Log::Any::Adapter" => 0,
+  "Mojolicious::Lite" => 0,
+  "Mojolicious::Plugin::RenderFile" => 0,
   "Net::Async::HTTP" => 0,
   "Path::Tiny" => 0,
   "Ryu::Async" => 0,
   "Syntax::Keyword::Try" => 0,
   "Template" => 0,
   "Test::CheckDeps" => "0.010",
-  "Test::More" => "0.94",
+  "Test::Exception" => 0,
+  "Test::More" => "0.98",
+  "Test::NoWarnings" => 0,
   "URI" => 0,
   "URI::Escape" => 0,
   "URI::QueryParam" => 0,

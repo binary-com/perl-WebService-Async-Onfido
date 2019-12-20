@@ -1115,6 +1115,25 @@ sub endpoint {
     )->process(%args);
 }
 
+=head2 supported_documents
+
+Returns an accessor for the endpoints data. This is a hashref containing URI
+templates, used by L</endpoint>.
+
+=cut
+
+sub supported_documents {
+    my $path = Path::Tiny::path(__DIR__)->parent(3)->child('share/onfido_supp_doc.json');
+    $path = Path::Tiny::path(
+        File::ShareDir::dist_file(
+            'WebService-Async-Onfido',
+            'onfido_supp_doc.json'
+        )
+    ) unless $path->exists;
+    my $supp_docs = decode_json_text($path->slurp_utf8);
+    return $supp_docs;
+}
+
 sub base_uri {
     my $self = shift;
     return $self->{base_uri} if blessed($self->{base_uri});
