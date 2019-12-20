@@ -1024,8 +1024,8 @@ sub countries_list {
             my ($res) = @_;
             my $onfido_countries = decode_json_utf8($res->content);
 
-            my %countries_list = map { $_ => $_->{supported_identity_report} + 0 } @$onfido_countries;
-            return Future->done(\%countries_list);
+            my %countries_list = map { $_->{alpha3} => $_->{supported_identity_report} + 0 } @$onfido_countries;
+-            return Future->done(\%countries_list);
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
