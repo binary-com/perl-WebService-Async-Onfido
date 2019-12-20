@@ -1062,8 +1062,8 @@ sub supported_documents_list {
             'supported_documents.json'
         )
     ) unless $path->exists;
-    my $supp_docs = decode_json_text($path->slurp_utf8);
-    return $supp_docs;
+    my supported_documents = decode_json_text($path->slurp_utf8);
+    return supported_documents;
 }
 
 =head2 supported_documents_for_country
@@ -1075,9 +1075,9 @@ Returns the supported_documents_list for the country.
 sub supported_documents_for_country {
     my ($self, $country_code) = @_;
 
-    my %country_to_doc = map { $_->{country_code} => $_ } @{supported_documents_list()};
+    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
 
-    return $country_to_doc{$country_code}->{doc_types_list};
+    return $country_details{$country_code}->{doc_types_list} // [];
 }
 
 =head2 sdk_token
