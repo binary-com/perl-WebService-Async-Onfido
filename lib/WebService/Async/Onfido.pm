@@ -39,7 +39,6 @@ use JSON::MaybeUTF8 qw(:v1);
 use JSON::MaybeXS;
 use File::ShareDir;
 use URI::Escape qw(uri_escape_utf8);
-use Locale::Codes::Country qw(country_code2code);
 use Scalar::Util qw(blessed);
 
 use WebService::Async::Onfido::Applicant;
@@ -1034,20 +1033,6 @@ sub countries_list {
     });
 }
 
-=head2 is_country_supported
-
-Returns 1 if country supported and 0 for unsupported
-
-=cut
-
-sub is_country_supported {
-    my ($self, $country_code) = @_;
-
-    my $country_list = countries_list($self)->get;
-
-    return $country_list->{$country_code};
-}
-
 =head2 supported_documents_list
 
 Returns an array of hashes of supported_documents for each country
@@ -1078,6 +1063,20 @@ sub supported_documents_for_country {
     my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
 
     return $country_details{$country_code}->{doc_types_list} // [];
+}
+
+=head2 is_country_supported
+
+Returns 1 if country supported and 0 for unsupported
+
+=cut
+
+sub is_country_supported {
+    my ($self, $country_code) = @_;
+
+    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
+
+    return $country_details->{$country_code} ? 1 : 0;
 }
 
 =head2 sdk_token
