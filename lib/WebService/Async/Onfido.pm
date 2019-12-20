@@ -1076,7 +1076,7 @@ sub is_country_supported {
 
     my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
 
-    return $country_details->{$country_code} ? 1 : 0;
+    return $country_details{$country_code} ? 1 : 0;
 }
 
 =head2 sdk_token
