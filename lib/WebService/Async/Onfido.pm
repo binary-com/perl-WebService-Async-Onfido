@@ -1068,7 +1068,7 @@ sub supported_documents_list {
 
 =head2 supported_documents_for_country
 
-Returns the supported_documents_list for the country. 
+Returns the supported_documents_list for the country 
 
 =cut
 
@@ -1269,3 +1269,4 @@ Copyright Binary.com 2019.
 =head1 LICENSE
 
 Licensed under the same terms as Perl5 itself.
+
