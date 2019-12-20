@@ -1068,7 +1068,7 @@ sub supported_documents_list {
 
 =head2 supported_documents_for_country
 
-Returns the supported_documents_list for the country 
+Returns the supported_documents_list for the country
 
 =cut
 
