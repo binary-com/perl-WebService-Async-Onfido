@@ -1062,8 +1062,8 @@ sub supported_documents_list {
             'supported_documents.json'
         )
     ) unless $path->exists;
-    my supported_documents = decode_json_text($path->slurp_utf8);
-    return supported_documents;
+    my $supported_documents = decode_json_text($path->slurp_utf8);
+    return $supported_documents;
 }
 
 =head2 supported_documents_for_country
