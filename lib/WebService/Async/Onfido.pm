@@ -1228,13 +1228,16 @@ sub rate_limiting {
     my ($self) = @_;
     $self->{rate_limit} //= do {
         $self->loop->delay_future(
-            after => 60
+            # TODO chylli change it temporary for test. will change it back to 60
+            after => 2
         )->on_ready(sub {
             $self->{request_count} = 0;
             delete $self->{rate_limit};
         })
     };
-    return Future->done unless $self->requests_per_minute and ++$self->{request_count} >= $self->requests_per_minute;
+    #warn "count: " . $self->{request_count} . "\n";
+    return Future->done unless $self->requests_per_minute and ++$self->{request_count} > $self->requests_per_minute;
+    #warn "returning limit";
     return $self->{rate_limit};
 }
 

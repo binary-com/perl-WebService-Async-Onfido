@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More tests => 50;
 use Test::Exception;
-use Test::NoWarnings;
+#use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
@@ -189,5 +189,29 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
+
+# ratelimit
+$onfido->{request_count} = 0;
+$onfido->{requests_per_minute} = 5;
+for (1..5){
+    my $result = $onfido->rate_limiting;
+    ok($result->is_ready, 'all results are ready at first');
+}
+my @results;
+for (1..10){
+    my $result = $onfido->rate_limiting;
+    ok(!$result->is_ready, 'all results are not ready yet');
+    push @results, $result;
+}
+$onfido->loop->delay_future(after => 2)->get;
+for (1..5){
+    my $result = shift @results;
+    ok($result->is_ready, 'now the first 5 future should be ready');
+}
+for (1..5){
+    my $result = shift @results;
+    ok(!$result->is_ready, 'now the last 5 futures should not be ready');
+}
+
 
 kill('TERM', $pid);
