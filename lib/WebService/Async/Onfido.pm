@@ -1250,7 +1250,7 @@ sub _get_mime_type {
 sub rate_limiter {
     my $self = shift;
     return $self->{rate_limiter} //= do {
-        my $limiter = Async::RateLimiter->new(
+        my $limiter = WebService::Async::Onfido::RateLimiter->new(
             limit => $self->requests_per_interval,
             interval => $self->rate_interval,
         );
