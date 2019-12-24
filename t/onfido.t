@@ -1,8 +1,8 @@
 use strict;
 use warnings;
-use Test::More tests => 99;
+use Test::More tests => 93;
 use Test::Exception;
-#use Test::NoWarnings;
+use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
@@ -213,16 +213,17 @@ for (1..10){
     push @results, $result;
 }
 $onfido->loop->delay_future(after => 2)->get;
+ok($onfido->is_rate_limited, "still rate_limited again");
 for (1..5){
-    ok(!$onfido->is_rate_limited, "now not limited again");
     my $result = shift @results;
     ok($result->is_ready, 'now the first 5 future should be ready');
 }
+ok($onfido->is_rate_limited, "here still rate_limited");
 for (1..5){
-    ok(!$onfido->is_rate_limited, "here still limited");
     my $result = shift @results;
     ok(!$result->is_ready, 'now the last 5 futures should not be ready');
 }
-
-
+$onfido->loop->delay_future(after => 4)->get;
+diag "counter..." . $onfido->rate_limiter->{counter};
+ok(!$onfido->is_rate_limited, "all futures ready, should not limited");
 kill('TERM', $pid);
