@@ -26,8 +26,6 @@ $loop->add(
     my $onfido = WebService::Async::Onfido->new(
         token    => 'test_token',
         base_uri => 'http://localhost:3000',
-        requests_per_interval => 5,
-        rate_interval => 2,
     ));
 
 #applicant create
@@ -194,10 +192,14 @@ lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok
 
 # ratelimit
 # clear rate limiting
-$onfido->loop->delay_future(after => 2)->get;
-#$onfido->{request_count} = 0;
-#$onfido->{requests_per_interval} = 5;
-#$onfido->{rate_interval} = 2;
+$loop->add(
+    $onfido = WebService::Async::Onfido->new(
+        token    => 'test_token',
+        base_uri => 'http://localhost:3000',
+        requests_per_interval => 5,
+        rate_interval => 2,
+    ));
+
 for (1..5){
     my $result = $onfido->rate_limiting;
     ok($result->is_ready, 'all results are ready at first');

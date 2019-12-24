@@ -1228,21 +1228,6 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 sub rate_limiting {
     my ($self) = @_;
     return $self->rate_limiter->acquire;
-    #my ($self) = @_;
-    #$self->{rate_limit} //= do {
-    #    $self->loop->delay_future(
-    #        # TODO chylli change it temporary for test. will change it back to 60
-    #        after => $self->rate_interval,
-    #    )->on_ready(sub {
-    #        $self->{request_count} = 0;
-    #        delete $self->{rate_limit};
-    #    })
-    #};
-    ##warn "count: " . $self->{request_count} . "\n";
-    ##warn "limit: " . $self->requests_per_interval . "\n";
-    #return Future->done unless $self->requests_per_interval and ++$self->{request_count} > $self->requests_per_interval;
-    ##warn "returning limit";
-    #return $self->{rate_limit};
 }
 
 sub requests_per_interval { shift->{requests_per_interval} //= 300 }
@@ -1266,8 +1251,8 @@ sub rate_limiter {
     my $self = shift;
     return $self->{rate_limiter} //= do {
         my $limiter = Async::RateLimiter->new(
-            limit => $self->{requests_per_interval},
-            interval => $self->{rate_interval},
+            limit => $self->requests_per_interval,
+            interval => $self->rate_interval,
         );
         $self->add_child($limiter);
         $limiter;
