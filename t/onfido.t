@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 74;
 use Test::Exception;
 #use Test::NoWarnings;
 use Path::Tiny;
@@ -193,7 +193,9 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
 # ratelimit
-$onfido->{request_count} = 0;
+# clear rate limiting
+$onfido->loop->delay_future(after => 2)->get;
+#$onfido->{request_count} = 0;
 #$onfido->{requests_per_interval} = 5;
 #$onfido->{rate_interval} = 2;
 for (1..5){

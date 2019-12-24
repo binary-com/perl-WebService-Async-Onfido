@@ -48,6 +48,7 @@ use WebService::Async::Onfido::Photo;
 use WebService::Async::Onfido::Video;
 use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
+use Async::RateLimiter;
 
 use Log::Any qw($log);
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
@@ -1226,20 +1227,22 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 
 sub rate_limiting {
     my ($self) = @_;
-    $self->{rate_limit} //= do {
-        $self->loop->delay_future(
-            # TODO chylli change it temporary for test. will change it back to 60
-            after => $self->rate_interval,
-        )->on_ready(sub {
-            $self->{request_count} = 0;
-            delete $self->{rate_limit};
-        })
-    };
-    #warn "count: " . $self->{request_count} . "\n";
-    #warn "limit: " . $self->requests_per_interval . "\n";
-    return Future->done unless $self->requests_per_interval and ++$self->{request_count} > $self->requests_per_interval;
-    #warn "returning limit";
-    return $self->{rate_limit};
+    return $self->rate_limiter->acquire;
+    #my ($self) = @_;
+    #$self->{rate_limit} //= do {
+    #    $self->loop->delay_future(
+    #        # TODO chylli change it temporary for test. will change it back to 60
+    #        after => $self->rate_interval,
+    #    )->on_ready(sub {
+    #        $self->{request_count} = 0;
+    #        delete $self->{rate_limit};
+    #    })
+    #};
+    ##warn "count: " . $self->{request_count} . "\n";
+    ##warn "limit: " . $self->requests_per_interval . "\n";
+    #return Future->done unless $self->requests_per_interval and ++$self->{request_count} > $self->requests_per_interval;
+    ##warn "returning limit";
+    #return $self->{rate_limit};
 }
 
 sub requests_per_interval { shift->{requests_per_interval} //= 300 }
@@ -1257,6 +1260,18 @@ sub _get_mime_type {
     my $ext = (fileparse($filename, "[^.]+"))[2];
 
     return $FILE_MIME_TYPE_MAPPING{lc($ext // '')} // 'application/octet-stream';
+}
+
+sub rate_limiter {
+    my $self = shift;
+    return $self->{rate_limiter} //= do {
+        my $limiter = Async::RateLimiter->new(
+            limit => $self->{requests_per_interval},
+            interval => $self->{rate_interval},
+        );
+        $self->add_child($limiter);
+        $limiter;
+    };
 }
 
 1;
