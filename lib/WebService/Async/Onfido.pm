@@ -63,7 +63,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token requests_per_minute base_uri)) {
+    for my $k (qw(token requests_per_interval base_uri rate_interval)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -1213,7 +1213,7 @@ May eventually be updated to return number of seconds that you need to wait.
 
 sub is_rate_limited {
     my ($self) = @_;
-    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_minute;
+    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_interval;
 }
 
 =head2 rate_limiting
@@ -1229,19 +1229,22 @@ sub rate_limiting {
     $self->{rate_limit} //= do {
         $self->loop->delay_future(
             # TODO chylli change it temporary for test. will change it back to 60
-            after => 2
+            after => $self->rate_interval,
         )->on_ready(sub {
             $self->{request_count} = 0;
             delete $self->{rate_limit};
         })
     };
     #warn "count: " . $self->{request_count} . "\n";
-    return Future->done unless $self->requests_per_minute and ++$self->{request_count} > $self->requests_per_minute;
+    #warn "limit: " . $self->requests_per_interval . "\n";
+    return Future->done unless $self->requests_per_interval and ++$self->{request_count} > $self->requests_per_interval;
     #warn "returning limit";
     return $self->{rate_limit};
 }
 
-sub requests_per_minute { shift->{requests_per_minute} //= 300 }
+sub requests_per_interval { shift->{requests_per_interval} //= 300 }
+
+sub rate_interval { return shift->{rate_interval} // 60};
 
 sub source {
     my ($self) = shift;
