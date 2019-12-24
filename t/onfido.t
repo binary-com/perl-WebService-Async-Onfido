@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 74;
+use Test::More tests => 99;
 use Test::Exception;
 #use Test::NoWarnings;
 use Path::Tiny;
@@ -201,21 +201,25 @@ $loop->add(
     ));
 
 for (1..5){
+    ok(!$onfido->is_rate_limited, "not limited yet");
     my $result = $onfido->rate_limiting;
     ok($result->is_ready, 'all results are ready at first');
 }
 my @results;
 for (1..10){
+    ok($onfido->is_rate_limited, "is rate_limited now");
     my $result = $onfido->rate_limiting;
     ok(!$result->is_ready, 'all results are not ready yet');
     push @results, $result;
 }
 $onfido->loop->delay_future(after => 2)->get;
 for (1..5){
+    ok(!$onfido->is_rate_limited, "now not limited again");
     my $result = shift @results;
     ok($result->is_ready, 'now the first 5 future should be ready');
 }
 for (1..5){
+    ok(!$onfido->is_rate_limited, "here still limited");
     my $result = shift @results;
     ok(!$result->is_ready, 'now the last 5 futures should not be ready');
 }

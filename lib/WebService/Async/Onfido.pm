@@ -48,7 +48,7 @@ use WebService::Async::Onfido::Photo;
 use WebService::Async::Onfido::Video;
 use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
-use Async::RateLimiter;
+use WebService::Async::Onfido::RateLimiter;
 
 use Log::Any qw($log);
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
@@ -1214,7 +1214,7 @@ May eventually be updated to return number of seconds that you need to wait.
 
 sub is_rate_limited {
     my ($self) = @_;
-    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_interval;
+    return $self->rate_limiter->is_limited;
 }
 
 =head2 rate_limiting
