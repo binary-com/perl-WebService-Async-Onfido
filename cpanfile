@@ -38,5 +38,6 @@ on test => sub {
     requires 'Date::Utility', 0;
     requires 'Data::UUID', 0;
     requires 'Mojolicious::Plugin::RenderFile', 0;
+    requires 'Test::MockTime::HiRes', 0;
 };
 
