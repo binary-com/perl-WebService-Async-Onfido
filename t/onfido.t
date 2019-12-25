@@ -4,6 +4,7 @@ use Test::More tests => 93;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
+use Test::MockTime qw(set_relative_time);
 
 use IO::Async::Loop;
 
@@ -196,32 +197,35 @@ $loop->add(
     $onfido = WebService::Async::Onfido->new(
         token    => 'test_token',
         base_uri => 'http://localhost:3000',
-        requests_per_interval => 5,
-        rate_interval => 2,
+        requests_per_minute => 5,
     ));
+
 
 for (1..5){
     ok(!$onfido->is_rate_limited, "not limited yet");
     my $result = $onfido->rate_limiting;
-    ok($result->is_ready, 'all results are ready at first');
+    ok($result->is_ready, 'all results are ready at first because they are in the rate limit');
 }
 my @results;
 for (1..10){
     ok($onfido->is_rate_limited, "is rate_limited now");
     my $result = $onfido->rate_limiting;
-    ok(!$result->is_ready, 'all results are not ready yet');
+    ok(!$result->is_ready, 'all results are not ready now because they are out of rate limit');
     push @results, $result;
 }
-$onfido->loop->delay_future(after => 2)->get;
+
+set_relative_time(60);
+$onfido->loop->loop_once(0);
+#$onfido->loop->delay_future(after => 2)->get;
 ok($onfido->is_rate_limited, "still rate_limited again");
 for (1..5){
     my $result = shift @results;
-    ok($result->is_ready, 'now the first 5 future should be ready');
+    ok($result->is_ready, 'now the first 5 future should be ready because they are in the rate limit now');
 }
 ok($onfido->is_rate_limited, "here still rate_limited");
 for (1..5){
     my $result = shift @results;
-    ok(!$result->is_ready, 'now the last 5 futures should not be ready');
+    ok(!$result->is_ready, 'now the last 5 futures should not be ready because they are still out of rate limit');
 }
 $onfido->loop->delay_future(after => 4)->get;
 diag "counter..." . $onfido->rate_limiter->{counter};
