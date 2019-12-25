@@ -52,6 +52,8 @@ use WebService::Async::Onfido::RateLimiter;
 
 use Log::Any qw($log);
 use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
+# the interval of rate limit
+use constant RATE_INTERVAL => 60;
 
 # Mapping file extension to mime type for currently
 # supported document types
@@ -64,7 +66,7 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token requests_per_interval base_uri rate_interval)) {
+    for my $k (qw(token requests_per_minute base_uri)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     $self->next::method(%args);
@@ -1230,9 +1232,7 @@ sub rate_limiting {
     return $self->rate_limiter->acquire;
 }
 
-sub requests_per_interval { shift->{requests_per_interval} //= 300 }
-
-sub rate_interval { return shift->{rate_interval} // 60};
+sub requests_per_minute { shift->{requests_per_minute} //= 300 }
 
 sub source {
     my ($self) = shift;
@@ -1251,8 +1251,8 @@ sub rate_limiter {
     my $self = shift;
     return $self->{rate_limiter} //= do {
         my $limiter = WebService::Async::Onfido::RateLimiter->new(
-            limit => $self->requests_per_interval,
-            interval => $self->rate_interval,
+            limit => $self->requests_per_minute * 60,
+            interval => RATE_INTERVAL,
         );
         $self->add_child($limiter);
         $limiter;
