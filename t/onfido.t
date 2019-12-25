@@ -1,10 +1,10 @@
 use strict;
 use warnings;
+use Test::MockTime::HiRes qw(set_relative_time);
 use Test::More tests => 93;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
-use Test::MockTime qw(set_relative_time);
 
 use IO::Async::Loop;
 
@@ -214,9 +214,10 @@ for (1..10){
     push @results, $result;
 }
 
+# advance 1st interval
 set_relative_time(60);
+# trigger loop delay_future
 $onfido->loop->loop_once(0);
-#$onfido->loop->delay_future(after => 2)->get;
 ok($onfido->is_rate_limited, "still rate_limited again");
 for (1..5){
     my $result = shift @results;
@@ -227,7 +228,14 @@ for (1..5){
     my $result = shift @results;
     ok(!$result->is_ready, 'now the last 5 futures should not be ready because they are still out of rate limit');
 }
-$onfido->loop->delay_future(after => 4)->get;
-diag "counter..." . $onfido->rate_limiter->{counter};
+
+# advance 2nd interval
+set_relative_time(60*2);
+# trigger loop delay_future
+$onfido->loop->loop_once(0);
+# advance 3rd interval
+set_relative_time(60*3);
+# trigger loop delay_future
+$onfido->loop->loop_once(0);
 ok(!$onfido->is_rate_limited, "all futures ready, should not limited");
 kill('TERM', $pid);
