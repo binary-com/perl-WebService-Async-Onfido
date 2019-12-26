@@ -303,7 +303,7 @@
     "country_code": "DZA",
     "country_name": "Algeria",
     "country_grouping": "Africa",
-    "doc_types_list": ["Passport National Identity Card"]
+    "doc_types_list": ["Passport", "National Identity Card"]
   },
   {
     "country_code": "ECU",
@@ -573,7 +573,7 @@
     "country_code": "KEN",
     "country_name": "Kenya",
     "country_grouping": "Africa",
-    "doc_types_list": ["Passport National Identity Card"]
+    "doc_types_list": ["Passport", "National Identity Card"]
   },
   {
     "country_code": "KGZ",
@@ -897,7 +897,7 @@
     "country_code": "PAK",
     "country_name": "Pakistan",
     "country_grouping": "Asia",
-    "doc_types_list": ["Passport National Identity Card"]
+    "doc_types_list": ["Passport", "National Identity Card"]
   },
   {
     "country_code": "POL",
@@ -1191,7 +1191,7 @@
     "country_code": "VEN",
     "country_name": "Venezuela (Bolivarian Republic of)",
     "country_grouping": "Americas",
-    "doc_types_list": ["Passport National Identity Card"]
+    "doc_types_list": ["Passport", "National Identity Card"]
   },
   {
     "country_code": "VNM",
