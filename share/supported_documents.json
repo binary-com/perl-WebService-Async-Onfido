@@ -63,7 +63,7 @@
     "country_code": "AUS",
     "country_name": "Australia",
     "country_grouping": "Oceania",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "AZE",
@@ -81,7 +81,7 @@
     "country_code": "BRB",
     "country_name": "Barbados",
     "country_grouping": "Americas",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "BGD",
@@ -129,7 +129,7 @@
     "country_code": "BMU",
     "country_name": "Bermuda",
     "country_grouping": "Americas",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "BRN",
@@ -153,7 +153,7 @@
     "country_code": "BHS",
     "country_name": "Bahamas",
     "country_grouping": "Americas",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "BTN",
@@ -171,7 +171,7 @@
     "country_code": "BLR",
     "country_name": "Belarus",
     "country_grouping": "Europe",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "BLZ",
@@ -321,7 +321,7 @@
     "country_code": "EGY",
     "country_name": "Egypt",
     "country_grouping": "Africa",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "ERI",
@@ -351,7 +351,7 @@
     "country_code": "FJI",
     "country_name": "Fiji",
     "country_grouping": "Oceania",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "FSM",
@@ -399,7 +399,7 @@
     "country_code": "GGY",
     "country_name": "Guernsey",
     "country_grouping": "Europe",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "GHA",
@@ -501,13 +501,13 @@
     "country_code": "ISR",
     "country_name": "Israel",
     "country_grouping": "Asia",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "IMN",
     "country_name": "Isle of Man",
     "country_grouping": "Europe",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "IND",
@@ -549,13 +549,13 @@
     "country_code": "JEY",
     "country_name": "Jersey",
     "country_grouping": "Europe",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "JAM",
     "country_name": "Jamaica",
     "country_grouping": "Americas",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "JOR",
@@ -753,7 +753,7 @@
     "country_code": "MNG",
     "country_name": "Mongolia",
     "country_grouping": "Asia",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "MRT",
@@ -861,7 +861,7 @@
     "country_code": "NZL",
     "country_name": "New Zealand",
     "country_grouping": "Oceania",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "OMN",
@@ -957,7 +957,7 @@
     "country_code": "RUS",
     "country_name": "Russian Federation",
     "country_grouping": "Europe",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "RWA",
@@ -1119,7 +1119,7 @@
     "country_code": "TUN",
     "country_name": "Tunisia",
     "country_grouping": "Africa",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "TON",
@@ -1155,7 +1155,7 @@
     "country_code": "TZA",
     "country_name": "Tanzania, United Republic of",
     "country_grouping": "Africa",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "UKR",
@@ -1221,7 +1221,7 @@
     "country_code": "YEM",
     "country_name": "Yemen",
     "country_grouping": "Asia",
-    "doc_types_list": ["Passport Driving Licence"]
+    "doc_types_list": ["Passport", "Driving Licence"]
   },
   {
     "country_code": "ZAF",
