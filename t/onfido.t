@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
-use Test::More tests => 93;
+use Test::More tests => 94;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
@@ -233,6 +233,7 @@ for (1..5){
 set_relative_time(60*2);
 # trigger loop delay_future
 $onfido->loop->loop_once(0);
+ok($onfido->is_rate_limited, "still rate_limited because new queue has been filled already");
 # advance 3rd interval
 set_relative_time(60*3);
 # trigger loop delay_future
