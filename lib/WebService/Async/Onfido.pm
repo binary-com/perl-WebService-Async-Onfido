@@ -39,7 +39,6 @@ use JSON::MaybeUTF8 qw(:v1);
 use JSON::MaybeXS;
 use File::ShareDir;
 use URI::Escape qw(uri_escape_utf8);
-use Locale::Codes::Country qw(country_code2code);
 use Scalar::Util qw(blessed);
 
 use WebService::Async::Onfido::Applicant;
@@ -1011,7 +1010,7 @@ sub download_document {
 
 =head2 countries_list
 
-Returns a hashref containing 2-letter country codes as keys and supporting status
+Returns a hashref containing 3-letter country codes as keys and supporting status
 as their value.
 
 =cut
@@ -1024,14 +1023,60 @@ sub countries_list {
             my ($res) = @_;
             my $onfido_countries = decode_json_utf8($res->content);
 
-            my %countries_list = map { uc(country_code2code($_->{alpha3}, 'alpha-3', 'alpha-2')) => $_->{supported_identity_report} + 0 } @$onfido_countries;
-            return Future->done({%countries_list});
+            my %countries_list = map { $_->{alpha3} => $_->{supported_identity_report} + 0 } @$onfido_countries;
+            return Future->done(\%countries_list);
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
             return Future->fail($err);
         }
     });
+}
+
+=head2 supported_documents_list
+
+Returns an array of hashes of supported_documents for each country
+
+=cut
+
+sub supported_documents_list {
+    my $path = Path::Tiny::path(__DIR__)->parent(3)->child('share/supported_documents.json');
+    $path = Path::Tiny::path(
+        File::ShareDir::dist_file(
+            'WebService-Async-Onfido',
+            'supported_documents.json'
+        )
+    ) unless $path->exists;
+    my $supported_documents = decode_json_text($path->slurp_utf8);
+    return $supported_documents;
+}
+
+=head2 supported_documents_for_country
+
+Returns the supported_documents_list for the country
+
+=cut
+
+sub supported_documents_for_country {
+    my ($self, $country_code) = @_;
+
+    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
+
+    return $country_details{$country_code}->{doc_types_list} // [];
+}
+
+=head2 is_country_supported
+
+Returns 1 if country supported and 0 for unsupported
+
+=cut
+
+sub is_country_supported {
+    my ($self, $country_code) = @_;
+
+    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
+
+    return $country_details{$country_code} ? 1 : 0;
 }
 
 =head2 sdk_token
