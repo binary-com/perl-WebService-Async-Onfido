@@ -67,12 +67,9 @@ sub limit { return shift->{limit} }
 
 sub is_limited {
     my $self = shift;
-    #warn "limit " . $self->limit  . "number is " . $self->{queue}->@*;
-    if($self->{queue}->@* >= $self->limit){
-        #warn " that item status : " . $self->{queue}[-$self->limit]->is_ready;
-        #warn " the old age of item is " . (time() - $self->{queue}[-$self->limit]->get) if $self->{queue}[-$self->limit]->is_ready;
-    }
+    # the number of slots is less.
     return scalar($self->{queue}->@*) >= $self->limit
+      # the item of [-$limit] is not ready or is ready but passed no more than interval seconds
       && (!($self->{queue}[-$self->limit]->is_ready) || (time() - $self->{queue}[-$self->limit]->get < $self->interval ));
 }
 
