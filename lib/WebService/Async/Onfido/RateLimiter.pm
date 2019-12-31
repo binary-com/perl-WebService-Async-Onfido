@@ -55,7 +55,7 @@ sub _init {
     for my $k (qw(limit interval)) {
         die "Missing required argument: $k" unless exists $args->{$k};
         die "Invalid value for $k: $args->{$k}" unless int($args->{$k}) > 0;
-        $self->{$k} = delete $args->{$k} if exists $args->{$k};
+        $self->{$k} = delete $args->{$k};
     }
 
     $self->{queue}   = [];
