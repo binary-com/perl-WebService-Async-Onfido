@@ -99,7 +99,6 @@ It returns future, when slot will be available, then future will be resolved.
 
 sub acquire {
     my $self = shift;
-    my $slot;
     my $queue = $self->{queue};
     if (scalar $queue->@* < $self->limit) {
         push @$queue, Future->done(time());
