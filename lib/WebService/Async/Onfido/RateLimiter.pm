@@ -48,7 +48,7 @@ sub _init {
     }
 
     $self->{queue}   = [];
-    $self->{counter} = 0; ## TODO remove ?
+    $self->{counter} = 0;    ## TODO remove ?
 
     return $self->next::method($args);
 }
@@ -69,47 +69,43 @@ sub is_limited {
     my $self = shift;
     # the number of slots is less.
     return scalar($self->{queue}->@*) >= $self->limit
-      # the item of [-$limit] is not ready or is ready but passed no more than interval seconds
-      && (!($self->{queue}[-$self->limit]->is_ready) || (time() - $self->{queue}[-$self->limit]->get < $self->interval ));
+        # the item of [-$limit] is not ready or is ready but passed no more than interval seconds
+        && (!($self->{queue}[-$self->limit]->is_ready) || (time() - $self->{queue}[-$self->limit]->get < $self->interval));
 }
 
-sub acquire{
+sub acquire {
     my $self = shift;
     my $slot;
     my $queue = $self->{queue};
-    if(scalar $queue->@* < $self->limit){
-        $slot = Future->done(time());
+    if (scalar $queue->@* < $self->limit) {
+        push @$queue, Future->done(time());
+        return $queue->[-1];
     }
-    else{
-        #TODO weaken self
-        my $item = $queue->[-$self->limit];
-        $slot = $item->then(
-            sub{
-                my $item_time = shift;
-                # execute after
-                my $after = $item_time + $self->interval - time();
-                #say "after is $after";
-                $self->loop->delay_future(after => $after)->then(
-                    sub{
-                        # remove old slots before current slot
-                        for(0..$#$queue){
-                            last unless $queue->[0]->is_ready;
-                            # if the slot too old
-                            if(time() - $queue->[0]->get > $self->interval){
-                                shift @$queue;
-                            }
-                            else{
-                                last;
-                            }
+
+    #TODO weaken self
+    my $item = $queue->[-$self->limit];
+    push @$queue, $item->then(
+        sub {
+            my $item_time = shift;
+            # execute after
+            my $after = $item_time + $self->interval - time();
+            #say "after is $after";
+            $self->loop->delay_future(after => $after)->then(
+                sub {
+                    # remove old slots before current slot
+                    for (0 .. $#$queue) {
+                        last unless $queue->[0]->is_ready;
+                        # if the slot too old
+                        if (time() - $queue->[0]->get > $self->interval) {
+                            shift @$queue;
+                        } else {
+                            last;
                         }
-                        Future->done(time());
                     }
-                );
-            }
-        );
-    }
-    push @$queue, $slot;
-    return $slot;
+                    Future->done(time());
+                });
+        });
+    return $queue->[-1];
 }
 
 1;

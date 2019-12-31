@@ -3,7 +3,7 @@ use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
 use Test::More tests => 94;
 use Test::Exception;
-#use Test::NoWarnings;
+use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
@@ -157,7 +157,7 @@ lives_ok {
 }
 "get check ok";
 isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
-$check->{status} = 'complete'; # after get check, it will be 'complete';
+$check->{status} = 'complete';    # after get check, it will be 'complete';
 is_deeply($check2, $check, 'result is ok');
 
 # check list
@@ -195,19 +195,18 @@ lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok
 # clear rate limiting
 $loop->add(
     $onfido = WebService::Async::Onfido->new(
-        token    => 'test_token',
-        base_uri => 'http://localhost:3000',
+        token               => 'test_token',
+        base_uri            => 'http://localhost:3000',
         requests_per_minute => 5,
     ));
 
-
-for (1..5){
+for (1 .. 5) {
     ok(!$onfido->is_rate_limited, "not limited yet");
     my $result = $onfido->rate_limiting;
     ok($result->is_ready, 'all results are ready at first because they are in the rate limit');
 }
 my @results;
-for (1..10){
+for (1 .. 10) {
     ok($onfido->is_rate_limited, "is rate_limited now");
     my $result = $onfido->rate_limiting;
     ok(!$result->is_ready, 'all results are not ready now because they are out of rate limit');
@@ -219,23 +218,23 @@ set_relative_time(60);
 # trigger loop delay_future
 $onfido->loop->loop_once(0);
 ok($onfido->is_rate_limited, "still rate_limited again");
-for (1..5){
+for (1 .. 5) {
     my $result = shift @results;
     ok($result->is_ready, 'now the first 5 future should be ready because they are in the rate limit now');
 }
 ok($onfido->is_rate_limited, "here still rate_limited");
-for (1..5){
+for (1 .. 5) {
     my $result = shift @results;
     ok(!$result->is_ready, 'now the last 5 futures should not be ready because they are still out of rate limit');
 }
 
 # advance 2nd interval
-set_relative_time(60*2);
+set_relative_time(60 * 2);
 # trigger loop delay_future
 $onfido->loop->loop_once(0);
 ok($onfido->is_rate_limited, "still rate_limited because new queue has been filled already");
 # advance 3rd interval
-set_relative_time(60*3);
+set_relative_time(60 * 3);
 # trigger loop delay_future
 $onfido->loop->loop_once(0);
 ok(!$onfido->is_rate_limited, "all futures ready, should not limited");
