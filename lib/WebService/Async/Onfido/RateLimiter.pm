@@ -48,7 +48,7 @@ sub _init {
     }
 
     $self->{queue}   = [];
-    $self->{counter} = 0;
+    $self->{counter} = 0; ## TODO remove ?
 
     return $self->next::method($args);
 }
@@ -65,67 +65,54 @@ sub interval { return shift->{interval} }
 
 sub limit { return shift->{limit} }
 
-=head2 acquire
-
-Method checks availability for free slot.
-It returns future, when slot will be available, then future will be resolved.
-
-=cut
-
-sub acquire {
-    my ($self) = @_;
-
-    $self->_start_timer;
-    return Future->done if ++$self->{counter} <= $self->limit;
-
-    my $current = $self->_current_queue;
-    $current->{counter}++;
-    return $current->{future};
-}
-
-=head2 is_limited
-
-=cut
-
 sub is_limited {
-    my ($self) = @_;
-    return $self->{counter} >= $self->limit;
+    my $self = shift;
+    #warn "limit " . $self->limit  . "number is " . $self->{queue}->@*;
+    if($self->{queue}->@* >= $self->limit){
+        #warn " that item status : " . $self->{queue}[-$self->limit]->is_ready;
+        #warn " the old age of item is " . (time() - $self->{queue}[-$self->limit]->get) if $self->{queue}[-$self->limit]->is_ready;
+    }
+    return scalar($self->{queue}->@*) >= $self->limit
+      && (!($self->{queue}[-$self->limit]->is_ready) || (time() - $self->{queue}[-$self->limit]->get < $self->interval ));
 }
 
-sub _current_queue {
-    my ($self) = @_;
-
-    # +1 for getting correct position for edge cases like: limit 2, counter 4, should be 0
-    my $pos = int(($self->{counter} - ($self->limit + 1)) / $self->limit);
-
-    $self->{queue}[$pos] //= {
-        future  => $self->loop->new_future,
-        counter => 0
-    };
-
-    return $self->{queue}[$pos];
-}
-
-sub _start_timer {
-    my ($self) = @_;
-
-    $self->{timer} //= $self->loop->delay_future(
-        after => $self->interval,
-        )->on_ready(
-        sub {
-            $self->{counter} = 0;
-            delete $self->{timer};
-
-            return unless @{$self->{queue}};
-
-            $self->_start_timer;
-
-            my $current = shift @{$self->{queue}};
-            $self->{counter} = $current->{counter};
-            $current->{future}->done;
-        });
-
-    return $self->{timer};
+sub acquire{
+    my $self = shift;
+    my $slot;
+    my $queue = $self->{queue};
+    if(scalar $queue->@* < $self->limit){
+        $slot = Future->done(time());
+    }
+    else{
+        #TODO weaken self
+        my $item = $queue->[-$self->limit];
+        $slot = $item->then(
+            sub{
+                my $item_time = shift;
+                # execute after
+                my $after = $item_time + $self->interval - time();
+                #say "after is $after";
+                $self->loop->delay_future(after => $after)->then(
+                    sub{
+                        # remove old slots before current slot
+                        for(0..$#$queue){
+                            last unless $queue->[0]->is_ready;
+                            # if the slot too old
+                            if(time() - $queue->[0]->get > $self->interval){
+                                shift @$queue;
+                            }
+                            else{
+                                last;
+                            }
+                        }
+                        Future->done(time());
+                    }
+                );
+            }
+        );
+    }
+    push @$queue, $slot;
+    return $slot;
 }
 
 1;

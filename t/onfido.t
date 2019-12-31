@@ -3,7 +3,7 @@ use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
 use Test::More tests => 94;
 use Test::Exception;
-use Test::NoWarnings;
+#use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
