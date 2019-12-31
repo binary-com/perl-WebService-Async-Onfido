@@ -82,16 +82,16 @@ sub acquire {
         return $queue->[-1];
     }
 
-    #TODO weaken self
-    my $item = $queue->[-$self->limit];
+    my $item     = $queue->[-$self->limit];
     my $interval = $self->interval;
+    my $loop     = $self->loop;
     push @$queue, $item->then(
         sub {
             my $item_time = shift;
             # execute after
             my $after = $item_time + $interval - time();
             #say "after is $after";
-            $self->loop->delay_future(after => $after)->then(
+            $loop->delay_future(after => $after)->then(
                 sub {
                     # remove old slots before current slot
                     for (0 .. $#$queue) {
