@@ -22,7 +22,6 @@ WebService::Async::Onfido::RateLimiter - Module abstract
 
 =cut
 
-use Carp qw();
 use Future;
 use mro;
 
