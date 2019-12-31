@@ -84,11 +84,12 @@ sub acquire {
 
     #TODO weaken self
     my $item = $queue->[-$self->limit];
+    my $interval = $self->interval;
     push @$queue, $item->then(
         sub {
             my $item_time = shift;
             # execute after
-            my $after = $item_time + $self->interval - time();
+            my $after = $item_time + $interval - time();
             #say "after is $after";
             $self->loop->delay_future(after => $after)->then(
                 sub {
@@ -96,7 +97,7 @@ sub acquire {
                     for (0 .. $#$queue) {
                         last unless $queue->[0]->is_ready;
                         # if the slot too old
-                        if (time() - $queue->[0]->get > $self->interval) {
+                        if (time() - $queue->[0]->get > $interval) {
                             shift @$queue;
                         } else {
                             last;
