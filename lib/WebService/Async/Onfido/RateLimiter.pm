@@ -35,6 +35,17 @@ of request in time interval
 
 =head1 SYNOPSIS
 
+   use IO::Async::Loop;
+   use WebService::Async::Onfido::RateLimiter;
+   my $loop = IO::Async::Loop->new;
+   $loop->add(
+       my $limiter = WebService::Async::Onfido::RateLimiter->new(
+           interval => 5,
+           limit    => 3
+       ));
+   my $f = $limiter->acquire->then(sub{print "doing "});
+   $loop->run;
+
 =head1 DESCRIPTION
 
 =cut
@@ -65,13 +76,27 @@ sub interval { return shift->{interval} }
 
 sub limit { return shift->{limit} }
 
+=head2 is_limited
+
+=cut
+
 sub is_limited {
     my $self = shift;
     # the number of slots is less.
     return scalar($self->{queue}->@*) >= $self->limit
-        # the item of [-$limit] is not ready or is ready but passed no more than interval seconds
-        && (!($self->{queue}[-$self->limit]->is_ready) || (time() - $self->{queue}[-$self->limit]->get < $self->interval));
+        # the item of [-$limit] is not ready
+        && (
+        !($self->{queue}[-$self->limit]->is_ready)
+        #  or is ready but passed no more than interval seconds
+        || (time() - $self->{queue}[-$self->limit]->get < $self->interval)) ? 1 : 0;
 }
+
+=head2 acquire
+
+Method checks availability for free slot.
+It returns future, when slot will be available, then future will be resolved.
+
+=cut
 
 sub acquire {
     my $self = shift;
