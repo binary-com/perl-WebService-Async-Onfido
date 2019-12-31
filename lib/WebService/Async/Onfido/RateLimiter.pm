@@ -100,11 +100,14 @@ It returns future, when slot will be available, then future will be resolved.
 sub acquire {
     my $self = shift;
     my $queue = $self->{queue};
+
+    # if the queue is not filled enough, then it is available
     if (scalar $queue->@* < $self->limit) {
         push @$queue, Future->done(time());
         return $queue->[-1];
     }
 
+    # else , the current request's available time is the execution timestamp of the last $limit request push the interval
     my $item     = $queue->[-$self->limit];
     my $interval = $self->interval;
     my $loop     = $self->loop;
