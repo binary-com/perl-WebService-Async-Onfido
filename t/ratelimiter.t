@@ -54,4 +54,5 @@ is_deeply(
     'the executing time is ok'
 );
 is_deeply(\@value_of_is_limited, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1], 'the status of is_limited is ok');
+is(scalar $limiter->{queue}->@*, 4, 'the queue will be shrink');
 done_testing;

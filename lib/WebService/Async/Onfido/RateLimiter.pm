@@ -115,7 +115,6 @@ sub acquire {
             my $item_time = shift;
             # execute after
             my $after = $item_time + $interval - time();
-            #say "after is $after";
             $loop->delay_future(after => $after)->then(
                 sub {
                     # remove old slots before current slot
