@@ -99,10 +99,11 @@ It returns future, when slot will be available, then future will be resolved.
 
 sub acquire {
     my $self = shift;
+    my $priority = shift // 0;
     my $queue = $self->{queue};
 
     my $loop     = $self->loop;
-    my $slot = [$loop->new_future->new];
+    my $slot = [$loop->new_future->new, undef, $priority];
     # if the queue is not filled enough, then it is available
     if (scalar $queue->@* < $self->limit) {
         push @$queue, $slot;
@@ -141,7 +142,10 @@ sub acquire {
 sub acquire_high_priority {
     my $self = shift;
     my $queue = $self->{queue};
-
+    for my $index (0..$#$queue){
+        next if $queue->[$index][0]->is_ready;
+        
+    }
 }
 
 1;
