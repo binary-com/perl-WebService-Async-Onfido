@@ -103,50 +103,77 @@ sub acquire {
     my $queue = $self->{queue};
 
     my $loop     = $self->loop;
-    my $slot = [$loop->new_future->new, undef, $priority];
+    my $new_slot = [$loop->new_future->new, undef, $priority];
     # if the queue is not filled enough, then it is available
     if (scalar $queue->@* < $self->limit) {
-        push @$queue, $slot;
-        $slot->[1] = $loop->new_future->done;
-        $slot->[0]->done(time);
+        push @$queue, $new_slot;
+        $new_slot->[1] = $loop->new_future->done;
+        $new_slot->[0]->done(time);
         return $queue->[-1][0];
     }
 
-    # else , the current request's available time is the execution timestamp of the last $limit request push the interval
-    my $prev_slot     = $queue->[-$self->limit];
+    my $place = 0;
+    for my $index (0..$#$queue){
+        next if (($queue->[$index][0]->is_ready || $queue->[$index][2] >= $priority));
+        $place = $index;
+        last;
+    }
+    $place ||= $#$queue + 1;
+    @$queue = (@$queue[0..$place-1], $new_slot, @$queue[$place..$#$queue]);
+
     my $interval = $self->interval;
-    $slot->[1] = $prev_slot->[0]->then(
-        sub {
-            my $prev_slot_time = shift;
-            # execute after
-            my $after = $prev_slot_time + $interval - time();
-            $loop->delay_future(after => $after)->on_ready(
-                sub {
-                    # remove old slots before current slot
-                    for (0 .. $#$queue) {
-                        last unless $queue->[0][0]->is_ready;
-                        # if the slot too old
-                        if (time() - $queue->[0][0]->get > $interval) {
-                            shift @$queue;
-                        } else {
-                            last;
+    for my $index ($place .. $#$queue){
+        my $prev_slot     = $queue->[$index-$self->limit];
+        my $slot = $queue->[$index];
+        # else , the current request's available time is the execution timestamp of the last $limit request push the interval
+        $slot->[1] = $prev_slot->[0]->then(
+            sub {
+                my $prev_slot_time = shift;
+                # execute after
+                my $after = $prev_slot_time + $interval - time();
+                $loop->delay_future(after => $after)->on_ready(
+                    sub {
+                        # remove old slots before current slot
+                        for (0 .. $#$queue) {
+                            last unless $queue->[0][0]->is_ready;
+                            # if the slot too old
+                            if (time() - $queue->[0][0]->get > $interval) {
+                                shift @$queue;
+                            } else {
+                                last;
+                            }
                         }
-                    }
-                    $slot->[0]->done(time());
-                });
-        });
-    push @$queue, $slot;
-    return $queue->[-1][0];
+                        $slot->[0]->done(time());
+                    });
+            });
+    }
+    return $queue->[$place][0];
 }
 
-sub acquire_high_priority {
-    my $self = shift;
-    my $queue = $self->{queue};
-    for my $index (0..$#$queue){
-        next if $queue->[$index][0]->is_ready;
-        
-    }
-}
+#sub acquire_high_priority {
+#    my $self = shift;
+#    my $priority = 1;
+#    $self->acquire(1) unless $self->is_limited;
+#    my $queue = $self->{queue};
+#
+#    my $index;
+#    my @new_queue;
+#    my $found = undef;
+#    for my $slot (@$queue){
+#        if($found){
+#            next;
+#        }
+#        if (($queue->[$i][0]->is_ready || $queue->[$i][2] >= $priority)){
+#            push @new_queue, $i;
+#            next;
+#        }
+#        push @new_queue, $new_slot;
+#        $i = $index;
+#        last;
+#    }
+#
+#    $queue
+#}
 
 1;
 
