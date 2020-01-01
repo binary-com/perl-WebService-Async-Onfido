@@ -2,6 +2,7 @@ package WebService::Async::Onfido::RateLimiter;
 
 use strict;
 use warnings;
+use Scalar::Util qw(refaddr);
 
 our $VERSION = '0.001';
 
@@ -119,19 +120,24 @@ sub acquire {
         last;
     }
     $place ||= $#$queue + 1;
+
+    my @tmp = (map {$_->[0]} @$queue);
     @$queue = (@$queue[0..$place-1], $new_slot, @$queue[$place..$#$queue]);
+    @tmp = (map {$_->[0]} @$queue);
 
     my $interval = $self->interval;
     for my $index ($place .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
+        my $t = $index;
         # the current request's available time is the execution timestamp of the last $limit request push the interval
+        $slot->[1]->cancel if $slot->[1];
         $slot->[1] = $prev_slot->[0]->then(
             sub {
                 my $prev_slot_time = shift;
                 # execute after
                 my $after = $prev_slot_time + $interval - time();
-                $loop->delay_future(after => $after)->on_ready(
+                $loop->delay_future(after => $after)->on_done(
                     sub {
                         # remove old slots before current slot
                         for (0 .. $#$queue) {

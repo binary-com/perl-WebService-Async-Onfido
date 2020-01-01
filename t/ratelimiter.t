@@ -11,7 +11,7 @@ $loop->add(
         limit    => 3
     ));
 
-my @feed = ([0,0], [1,0], [2,0], [3,0], [4,0], [4,0], [5,0], [6,0], [8,0], [8,0], [17,0], [17,0], [17,0], [25,0], [25,0], [25,0], [26,0]);
+my @feed = ([0,0], [1,0], [2,0], [3,0], [4,0], [4,1], [5,0], [6,0], [8,0], [8,0], [17,0], [17,0], [17,0], [25,0], [25,0], [25,0], [26,0]);
 my @request_futures;
 my $now = time();
 for my $request_info (@feed) {
@@ -37,7 +37,8 @@ sub submit_request {
     my $arg = shift;
     diag("requesting $arg->[0]...");
     push @value_of_is_limited, $limiter->is_limited;
-    my $f = $limiter->acquire($arg->[1])->then(sub { my $execute_time = shift; Future->done([$arg->[0], $execute_time - $now]) });
+    use Data::Dumper;
+    my $f = $limiter->acquire($arg->[1])->then(sub { my $execute_time = shift; diag("request " . Dumper($arg) . " is done"); Future->done([$arg->[0], $execute_time - $now]) });
     if ($arg->[0] == 26) {
         $f->on_ready(sub { $loop->stop });
     }
@@ -48,7 +49,7 @@ $loop->run();
 is_deeply(
     [map { $_->get } @requests],
     [
-        [0, 0], [1, 1], [2, 2], [3, 5], [4, 6], [4, 7], [5, 10], [6, 11], [8, 12], [8, 15],
+        [0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15],
         [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 30]
     ],
     'the executing time is ok'
