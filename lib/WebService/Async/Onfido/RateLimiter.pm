@@ -119,7 +119,7 @@ sub acquire {
             my $prev_slot_time = shift;
             # execute after
             my $after = $prev_slot_time + $interval - time();
-            $loop->delay_future(after => $after)->then(
+            $loop->delay_future(after => $after)->on_ready(
                 sub {
                     # remove old slots before current slot
                     for (0 .. $#$queue) {
@@ -136,6 +136,12 @@ sub acquire {
         });
     push @$queue, $slot;
     return $queue->[-1][0];
+}
+
+sub acquire_high_priority {
+    my $self = shift;
+    my $queue = $self->{queue};
+
 }
 
 1;
