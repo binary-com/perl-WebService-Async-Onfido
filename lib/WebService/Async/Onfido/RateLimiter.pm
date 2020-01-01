@@ -3,6 +3,7 @@ package WebService::Async::Onfido::RateLimiter;
 use strict;
 use warnings;
 use Scalar::Util qw(refaddr);
+use Algorithm::Backoff;
 
 our $VERSION = '0.001';
 
@@ -59,7 +60,8 @@ sub _init {
     }
 
     $self->{queue}   = [];
-    $self->{counter} = 0;    ## TODO remove ?
+    $self->{backoff_min} = delete $args->{backoff_min} // 30;
+    $self->{backoff_max} = delete $args->{backoff_max} // 300;
 
     return $self->next::method($args);
 }
@@ -79,6 +81,11 @@ sub limit { return shift->{limit} }
 =head2 is_limited
 
 =cut
+
+sub backoff {
+    my $self = shift;
+    $self->{backoff} //= Algorithm::Backoff->new(min => $self->{backoff_min}, max => $self->{backoff_max});
+}
 
 sub is_limited {
     my $self = shift;
@@ -101,6 +108,7 @@ It returns future, when slot will be available, then future will be resolved.
 sub acquire {
     my $self = shift;
     my $priority = shift // 0;
+    my $backoff = shift;
     my $queue = $self->{queue};
 
     my $loop     = $self->loop;
@@ -124,9 +132,16 @@ sub acquire {
     my @tmp = (map {$_->[0]} @$queue);
     @$queue = (@$queue[0..$place-1], $new_slot, @$queue[$place..$#$queue]);
     @tmp = (map {$_->[0]} @$queue);
+    $self->_rebuild_queue($place);
+    return $queue->[$place][0];
+}
 
+sub _rebuild_queue {
+    my ($self, $start) = @_;
+    my $queue = $self->{queue};
     my $interval = $self->interval;
-    for my $index ($place .. $#$queue){
+    my $loop = $self->loop;
+    for my $index ($start .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
         my $t = $index;
@@ -153,7 +168,7 @@ sub acquire {
                     });
             });
     }
-    return $queue->[$place][0];
+
 }
 
 #sub acquire_high_priority {
