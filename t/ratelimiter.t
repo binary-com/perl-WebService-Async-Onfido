@@ -11,14 +11,14 @@ $loop->add(
         limit    => 3
     ));
 
-my @feed = (0, 1, 2, 3, 4, 4, 5, 6, 8, 8, 17, 17, 17, 25, 25, 25, 26);
+my @feed = ([0,0], [1,0], [2,0], [3,0], [4,0], [4,0], [5,0], [6,0], [8,0], [8,0], [17,0], [17,0], [17,0], [25,0], [25,0], [25,0], [26,0]);
 my @request_futures;
 my $now = time();
-for my $request_time (@feed) {
-    my $f = $loop->delay_future(after => $request_time);
+for my $request_info (@feed) {
+    my $f = $loop->delay_future(after => $request_info->[0]);
     $f = $f->then(
         sub {
-            submit_request($request_time);
+            submit_request($request_info);
             return Future->done;
         });
     push @request_futures, $f;
@@ -35,10 +35,10 @@ my @value_of_is_limited;
 
 sub submit_request {
     my $arg = shift;
-    diag("requesting $arg...");
+    diag("requesting $arg->[0]...");
     push @value_of_is_limited, $limiter->is_limited;
-    my $f = $limiter->acquire->then(sub { my $execute_time = shift; Future->done([$arg, $execute_time - $now]) });
-    if ($arg == 26) {
+    my $f = $limiter->acquire($arg->[1])->then(sub { my $execute_time = shift; Future->done([$arg->[0], $execute_time - $now]) });
+    if ($arg->[0] == 26) {
         $f->on_ready(sub { $loop->stop });
     }
     push @requests, $f;

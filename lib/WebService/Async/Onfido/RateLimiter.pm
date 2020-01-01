@@ -125,7 +125,7 @@ sub acquire {
     for my $index ($place .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
-        # else , the current request's available time is the execution timestamp of the last $limit request push the interval
+        # the current request's available time is the execution timestamp of the last $limit request push the interval
         $slot->[1] = $prev_slot->[0]->then(
             sub {
                 my $prev_slot_time = shift;
