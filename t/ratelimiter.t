@@ -42,7 +42,7 @@ sub submit_request {
     use Data::Dumper;
     # $arg->[0] >= 27 will ask backoff
     my $f = $limiter->acquire($arg->[1],
-                              $arg->[0] >= 27
+                              $arg->[0] >= 28
                           )->then(sub { my $execute_time = shift; my $done_time = $execute_time - $now; diag("request " . Dumper($arg) . " is done at $done_time"); Future->done([$arg->[0], $execute_time - $now]) });
     if ($arg->[0] == 30) {
         $f->on_ready(sub {
@@ -59,7 +59,7 @@ is_deeply(
     $executing_time,
     [
         [0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15],
-        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 60],[27,60],[28,60],[29,65],[30,65]
+        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 54],[27,54],[28,54],[29,59],[30,59]
     ],
     'the executing time is ok'
 );
