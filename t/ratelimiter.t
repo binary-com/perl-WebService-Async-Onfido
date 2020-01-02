@@ -59,10 +59,10 @@ is_deeply(
     $executing_time,
     [
         [0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15],
-        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 30],[27,33],[28,40],[29,35],[30,38]
+        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 60],[27,60],[28,60],[29,65],[30,65]
     ],
     'the executing time is ok'
 );
 is_deeply(\@value_of_is_limited, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1,1,1,1,1], 'the status of is_limited is ok');
-is(scalar $limiter->{queue}->@*, 9, 'the queue will be shrink');
+is(scalar $limiter->{queue}->@*, 5, 'the queue will be shrink');
 done_testing;

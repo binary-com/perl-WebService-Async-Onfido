@@ -142,7 +142,6 @@ sub acquire {
     my $loop     = $self->loop;
     my $new_slot = [Future->new, Future->new , $priority];
     $new_slot->[0]->on_cancel(sub{print $new_slot->[0] . "canceled........\n"});
-    warn "Futre " . $new_slot->[0] . "is created\n";
     my $limit = $self->limit;
 
     # GUARD
@@ -154,8 +153,6 @@ sub acquire {
     #    $new_slot->[0]->done(time);
     #    return $queue->[-1][0];
     #}
-
-    warn "backoff  $backoff\n";
 
     my $new_position = 0;
     my $not_ready_position = 0;
@@ -173,7 +170,6 @@ sub acquire {
     $new_position ||= $#$queue + 1;
 
     @$queue = (@$queue[0..$new_position-1], $new_slot, @$queue[$new_position..$#$queue]);
-    #warn "not ready position $not_ready_position new position $new_position\n backoff $backoff";
     $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
     return $queue->[$new_position][0];
 }
@@ -197,11 +193,7 @@ sub _rebuild_queue {
         my $t = $index;
         $tmp[$index] = "slot" . ($index-$self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
-        warn "here " . $slot->[1]->state;
         $slot->[1]->cancel if $slot->[1];
-        warn "here " . $slot->[1] . " " . $slot->[1]->state;
-        warn " slot: " . $slot->[0] . " " . $slot->[1] . "\n";
-        #warn " before cancel " . $prev_slot->[0]->state , "\n";
         $slot->[1] = $prev_slot->[0]->without_cancel->then(
             sub {
                 my $prev_slot_time = shift;
