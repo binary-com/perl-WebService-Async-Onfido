@@ -146,21 +146,12 @@ sub acquire {
 
     # GUARD
     die "something is wrong, the queue's length shouldn't less than the limit" if scalar $queue->@* < $limit;
-    ## if the queue is not filled enough, then it is available
-    #if (scalar $queue->@* < $self->limit) {
-    #    push @$queue, $new_slot;
-    #    $new_slot->[1] = $loop->new_future->done;
-    #    $new_slot->[0]->done(time);
-    #    return $queue->[-1][0];
-    #}
 
     my $new_position = 0;
     my $not_ready_position = 0;
     for my $index (0..$#$queue){
         $not_ready_position++ if $queue->[$index][0]->is_ready;
         if($backoff && $queue->[$index][0]->is_ready){
-            #warn "changing execution time of $index from " . ($queue->[$index][0]->get - $start_time) . " to " . (time() + $backoff - $self->interval - $start_time) . "\n";
-            #warn "changing execution time of $index relative to current: from " . ($queue->[$index][0]->get - time()) . " to " . ($backoff - $self->interval) . "\n";
             $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
         }
         next if (($queue->[$index][0]->is_ready || $queue->[$index][2] >= $priority));
@@ -226,31 +217,6 @@ sub _rebuild_queue {
     }
     warn "after rebuild: @tmp";
 }
-
-#sub acquire_high_priority {
-#    my $self = shift;
-#    my $priority = 1;
-#    $self->acquire(1) unless $self->is_limited;
-#    my $queue = $self->{queue};
-#
-#    my $index;
-#    my @new_queue;
-#    my $found = undef;
-#    for my $slot (@$queue){
-#        if($found){
-#            next;
-#        }
-#        if (($queue->[$i][0]->is_ready || $queue->[$i][2] >= $priority)){
-#            push @new_queue, $i;
-#            next;
-#        }
-#        push @new_queue, $new_slot;
-#        $i = $index;
-#        last;
-#    }
-#
-#    $queue
-#}
 
 1;
 
