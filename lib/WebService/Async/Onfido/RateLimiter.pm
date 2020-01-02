@@ -116,21 +116,30 @@ It returns future, when slot will be available, then future will be resolved.
 sub acquire {
     my $self = shift;
     my $priority = shift // 0;
-#    my $need_backoff = shift;
-#    my $backoff = 0;
-#    if($backoff){
-#        $priority++;
-#        $backoff = $self->backoff->next_value;
-#    }
-#    else{
-#        $self->backoff->reset_value;
-#    }
-
+    my $need_backoff = shift;
     my $queue = $self->{queue};
+
+
+    my $backoff = 0;
+    if($need_backoff){
+        if ($self->backoff->limit_reached){
+            # cancel all delay futures;
+            for my $slot (@$queue){
+                $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready
+            }
+            return Future->fail('backoff reached the limit!');
+        }
+        $backoff = $self->backoff->next_value;
+    }
+    else{
+        $self->backoff->reset_value;
+    }
 
     my $loop     = $self->loop;
     my $new_slot = [$loop->new_future->new, undef, $priority];
     my $limit = $self->limit;
+
+    # GUARD
     die "something is wrong, the queue's length shouldn't less than the limit" if scalar $queue->@* < $limit;
     ## if the queue is not filled enough, then it is available
     #if (scalar $queue->@* < $self->limit) {
@@ -141,23 +150,30 @@ sub acquire {
     #}
 
 
-    my $place = 0;
+    my $new_position = 0;
+    my $not_ready_position = 0;
     for my $index (0..$#$queue){
+        $not_ready_position++ if $queue->[$index][0]->is_ready;
+        if($backoff && $queue->[$index][0]->is_ready){
+            $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
+        }
         next if (($queue->[$index][0]->is_ready || $queue->[$index][2] >= $priority));
-        $place = $index;
+        $new_position = $index;
         last;
     }
-    $place ||= $#$queue + 1;
+    $new_position ||= $#$queue + 1;
 
     my @tmp = (map {$_->[0]} @$queue);
-    @$queue = (@$queue[0..$place-1], $new_slot, @$queue[$place..$#$queue]);
+    @$queue = (@$queue[0..$new_position-1], $new_slot, @$queue[$new_position..$#$queue]);
     @tmp = (map {$_->[0]} @$queue);
-    $self->_rebuild_queue($place);
-    return $queue->[$place][0];
+    $self->_rebuild_queue($new_position, $backoff ? $not_ready_position : $new_position);
+    return $queue->[$new_position][0];
 }
 
 sub _rebuild_queue {
     my ($self, $start) = @_;
+    # GUARD, shouldn't happen
+    die "start should always no less than the limit" if $start < $self->limit;
     my $queue = $self->{queue};
     my $interval = $self->interval;
     my $loop = $self->loop;
