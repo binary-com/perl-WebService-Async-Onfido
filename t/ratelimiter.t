@@ -9,8 +9,8 @@ $loop->add(
     my $limiter = WebService::Async::Onfido::RateLimiter->new(
         interval => 5,
         limit    => 3,
-        backoff_min => 2,
-        backoff_max => 10,
+        backoff_min => 6,
+        backoff_max => 30,
     ));
 
 my @feed = ([0,0], [1,0], [2,0], [3,0], [4,0], [4,1], [5,0], [6,0], [8,0], [8,0], [17,0], [17,0], [17,0], [25,0], [25,0], [25,0], [26,0], [27,0], [28,0], [29,0], [30,0]);
@@ -26,7 +26,7 @@ for my $request_info (@feed) {
     push @request_futures, $f;
 }
 
-my $f = $loop->delay_future(after => 50)->on_ready(
+my $f = $loop->delay_future(after => 200)->on_ready(
     sub {
         fail('timeout');
         $loop->stop;
@@ -45,7 +45,9 @@ sub submit_request {
                               $arg->[0] >= 27
                           )->then(sub { my $execute_time = shift; my $done_time = $execute_time - $now; diag("request " . Dumper($arg) . " is done at $done_time"); Future->done([$arg->[0], $execute_time - $now]) });
     if ($arg->[0] == 30) {
-        $f->on_ready(sub { $loop->stop });
+        $f->on_ready(sub {
+                           $loop->stop
+                       });
     }
     push @requests, $f;
 }
@@ -57,10 +59,10 @@ is_deeply(
     $executing_time,
     [
         [0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15],
-        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 30],[27,30],[28,30],[29,35],[30,35]
+        [17, 17], [17, 17], [17, 20], [25, 25], [25, 25], [25, 25], [26, 30],[27,33],[28,40],[29,35],[30,38]
     ],
     'the executing time is ok'
 );
 is_deeply(\@value_of_is_limited, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1,1,1,1,1], 'the status of is_limited is ok');
-is(scalar $limiter->{queue}->@*, 5, 'the queue will be shrink');
+is(scalar $limiter->{queue}->@*, 9, 'the queue will be shrink');
 done_testing;

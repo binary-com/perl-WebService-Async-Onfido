@@ -2,6 +2,7 @@ package WebService::Async::Onfido::RateLimiter;
 
 use strict;
 use warnings;
+
 use Scalar::Util qw(refaddr);
 use Algorithm::Backoff;
 use Data::Dumper;
@@ -23,6 +24,8 @@ WebService::Async::Onfido::RateLimiter - Module abstract
 =head1 METHODS
 
 =cut
+
+my $start_time = time();
 
 use Future;
 use mro;
@@ -127,6 +130,7 @@ sub acquire {
             for my $slot (@$queue){
                 $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready
             }
+            warn "failed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
             return Future->fail('backoff reached the limit!');
         }
         $backoff = $self->backoff->next_value;
@@ -136,7 +140,9 @@ sub acquire {
     }
 
     my $loop     = $self->loop;
-    my $new_slot = [$loop->new_future->new, undef, $priority];
+    my $new_slot = [Future->new, Future->new , $priority];
+    $new_slot->[0]->on_cancel(sub{print $new_slot->[0] . "canceled........\n"});
+    warn "Futre " . $new_slot->[0] . "is created\n";
     my $limit = $self->limit;
 
     # GUARD
@@ -149,12 +155,15 @@ sub acquire {
     #    return $queue->[-1][0];
     #}
 
+    warn "backoff  $backoff\n";
 
     my $new_position = 0;
     my $not_ready_position = 0;
     for my $index (0..$#$queue){
         $not_ready_position++ if $queue->[$index][0]->is_ready;
         if($backoff && $queue->[$index][0]->is_ready){
+            #warn "changing execution time of $index from " . ($queue->[$index][0]->get - $start_time) . " to " . (time() + $backoff - $self->interval - $start_time) . "\n";
+            #warn "changing execution time of $index relative to current: from " . ($queue->[$index][0]->get - time()) . " to " . ($backoff - $self->interval) . "\n";
             $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
         }
         next if (($queue->[$index][0]->is_ready || $queue->[$index][2] >= $priority));
@@ -163,10 +172,9 @@ sub acquire {
     }
     $new_position ||= $#$queue + 1;
 
-    my @tmp = (map {$_->[0]} @$queue);
     @$queue = (@$queue[0..$new_position-1], $new_slot, @$queue[$new_position..$#$queue]);
-    @tmp = (map {$_->[0]} @$queue);
-    $self->_rebuild_queue($new_position, $backoff ? $not_ready_position : $new_position);
+    #warn "not ready position $not_ready_position new position $new_position\n backoff $backoff";
+    $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
     return $queue->[$new_position][0];
 }
 
@@ -177,18 +185,34 @@ sub _rebuild_queue {
     my $queue = $self->{queue};
     my $interval = $self->interval;
     my $loop = $self->loop;
+
+    my @tmp = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
+    warn "rebuild from $start to $#$queue\n";
+    warn "before rebuild: @tmp\n";
+
     for my $index ($start .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
         my $limit = $self->limit;
         my $t = $index;
+        $tmp[$index] = "slot" . ($index-$self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
+        warn "here " . $slot->[1]->state;
         $slot->[1]->cancel if $slot->[1];
-        $slot->[1] = $prev_slot->[0]->then(
+        warn "here " . $slot->[1] . " " . $slot->[1]->state;
+        warn " slot: " . $slot->[0] . " " . $slot->[1] . "\n";
+        #warn " before cancel " . $prev_slot->[0]->state , "\n";
+        $slot->[1] = $prev_slot->[0]->without_cancel->then(
             sub {
                 my $prev_slot_time = shift;
+                unless ($prev_slot_time){
+                    warn "future " . $prev_slot->[0] . " state is " . $prev_slot->[0]->state . " with no result\n" ;
+                    warn Dumper($prev_slot->[0]);
+                }
+
                 # execute after
                 my $after = $prev_slot_time + $interval - time();
+                $tmp[$index] = time - $start_time + $after;
                 $loop->delay_future(after => $after)->on_done(
                     sub {
                         # remove old slots before current slot
@@ -203,11 +227,12 @@ sub _rebuild_queue {
                                 last;
                             }
                         }
+                        #warn "future " . $slot->[0] . " is done\n";
                         $slot->[0]->done(time());
                     });
             });
     }
-
+    warn "after rebuild: @tmp";
 }
 
 #sub acquire_high_priority {
