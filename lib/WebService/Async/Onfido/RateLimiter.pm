@@ -72,7 +72,6 @@ sub _init {
         $queue;
     };
 
-    #$self->{queue} = [];
     return $self->next::method($args);
 }
 
@@ -99,10 +98,6 @@ sub backoff {
 
 sub is_limited {
     my $self = shift;
-    # the number of slots is less.
-    #return scalar($self->{queue}->@*) >= $self->limit
-        # the item of [-$limit] is not ready
-    #     &&
     return (
         !($self->{queue}[-$self->limit][0]->is_ready)
         #  or is ready but passed no more than interval seconds
@@ -145,7 +140,7 @@ sub acquire {
     my $limit = $self->limit;
 
     # GUARD
-    die "something is wrong, the queue's length shouldn't less than the limit" if scalar $queue->@* < $limit;
+    die "something is wrong, the queue's length shouldn't less than the limit" if scalar @$queue < $limit;
 
     my $new_position = 0;
     my $not_ready_position = 0;
