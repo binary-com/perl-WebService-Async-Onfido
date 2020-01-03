@@ -58,18 +58,19 @@ sub _init {
     my ($self, $args) = @_;
     for my $k (qw(limit interval)) {
         die "Missing required argument: $k" unless exists $args->{$k};
-        die "Invalid value for $k: $args->{$k}" unless int($args->{$k}) > 0;
         $self->{$k} = delete $args->{$k};
     }
 
     $self->{backoff_min} = delete $args->{backoff_min} // 30;
     $self->{backoff_max} = delete $args->{backoff_max} // 300;
+    for my $k (qw(limit interval backoff_min backoff_max)){
+        die "Invalid value for $k: $self->{$k}" unless int($self->{$k}) > 0;
+    }
+
     $start_time          = time();
     # fill the dummy items to normalize the process of queue
     $self->{queue} //= do {
         my $queue = [];
-        warn "time " . time . " start_time $start_time";
-        warn "time - interval $self->{interval}: " . (time - $self->{interval} - $start_time);
         push @$queue, [Future->done(time - $self->{interval}), Future->done] for (1 .. $self->{limit});
         $queue;
     };
