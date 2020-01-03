@@ -119,10 +119,11 @@ sub acquire {
     my $priority     = $args{priority} // 0;
     my $need_backoff = $args{backoff} // 0;
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
-
+    # TODO chylli check slot memory leak
     my $queue        = $self->{queue};
 
     my $backoff = 0;
+    my $restore_backoff_cancelled_slots = 0;
     if ($need_backoff) {
         if ($self->backoff->limit_reached) {
             # cancel all delay futures;
@@ -133,6 +134,7 @@ sub acquire {
         }
         $backoff = $self->backoff->next_value;
     } else {
+        $restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
         $self->backoff->reset_value;
     }
 
@@ -147,6 +149,8 @@ sub acquire {
     my $not_ready_position = 0;
     for my $index (0 .. $#$queue) {
         $not_ready_position++ if $queue->[$index][0]->is_ready;
+        #backoff the finished slots
+        #TODO filter out the cancelled slots[0]
         if ($backoff && $queue->[$index][0]->is_ready) {
             $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
         }
@@ -157,7 +161,7 @@ sub acquire {
     $new_position ||= $#$queue + 1;
 
     @$queue = (@$queue[0 .. $new_position - 1], $new_slot, @$queue[$new_position .. $#$queue]);
-    $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
+    $self->_rebuild_queue(($backoff || $restore_backoff_cancelled_slots) ? $not_ready_position : $new_position);
     #warn "state if returned future is $queue->[$new_position][0] : " . $queue->[$new_position][0]->state;
     return $queue->[$new_position][0];
 }

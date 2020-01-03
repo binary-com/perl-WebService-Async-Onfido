@@ -51,7 +51,7 @@ for my $index (0 .. $#request_queue) {
     }
 }
 
-my $f = $loop->delay_future(after => 200)->on_ready(
+my $timeout_f = $loop->delay_future(after => 200)->on_done(
     sub {
         fail('timeout');
         $loop->stop;
@@ -68,7 +68,7 @@ sub submit_request {
         sub {
             my $execute_time = shift;
             my $done_time    = $execute_time - $now;
-            diag("queue $index request " . explain($arg) . " is done at $done_time");
+            diag("queue $index request " . $arg->[0] . " is done at $done_time");
             Future->done([$arg->[0], $execute_time - $now]);
         }
         )->else(
@@ -79,9 +79,11 @@ sub submit_request {
         $f->on_ready(
             sub {
                 $loop->stop;
+                $timeout_f->cancel;
             });
     }
     push $requests[$index]->@*, $f;
+    return $f;
 }
 
 $loop->run();
@@ -98,5 +100,18 @@ is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], '
 is(scalar $limiter[0]->{queue}->@*, 3, 'the queue will be shrink');
 
 is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], 'u', 'u', 'u', [14, 'f'],], 'the executing time of backoff is ok');
+
+
+# test resume after reach backoff try times.
+$timeout_f = $loop->delay_future(after => 20)->on_done(
+    sub {
+        fail('timeout');
+        $loop->stop;
+    });
+
+submit_request(1, [0,0,0])->on_ready(sub{$loop->stop; $timeout_f->cancel});
+$loop->run();
+$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : 'u' } $requests[1]->@*];
+is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,25], [12,25], [13,26], [14, 'f'],[0,26]], 'the executing time of backoff is ok');
 
 done_testing;
