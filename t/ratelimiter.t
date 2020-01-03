@@ -108,10 +108,10 @@ $timeout_f = $loop->delay_future(after => 20)->on_done(
         fail('timeout');
         $loop->stop;
     });
-
+$requests[1][7]->cancel;
 submit_request(1, [0,0,0])->on_ready(sub{$loop->stop; $timeout_f->cancel});
 $loop->run();
-$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : 'u' } $requests[1]->@*];
-is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,25], [12,25], [13,26], [14, 'f'],[0,26]], 'the executing time of backoff is ok');
+$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : $_->is_cancelled ? 'c' : 'u' } $requests[1]->@*];
+is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,25], 'c', [13,25], [14, 'f'],[0,26]], 'the executing time of backoff is ok');
 
 done_testing;

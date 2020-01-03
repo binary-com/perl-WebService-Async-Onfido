@@ -120,7 +120,6 @@ sub acquire {
     my $priority     = $args{priority} // 0;
     my $need_backoff = $args{backoff} // 0;
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
-    # TODO chylli check slot memory leak
     my $queue        = $self->{queue};
 
     my $backoff = 0;
@@ -141,6 +140,12 @@ sub acquire {
 
     my $loop     = $self->loop;
     my $new_slot = [$loop->new_future->new, $loop->new_future, $priority];
+    weaken(my $f = $new_slot->[0]);
+    weaken(my $weak_self = $self);
+    $f->on_cancel(sub{
+                      $self->{queue}->@* = (grep {$_->[0] ne $f} $self->{queue}->@*);
+                      $self->_rebuild_queue();
+                  });
     my $limit    = $self->limit;
 
     # GUARD
@@ -169,8 +174,7 @@ sub acquire {
 
 sub _rebuild_queue {
     my ($self, $start) = @_;
-    # GUARD, shouldn't happen
-    die "start should always no less than the limit" if $start < $self->limit;
+    $start //= 0;
     weaken(my $queue    = $self->{queue});
     my $interval = $self->interval;
     my $loop     = $self->loop;
@@ -180,6 +184,7 @@ sub _rebuild_queue {
     warn "before rebuild: @queue_status\n"   if $ENV{RATELIMITER_DEBUG};
 
     for my $index ($start .. $#$queue) {
+        next if $queue->[$index][0]->is_done;
         weaken(my $prev_slot = $queue->[$index - $self->limit]);
         weaken(my $slot      = $queue->[$index]);
         my $limit     = $self->limit;
