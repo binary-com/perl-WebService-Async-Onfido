@@ -5,25 +5,40 @@ use Test::More;
 use IO::Async::Loop;
 use WebService::Async::Onfido::RateLimiter;
 my $loop = IO::Async::Loop->new;
+my @limiter;
 $loop->add(
-    my $limiter = WebService::Async::Onfido::RateLimiter->new(
+    $limiter[0] = WebService::Async::Onfido::RateLimiter->new(
         interval => 5,
         limit    => 3,
-        backoff_min => 6,
-        backoff_max => 30,
     ));
 
-my @feed = ([0,0], [1,0], [2,0], [3,0], [4,0], [4,1], [5,0], [6,0], [8,0], [8,0], [17,0], [17,0], [17,0], [25,0]);
+$loop->add(
+    $limiter[1] = WebService::Async::Onfido::RateLimiter->new(
+        interval => 1,
+        limit    => 2,
+        backoff_min => 2,
+        backoff_max => 5,
+
+    ));
+
+# [time to send request, priority, backoff]
+my @request_queue = ([[0,0,0], [1,0,0], [2,0,0], [3,0,0], [4,0,0], [4,1,0], [5,0,0], [6,0,0], [8,0,0], [8,0,0], [17,0,0], [17,0,0], [17,0], [25,0,0]],
+                     [[0,0,0], [1,0,1], [2,0,0],[4,0,1],[5,0,1],[6,0,0],[11,0,1],[12,0,1],[13,0,1],[14,0,1]
+                        #, [3,0,1], [4,0,1], [5,0,1], [6,0,1], [7,0,1], [8,0,1], [9,0,1]
+                  ],
+        );
 my @request_futures;
 my $now = time();
-for my $request_info (@feed) {
-    my $f = $loop->delay_future(after => $request_info->[0]);
-    $f = $f->then(
-        sub {
-            submit_request($request_info);
-            return Future->done;
-        });
-    push @request_futures, $f;
+for my $index (0..$#request_queue) {
+    for my $request_info ($request_queue[$index]->@*) {
+        my $f = $loop->delay_future(after => $request_info->[0]);
+        $f = $f->then(
+            sub {
+                submit_request($index, $request_info);
+                return Future->done;
+            });
+        push $request_futures[$index]->@*, $f;
+    }
 }
 
 my $f = $loop->delay_future(after => 200)->on_ready(
@@ -36,29 +51,46 @@ my @requests;
 my @value_of_is_limited;
 
 sub submit_request {
-    my $arg = shift;
+    my ($index, $arg) = @_;
     diag("requesting $arg->[0]...");
-    push @value_of_is_limited, $limiter->is_limited;
-    my $f = $limiter->acquire($arg->[1],
-                          )->then(sub { my $execute_time = shift; my $done_time = $execute_time - $now; diag("request " . explain($arg) . " is done at $done_time"); Future->done([$arg->[0], $execute_time - $now]) });
+    push $value_of_is_limited[$index]->@*, $limiter[$index]->is_limited;
+    my $f = $limiter[$index]->acquire($arg->[1],$arg->[2]
+                          )->then(sub { my $execute_time = shift;
+                                        my $done_time = $execute_time - $now;
+                                        diag("queue $index request " . explain($arg) . " is done at $done_time");
+                                        Future->done([$arg->[0], $execute_time - $now]) })
+                          ->else(sub {
+                                     Future->done([$arg->[0], 'f']);
+                                 });
     if ($arg->[0] == 25) {
         $f->on_ready(sub {
                            $loop->stop
                        });
     }
-    push @requests, $f;
+    push $requests[$index]->@*, $f;
 }
 
 $loop->run();
-my $executing_time = [map { $_->get } @requests];
-diag(explain($executing_time));
+my @executing_time;
+$executing_time[0] = [map { $_->get } $requests[0]->@*];
+$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : 'u'} $requests[1]->@*];
+diag(explain(\@executing_time));
 is_deeply(
-    $executing_time,
+    $executing_time[0],
     [
         [0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15],
         [17, 17], [17, 17], [17, 20], [25, 25]],
     'the executing time is ok'
 );
-is_deeply(\@value_of_is_limited, [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
-is(scalar $limiter->{queue}->@*, 3, 'the queue will be shrink');
+is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
+is(scalar $limiter[0]->{queue}->@*, 3, 'the queue will be shrink');
+
+is_deeply(
+    $executing_time[1],
+    [
+        [0, 0], [1, 3], [2, 3],[4,9],[5,9],[6,10],'u','u','u',[14,'f'],
+        ],
+    'the executing time of backoff is ok'
+);
+
 done_testing;
