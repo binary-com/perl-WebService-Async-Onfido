@@ -125,7 +125,6 @@ sub acquire {
             for my $slot (@$queue){
                 $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready
             }
-            warn "failed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
             return Future->fail('backoff reached the limit!');
         }
         $backoff = $self->backoff->next_value;
@@ -168,29 +167,24 @@ sub _rebuild_queue {
     my $interval = $self->interval;
     my $loop = $self->loop;
 
-    my @tmp = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
-    warn "rebuild from $start to $#$queue\n";
-    warn "before rebuild: @tmp\n";
+    #my @tmp = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
+    #warn "rebuild from $start to $#$queue\n";
+    #warn "before rebuild: @tmp\n";
 
     for my $index ($start .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
         my $limit = $self->limit;
-        my $t = $index;
-        $tmp[$index] = "slot" . ($index-$self->limit) . "+$interval";
+        #$tmp[$index] = "slot" . ($index-$self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
         $slot->[1]->cancel if $slot->[1];
         $slot->[1] = $prev_slot->[0]->without_cancel->then(
             sub {
                 my $prev_slot_time = shift;
-                unless ($prev_slot_time){
-                    warn "future " . $prev_slot->[0] . " state is " . $prev_slot->[0]->state . " with no result\n" ;
-                    warn Dumper($prev_slot->[0]);
-                }
 
                 # execute after
                 my $after = $prev_slot_time + $interval - time();
-                $tmp[$index] = time - $start_time + $after;
+                #$tmp[$index] = time - $start_time + $after;
                 $loop->delay_future(after => $after)->on_done(
                     sub {
                         # remove old slots before current slot
@@ -210,7 +204,7 @@ sub _rebuild_queue {
                     });
             });
     }
-    warn "after rebuild: @tmp";
+    #warn "after rebuild: @tmp";
 }
 
 1;

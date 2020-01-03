@@ -52,7 +52,7 @@ my @value_of_is_limited;
 
 sub submit_request {
     my ($index, $arg) = @_;
-    diag("requesting $arg->[0]...");
+    diag("queue $index requesting $arg->[0]...");
     push $value_of_is_limited[$index]->@*, $limiter[$index]->is_limited;
     my $f = $limiter[$index]->acquire($arg->[1],$arg->[2]
                           )->then(sub { my $execute_time = shift;
@@ -74,7 +74,7 @@ $loop->run();
 my @executing_time;
 $executing_time[0] = [map { $_->get } $requests[0]->@*];
 $executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : 'u'} $requests[1]->@*];
-diag(explain(\@executing_time));
+#diag(explain(\@executing_time));
 is_deeply(
     $executing_time[0],
     [
