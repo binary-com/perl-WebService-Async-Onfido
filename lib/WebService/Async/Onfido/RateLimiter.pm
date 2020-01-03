@@ -134,7 +134,7 @@ sub acquire {
     }
 
     my $loop     = $self->loop;
-    my $new_slot = [Future->new, Future->new , $priority];
+    my $new_slot = [$loop->new_future->new, $loop->new_future , $priority];
     $new_slot->[0]->on_cancel(sub{print $new_slot->[0] . "canceled........\n"});
     my $limit = $self->limit;
 
