@@ -5,6 +5,7 @@ use warnings;
 
 use Scalar::Util qw(refaddr);
 use Algorithm::Backoff;
+use Scalar::Util qw(weaken);
 use Data::Dumper;
 our $VERSION = '0.001';
 
@@ -170,7 +171,7 @@ sub _rebuild_queue {
     my ($self, $start) = @_;
     # GUARD, shouldn't happen
     die "start should always no less than the limit" if $start < $self->limit;
-    my $queue    = $self->{queue};
+    weaken(my $queue    = $self->{queue});
     my $interval = $self->interval;
     my $loop     = $self->loop;
 
@@ -179,8 +180,8 @@ sub _rebuild_queue {
     warn "before rebuild: @queue_status\n"   if $ENV{RATELIMITER_DEBUG};
 
     for my $index ($start .. $#$queue) {
-        my $prev_slot = $queue->[$index - $self->limit];
-        my $slot      = $queue->[$index];
+        weaken(my $prev_slot = $queue->[$index - $self->limit]);
+        weaken(my $slot      = $queue->[$index]);
         my $limit     = $self->limit;
         $queue_status[$index] = "slot" . ($index - $self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
@@ -197,7 +198,6 @@ sub _rebuild_queue {
                         # remove old slots before current slot
                         # and keep enough dummy items
                         for (0 .. $#$queue - $limit) {
-                            #for (0 .. $#$queue) {
                             last unless $queue->[0][0]->is_ready;
                             # if the slot too old
                             if (time() - $queue->[0][0]->get > $interval) {
@@ -206,7 +206,6 @@ sub _rebuild_queue {
                                 last;
                             }
                         }
-                        #warn "future " . $slot->[0] . " is done\n";
                         $slot->[0]->done(time());
                     });
             });
