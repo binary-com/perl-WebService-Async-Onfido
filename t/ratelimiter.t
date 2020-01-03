@@ -39,9 +39,8 @@ sub submit_request {
     my $arg = shift;
     diag("requesting $arg->[0]...");
     push @value_of_is_limited, $limiter->is_limited;
-    use Data::Dumper;
     my $f = $limiter->acquire($arg->[1],
-                          )->then(sub { my $execute_time = shift; my $done_time = $execute_time - $now; diag("request " . Dumper($arg) . " is done at $done_time"); Future->done([$arg->[0], $execute_time - $now]) });
+                          )->then(sub { my $execute_time = shift; my $done_time = $execute_time - $now; diag("request " . explain($arg) . " is done at $done_time"); Future->done([$arg->[0], $execute_time - $now]) });
     if ($arg->[0] == 25) {
         $f->on_ready(sub {
                            $loop->stop
