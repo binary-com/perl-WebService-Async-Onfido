@@ -25,7 +25,7 @@ WebService::Async::Onfido::RateLimiter - Module abstract
 
 =cut
 
-my $start_time = time();
+my $start_time;
 
 use Future;
 use mro;
@@ -64,10 +64,12 @@ sub _init {
 
     $self->{backoff_min} = delete $args->{backoff_min} // 30;
     $self->{backoff_max} = delete $args->{backoff_max} // 300;
-
+    $start_time = time();
     # fill the dummy items to normalize the process of queue
     $self->{queue} //= do {
         my $queue = [];
+        warn "time " . time . " start_time $start_time";
+        warn "time - interval $self->{interval}: " . (time - $self->{interval} - $start_time);
         push @$queue, [Future->done(time - $self->{interval}), Future->done] for (1 .. $self->{limit});
         $queue;
     };
@@ -135,7 +137,6 @@ sub acquire {
 
     my $loop     = $self->loop;
     my $new_slot = [$loop->new_future->new, $loop->new_future , $priority];
-    $new_slot->[0]->on_cancel(sub{print $new_slot->[0] . "canceled........\n"});
     my $limit = $self->limit;
 
     # GUARD
@@ -156,6 +157,7 @@ sub acquire {
 
     @$queue = (@$queue[0..$new_position-1], $new_slot, @$queue[$new_position..$#$queue]);
     $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
+    #warn "state if returned future is $queue->[$new_position][0] : " . $queue->[$new_position][0]->state;
     return $queue->[$new_position][0];
 }
 
@@ -167,15 +169,15 @@ sub _rebuild_queue {
     my $interval = $self->interval;
     my $loop = $self->loop;
 
-    #my @tmp = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
-    #warn "rebuild from $start to $#$queue\n";
-    #warn "before rebuild: @tmp\n";
+    my @queue_status = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
+    warn "rebuild from $start to $#$queue\n" if $ENV{RATELIMITER_DEBUG};
+    warn "before rebuild: @queue_status\n"  if $ENV{RATELIMITER_DEBUG};
 
     for my $index ($start .. $#$queue){
         my $prev_slot     = $queue->[$index-$self->limit];
         my $slot = $queue->[$index];
         my $limit = $self->limit;
-        #$tmp[$index] = "slot" . ($index-$self->limit) . "+$interval";
+        $queue_status[$index] = "slot" . ($index-$self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
         $slot->[1]->cancel if $slot->[1];
         $slot->[1] = $prev_slot->[0]->without_cancel->then(
@@ -184,7 +186,7 @@ sub _rebuild_queue {
 
                 # execute after
                 my $after = $prev_slot_time + $interval - time();
-                #$tmp[$index] = time - $start_time + $after;
+                $queue_status[$index] = time - $start_time + $after;
                 $loop->delay_future(after => $after)->on_done(
                     sub {
                         # remove old slots before current slot
@@ -204,7 +206,7 @@ sub _rebuild_queue {
                     });
             });
     }
-    #warn "after rebuild: @tmp";
+    warn "after rebuild: @queue_status" if $ENV{RATELIMITER_DEBUG};
 }
 
 1;
