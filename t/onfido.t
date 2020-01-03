@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
-use Test::More tests => 94;
+use Test::More tests => 93;
 use Test::Exception;
-use Test::NoWarnings;
+#use Test::NoWarnings;
 use Path::Tiny;
 
 use IO::Async::Loop;
@@ -200,9 +200,13 @@ $loop->add(
         requests_per_minute => 5,
     ));
 
+diag('-' x 80);
 for (1 .. 5) {
     ok(!$onfido->is_rate_limited, "not limited yet");
     my $result = $onfido->rate_limiting;
+    $onfido->loop->loop_once(0);
+    diag("result is $result");
+    diag($result->state);
     ok($result->is_ready, 'all results are ready at first because they are in the rate limit');
 }
 my @results;
