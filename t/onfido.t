@@ -201,6 +201,8 @@ $loop->add(
     ));
 
 diag('-' x 80);
+diag('start testing ratelimit\n');
+
 for (1 .. 5) {
     ok(!$onfido->is_rate_limited, "not limited yet");
     my $result = $onfido->rate_limiting;

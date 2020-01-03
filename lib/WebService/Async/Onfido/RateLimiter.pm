@@ -25,8 +25,6 @@ WebService::Async::Onfido::RateLimiter - Module abstract
 
 =cut
 
-my $start_time;
-
 use Future;
 use mro;
 
@@ -67,7 +65,7 @@ sub _init {
         die "Invalid value for $k: $self->{$k}" unless int($self->{$k}) > 0;
     }
 
-    $start_time          = time();
+    $self->{_start_time}          = time();
     # fill the dummy items to normalize the process of queue
     $self->{queue} //= do {
         my $queue = [];
@@ -170,7 +168,7 @@ sub _rebuild_queue {
     my $interval = $self->interval;
     my $loop     = $self->loop;
 
-    my @queue_status = (map { $_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u' } @$queue);
+    my @queue_status = (map { $_->[0]->is_done ? ($_->[0]->get - $self->{_start_time}) : 'u' } @$queue);
     warn "rebuild from $start to $#$queue\n" if $ENV{RATELIMITER_DEBUG};
     warn "before rebuild: @queue_status\n"   if $ENV{RATELIMITER_DEBUG};
 
@@ -187,7 +185,7 @@ sub _rebuild_queue {
 
                 # execute after
                 my $after = $prev_slot_time + $interval - time();
-                $queue_status[$index] = time - $start_time + $after;
+                $queue_status[$index] = time - $self->{_start_time} + $after;
                 $loop->delay_future(after => $after)->on_done(
                     sub {
                         # remove old slots before current slot

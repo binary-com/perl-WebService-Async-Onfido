@@ -2,10 +2,15 @@ use strict;
 use warnings;
 use Test::More;
 
+use Test::Exception;
 use IO::Async::Loop;
 use WebService::Async::Onfido::RateLimiter;
 my $loop = IO::Async::Loop->new;
 my @limiter;
+throws_ok { WebService::Async::Onfido::RateLimiter->new(
+    interval => 5,
+) } qr/Missing required argument/, 'check arg ok';
+
 $loop->add(
     $limiter[0] = WebService::Async::Onfido::RateLimiter->new(
         interval => 5,
