@@ -115,9 +115,11 @@ It returns future, when slot will be available, then future will be resolved.
 =cut
 
 sub acquire {
-    my $self         = shift;
-    my $priority     = shift // 0;
-    my $need_backoff = shift;
+    my ($self, %args)         = @_;
+    my $priority     = $args{priority} // 0;
+    my $need_backoff = $args{backoff} // 0;
+    die "Invalid value for priority: $priority" unless int($priority) eq $priority;
+
     my $queue        = $self->{queue};
 
     my $backoff = 0;

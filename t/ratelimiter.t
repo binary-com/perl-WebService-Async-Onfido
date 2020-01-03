@@ -64,7 +64,7 @@ sub submit_request {
     my ($index, $arg) = @_;
     diag("queue $index requesting $arg->[0]...");
     push $value_of_is_limited[$index]->@*, $limiter[$index]->is_limited;
-    my $f = $limiter[$index]->acquire($arg->[1], $arg->[2])->then(
+    my $f = $limiter[$index]->acquire(priority => $arg->[1], backoff => $arg->[2])->then(
         sub {
             my $execute_time = shift;
             my $done_time    = $execute_time - $now;
