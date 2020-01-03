@@ -783,7 +783,7 @@ sub applicant_check {
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
-    $self->rate_limiting->then(sub {
+    $self->rate_limiting(1)->then(sub {
         $self->ua->POST(
             $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
             join('&', @content),
@@ -1226,7 +1226,7 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 =cut
 
 sub rate_limiting {
-    my ($self) = @_;
+    my ($self, $priority) = @_;
     return $self->rate_limiter->acquire;
 }
 
