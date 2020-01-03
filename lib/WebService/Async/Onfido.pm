@@ -1227,7 +1227,7 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 
 sub rate_limiting {
     my ($self, $priority) = @_;
-    return $self->rate_limiter->acquire;
+    return $self->rate_limiter->acquire(priority => $priority);
 }
 
 sub requests_per_minute { shift->{requests_per_minute} //= 300 }
