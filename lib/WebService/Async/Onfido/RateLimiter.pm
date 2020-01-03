@@ -64,7 +64,7 @@ sub _init {
 
     $self->{backoff_min} = delete $args->{backoff_min} // 30;
     $self->{backoff_max} = delete $args->{backoff_max} // 300;
-    $start_time = time();
+    $start_time          = time();
     # fill the dummy items to normalize the process of queue
     $self->{queue} //= do {
         my $queue = [];
@@ -95,15 +95,17 @@ sub limit { return shift->{limit} }
 
 sub backoff {
     my $self = shift;
-    $self->{backoff} //= Algorithm::Backoff->new(min => $self->{backoff_min}, max => $self->{backoff_max});
+    $self->{backoff} //= Algorithm::Backoff->new(
+        min => $self->{backoff_min},
+        max => $self->{backoff_max});
 }
 
 sub is_limited {
     my $self = shift;
     return (
         !($self->{queue}[-$self->limit][0]->is_ready)
-        #  or is ready but passed no more than interval seconds
-        || (time() - $self->{queue}[-$self->limit][0]->get < $self->interval)) ? 1 : 0;
+            #  or is ready but passed no more than interval seconds
+            || (time() - $self->{queue}[-$self->limit][0]->get < $self->interval)) ? 1 : 0;
 }
 
 =head2 acquire
@@ -114,39 +116,37 @@ It returns future, when slot will be available, then future will be resolved.
 =cut
 
 sub acquire {
-    my $self = shift;
-    my $priority = shift // 0;
+    my $self         = shift;
+    my $priority     = shift // 0;
     my $need_backoff = shift;
-    my $queue = $self->{queue};
-
+    my $queue        = $self->{queue};
 
     my $backoff = 0;
-    if($need_backoff){
-        if ($self->backoff->limit_reached){
+    if ($need_backoff) {
+        if ($self->backoff->limit_reached) {
             # cancel all delay futures;
-            for my $slot (@$queue){
-                $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready
+            for my $slot (@$queue) {
+                $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready;
             }
             return Future->fail('backoff reached the limit!');
         }
         $backoff = $self->backoff->next_value;
-    }
-    else{
+    } else {
         $self->backoff->reset_value;
     }
 
     my $loop     = $self->loop;
-    my $new_slot = [$loop->new_future->new, $loop->new_future , $priority];
-    my $limit = $self->limit;
+    my $new_slot = [$loop->new_future->new, $loop->new_future, $priority];
+    my $limit    = $self->limit;
 
     # GUARD
     die "something is wrong, the queue's length shouldn't less than the limit" if scalar @$queue < $limit;
 
-    my $new_position = 0;
+    my $new_position       = 0;
     my $not_ready_position = 0;
-    for my $index (0..$#$queue){
+    for my $index (0 .. $#$queue) {
         $not_ready_position++ if $queue->[$index][0]->is_ready;
-        if($backoff && $queue->[$index][0]->is_ready){
+        if ($backoff && $queue->[$index][0]->is_ready) {
             $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
         }
         next if (($queue->[$index][0]->is_ready || $queue->[$index][2] >= $priority));
@@ -155,7 +155,7 @@ sub acquire {
     }
     $new_position ||= $#$queue + 1;
 
-    @$queue = (@$queue[0..$new_position-1], $new_slot, @$queue[$new_position..$#$queue]);
+    @$queue = (@$queue[0 .. $new_position - 1], $new_slot, @$queue[$new_position .. $#$queue]);
     $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
     #warn "state if returned future is $queue->[$new_position][0] : " . $queue->[$new_position][0]->state;
     return $queue->[$new_position][0];
@@ -165,19 +165,19 @@ sub _rebuild_queue {
     my ($self, $start) = @_;
     # GUARD, shouldn't happen
     die "start should always no less than the limit" if $start < $self->limit;
-    my $queue = $self->{queue};
+    my $queue    = $self->{queue};
     my $interval = $self->interval;
-    my $loop = $self->loop;
+    my $loop     = $self->loop;
 
-    my @queue_status = (map {$_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u'} @$queue);
+    my @queue_status = (map { $_->[0]->is_done ? ($_->[0]->get - $start_time) : 'u' } @$queue);
     warn "rebuild from $start to $#$queue\n" if $ENV{RATELIMITER_DEBUG};
-    warn "before rebuild: @queue_status\n"  if $ENV{RATELIMITER_DEBUG};
+    warn "before rebuild: @queue_status\n"   if $ENV{RATELIMITER_DEBUG};
 
-    for my $index ($start .. $#$queue){
-        my $prev_slot     = $queue->[$index-$self->limit];
-        my $slot = $queue->[$index];
-        my $limit = $self->limit;
-        $queue_status[$index] = "slot" . ($index-$self->limit) . "+$interval";
+    for my $index ($start .. $#$queue) {
+        my $prev_slot = $queue->[$index - $self->limit];
+        my $slot      = $queue->[$index];
+        my $limit     = $self->limit;
+        $queue_status[$index] = "slot" . ($index - $self->limit) . "+$interval";
         # the current request's available time is the execution timestamp of the last $limit request push the interval
         $slot->[1]->cancel if $slot->[1];
         $slot->[1] = $prev_slot->[0]->without_cancel->then(
@@ -192,7 +192,7 @@ sub _rebuild_queue {
                         # remove old slots before current slot
                         # and keep enough dummy items
                         for (0 .. $#$queue - $limit) {
-                        #for (0 .. $#$queue) {
+                            #for (0 .. $#$queue) {
                             last unless $queue->[0][0]->is_ready;
                             # if the slot too old
                             if (time() - $queue->[0][0]->get > $interval) {
