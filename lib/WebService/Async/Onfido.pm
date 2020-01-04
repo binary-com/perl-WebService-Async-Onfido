@@ -1100,25 +1100,30 @@ Takes the following named parameters:
 
 sub sdk_token {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
-        $self->ua->POST(
-            $self->endpoint('sdk_token'),
-            encode_json_utf8(\%args),
-            content_type => 'application/json',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done($data);
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Token generation failed - %s', $err);
-            return Future->fail($err);
-        }
-    });
+    $self->_do_request(
+        request => sub {
+            my $prepare_future = shift;
+            $prepare_future->then(sub {
+                                      $self->ua->POST(
+                                          $self->endpoint('sdk_token'),
+                                          encode_json_utf8(\%args),
+                                          content_type => 'application/json',
+                                          $self->auth_headers,
+                                      )
+                                  })->then(sub {
+                                               try {
+                                                   my ($res) = @_;
+                                                   my $data = decode_json_utf8($res->content);
+                                                   $log->tracef('Have response %s', $data);
+                                                   return Future->done($data);
+                                               } catch {
+                                                   my ($err) = $@;
+                                                   $log->errorf('Token generation failed - %s', $err);
+                                                   return Future->fail($err);
+                                               }
+                                           });
+        });
+
 }
 
 =head2 endpoints
@@ -1226,11 +1231,25 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 =cut
 
 sub rate_limiting {
-    my ($self, $priority) = @_;
+    my ($self, $priority, ) = @_;
     return $self->rate_limiter->acquire(priority => $priority);
 }
 
 sub requests_per_minute { shift->{requests_per_minute} //= 300 }
+
+sub _do_request {
+    my ($self, %args) = @_;
+    my $request = $args{request};
+    my $priority = $args{priority} // 0;
+    return repeat {
+        my $prev_result = shift;
+        return $request->($self->rate_limiter->acquire(backoff => defined($prev_result), priority => $priority));
+    }
+      while => sub {
+          my $result = shift;
+          return ($result->failure // '') eq '429 Too Many Requests'
+      }
+}
 
 sub source {
     my ($self) = shift;
