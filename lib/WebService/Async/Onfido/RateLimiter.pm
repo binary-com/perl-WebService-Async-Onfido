@@ -124,13 +124,7 @@ sub acquire {
     my $queue        = $self->{queue};
 
     my $restore_backoff_cancelled_slots = 0;
-    #if ($need_backoff) {
-    #    warn "need backoff limit...........";
-    #    warn "This time backoff value is $backoff";
-    #} else {
     if($reset_backoff){
-        warn "reset backoff.........";
-        #$restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
         $self->backoff->reset_value;
     }
 
@@ -170,7 +164,6 @@ sub acquire {
 
     @$queue = (@$queue[0 .. $new_position - 1], $new_slot, @$queue[$new_position .. $#$queue]);
     $self->_rebuild_queue(($backoff || $restore_backoff_cancelled_slots) ? $not_ready_position : $new_position);
-    #warn "state if returned future is $queue->[$new_position][0] : " . $queue->[$new_position][0]->state;
     return $queue->[$new_position][0];
 }
 

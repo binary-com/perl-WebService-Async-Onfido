@@ -93,7 +93,6 @@ $loop->run();
 my @executing_time;
 $executing_time[0] = [map { $_->get } $requests[0]->@*];
 $executing_time[1] = [map { $_->is_done ? $_->get : $_->state } $requests[1]->@*];
-diag(explain(\@executing_time));
 is_deeply(
     $executing_time[0],
     [[0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15], [17, 17], [17, 17], [17, 20], [25, 25]],
@@ -103,18 +102,5 @@ is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], '
 is(scalar $limiter[0]->{queue}->@*, 3, 'the queue will be shrink');
 
 is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,22], [12,22], [13,23], 'cancelled',[15,23],[16,24],[17,24]], 'the executing time of backoff is ok');
-
-
-## test resume after reach backoff try times.
-#$timeout_f = $loop->delay_future(after => 20)->on_done(
-#    sub {
-#        fail('timeout');
-#        $loop->stop;
-#    });
-#$requests[1][7]->cancel;
-#submit_request(1, [0,0,0])->on_ready(sub{$loop->stop; $timeout_f->cancel});
-#$loop->run();
-#$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : $_->is_cancelled ? 'c' : 'u' } $requests[1]->@*];
-#is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,25], 'c', [13,25], [14, 'f'],[0,26]], 'the executing time of backoff of resume queue is ok');
 
 done_testing;
