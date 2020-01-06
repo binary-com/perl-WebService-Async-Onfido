@@ -33,7 +33,7 @@ my @request_queue = ([
     ],
     [
         [0, 0, 0], [1, 0, 1], [2, 0, 0], [4, 0, 1], [5, 0, 1], [6, 0, 0], [11, 0, 1], [12, 0, 1], [13, 0, 1],
-        [14, 0, 1]
+        [14, 0, 1],[15,0,1],[16,0,1], [17,0,1]
         #, [3,0,1], [4,0,1], [5,0,1], [6,0,1], [7,0,1], [8,0,1], [9,0,1]
     ],
 );
@@ -82,6 +82,9 @@ sub submit_request {
                 $timeout_f->cancel;
             });
     }
+    if($arg->[0] == 14){
+        $f->cancel;
+    }
     push $requests[$index]->@*, $f;
     return $f;
 }
@@ -89,7 +92,7 @@ sub submit_request {
 $loop->run();
 my @executing_time;
 $executing_time[0] = [map { $_->get } $requests[0]->@*];
-$executing_time[1] = [map { $_->is_done ? $_->get : $_->is_failed ? 'f' : 'u' } $requests[1]->@*];
+$executing_time[1] = [map { $_->is_done ? $_->get : $_->state } $requests[1]->@*];
 diag(explain(\@executing_time));
 is_deeply(
     $executing_time[0],
@@ -99,7 +102,7 @@ is_deeply(
 is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
 is(scalar $limiter[0]->{queue}->@*, 3, 'the queue will be shrink');
 
-is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,19], [12,19], [13,20], [14, 20],], 'the executing time of backoff is ok');
+is_deeply($executing_time[1], [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11,22], [12,22], [13,23], 'cancelled',[15,23],[16,24],[17,24]], 'the executing time of backoff is ok');
 
 
 ## test resume after reach backoff try times.
