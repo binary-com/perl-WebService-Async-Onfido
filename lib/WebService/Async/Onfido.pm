@@ -22,6 +22,7 @@ WebService::Async::Onfido - unofficial support for the Onfido identity verificat
 use mro;
 no indirect;
 
+use feature qw(state);
 use Syntax::Keyword::Try;
 use Dir::Self;
 use URI;
@@ -1230,19 +1231,22 @@ sub _do_request {
     my ($self, %args) = @_;
     my $request = $args{request};
     my $priority = $args{priority} // 0;
+    state $last_success = 1;
     return try_repeat {
         my $prev_result = shift;
         warn "trying...";
         return $request->(
             $self->rate_limiting(
-                backoff  => defined($prev_result),
+                reset_backoff  => $last_success,
                 priority => $priority
             ));
     }
     while => sub {
         my $result = shift;
         warn "failure : " . $result->failure if $result->failure;
-        return ($result->failure // '') eq '429 Too Many Requests';
+        my $retry =($result->failure // '') eq '429 Too Many Requests';
+        $last_success = !$retry;
+        $retry;
         }
 }
 

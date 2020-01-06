@@ -118,21 +118,24 @@ It returns future, when slot will be available, then future will be resolved.
 sub acquire {
     my ($self, %args)         = @_;
     my $priority     = $args{priority} // 0;
-    my $need_backoff = $args{backoff} // 0;
+    my $reset_backoff = $args{reset_backoff} // 1;
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
     my $queue        = $self->{queue};
 
-    my $backoff = 0;
     my $restore_backoff_cancelled_slots = 0;
-    if ($need_backoff) {
-        warn "need backoff limit...........";
-        $backoff = $self->backoff->next_value;
-        warn "This time backoff value is $backoff";
-    } else {
-        warn "no need backoff.........";
-        $restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
+    #if ($need_backoff) {
+    #    warn "need backoff limit...........";
+    #    warn "This time backoff value is $backoff";
+    #} else {
+    if($reset_backoff){
+        warn "reset backoff.........";
+        #$restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
         $self->backoff->reset_value;
     }
+
+    #we still need to fetch next_value even if we needn't use backoff
+    # because the backoff 'next_value' is started from 0,
+    my $backoff = $self->backoff->next_value;
 
     my $loop     = $self->loop;
     my $new_slot = [$loop->new_future->new, $loop->new_future, $priority];

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
-use Test::More tests => 100;
+use Test::More tests => 99;
 use Test::Exception;
 #use Test::NoWarnings;
 use Path::Tiny;
@@ -198,6 +198,7 @@ $onfido->{rate_limiter} = do{
         limit    => 2,
         interval => 2,
         backoff_min => 2,
+        backoff_max => 5,
     );
     $onfido->add_child($limiter);
     $limiter;
@@ -251,8 +252,8 @@ is($result[0], 2+4+5, '4th time return ok, 3 times backoff, 2 + 4 + 5 seconds be
 is($result[1]->{status}, 'ok','the status is ok' );
 @result = request_test_rate_limit($onfido, id => $id++, try_times => 5)->get;
 diag(explain(\@result));
-is($result[0], 2+4+5, '5th time return ok, 4 times backoff, 0 seconds because it already reached max failure times. the max backoff time is 3 time');
-is($result[1], 'backoff reached the limit!', 'request failed of 429');
+is($result[0], 2+4+5+5, '5th time return ok, 4 times backoff, 0 seconds because it already reached max failure times. max value is 5');
+
 
 
 
