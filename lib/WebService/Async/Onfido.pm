@@ -30,7 +30,7 @@ use URI::Template;
 use Ryu::Async;
 
 use Future;
-use Future::Utils qw(repeat);
+use Future::Utils qw(repeat try_repeat);
 use File::Basename;
 use Path::Tiny;
 use Net::Async::HTTP;
@@ -781,7 +781,8 @@ sub applicant_check {
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
-    $self->rate_limiting(1)->then(
+    # TODO add priority
+    $self->rate_limiting->then(
         sub {
             $self->ua->POST(
                 $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
@@ -1217,9 +1218,10 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 
 =cut
 
+# Keep this function to keep the api back-compatible. I think we can remove it.
 sub rate_limiting {
-    my ($self, $priority,) = @_;
-    return $self->rate_limiter->acquire(priority => $priority);
+    my ($self, %args) = @_;
+    return $self->rate_limiter->acquire(%args);
 }
 
 sub requests_per_minute { shift->{requests_per_minute} //= 300 }
@@ -1228,16 +1230,18 @@ sub _do_request {
     my ($self, %args) = @_;
     my $request = $args{request};
     my $priority = $args{priority} // 0;
-    return repeat {
+    return try_repeat {
         my $prev_result = shift;
+        warn "trying...";
         return $request->(
-            $self->rate_limiter->acquire(
+            $self->rate_limiting(
                 backoff  => defined($prev_result),
                 priority => $priority
             ));
     }
     while => sub {
         my $result = shift;
+        warn "failure : " . $result->failure if $result->failure;
         return ($result->failure // '') eq '429 Too Many Requests';
         }
 }
@@ -1261,6 +1265,8 @@ sub rate_limiter {
         my $limiter = WebService::Async::Onfido::RateLimiter->new(
             limit    => $self->requests_per_minute,
             interval => 60,
+            # TODO will add back
+            #backoff_min => int(2 * 60 / $self->requests_per_minute) + 1,
         );
         $self->add_child($limiter);
         $limiter;

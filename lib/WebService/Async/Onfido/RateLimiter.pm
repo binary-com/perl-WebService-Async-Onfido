@@ -125,15 +125,10 @@ sub acquire {
     my $backoff = 0;
     my $restore_backoff_cancelled_slots = 0;
     if ($need_backoff) {
-        if ($self->backoff->limit_reached) {
-            # cancel all delay futures;
-            for my $slot (@$queue) {
-                $slot->[1]->cancel if $slot->[1] && !$slot->[1]->is_ready;
-            }
-            return Future->fail('backoff reached the limit!');
-        }
+        warn "not rached limit...........";
         $backoff = $self->backoff->next_value;
     } else {
+        warn "no need backoff.........";
         $restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
         $self->backoff->reset_value;
     }
