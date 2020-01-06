@@ -3,9 +3,10 @@ package WebService::Async::Onfido::RateLimiter;
 use strict;
 use warnings;
 
-use Scalar::Util qw(refaddr);
+use Scalar::Util qw(refaddr weaken);
+use List::Util qw(first);
 use Algorithm::Backoff;
-use Scalar::Util qw(weaken);
+
 use Data::Dumper;
 our $VERSION = '0.001';
 
@@ -142,6 +143,8 @@ sub acquire {
     weaken(my $f = $new_slot->[0]);
     weaken(my $weak_self = $self);
     $f->on_cancel(sub{
+                      my $slot = first {$_->[0] eq $f} $self->{queue}->@*;
+                      $slot->[1]->cancel unless $slot->[1]->is_ready;
                       $self->{queue}->@* = (grep {$_->[0] ne $f} $self->{queue}->@*);
                       $self->_rebuild_queue();
                   });
