@@ -125,8 +125,9 @@ sub acquire {
     my $backoff = 0;
     my $restore_backoff_cancelled_slots = 0;
     if ($need_backoff) {
-        warn "not rached limit...........";
+        warn "need backoff limit...........";
         $backoff = $self->backoff->next_value;
+        warn "This time backoff value is $backoff";
     } else {
         warn "no need backoff.........";
         $restore_backoff_cancelled_slots = 1 if $self->backoff->limit_reached;
