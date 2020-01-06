@@ -342,6 +342,24 @@ post '/v2/sdk_token' => sub {
     return $c->render(json => $sdk_token);
 };
 
+my %counter;
+post '/test_rate_limit' => sub {
+    my $c            = shift;
+    my $data         = $c->req->json;
+
+    my $id = $data->{id};
+    my $try_times = $data->{try_times};
+    $counter{$id}++;
+    return $c->render(json => {status => 'ok'}) if $counter{$id} >= $try_times;
+    return $c->render(
+        status => 429,
+        json => {error => {
+            type => 'rate_limit',
+            message => 'Rate limit exceeded. Please try again later.',
+        }}
+    );
+};
+
 sub clone_and_remove_private {
     my $result = shift;
     return $result unless $result && ref($result) eq 'HASH';
