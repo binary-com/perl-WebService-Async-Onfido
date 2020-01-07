@@ -1099,27 +1099,27 @@ sub sdk_token {
     my ($self, %args) = @_;
     $self->_do_request(
         request => sub {
-                    $self->ua->POST(
-                        $self->endpoint('sdk_token'),
-                        encode_json_utf8(\%args),
-                        content_type => 'application/json',
-                        $self->auth_headers,
-                    );
-                }
-                )->then(
-                sub {
-                    try {
-                        my ($res) = @_;
-                        my $data = decode_json_utf8($res->content);
-                        $log->tracef('Have response %s', $data);
-                        return Future->done($data);
-                    }
-                    catch {
-                        my ($err) = $@;
-                        $log->errorf('Token generation failed - %s', $err);
-                        return Future->fail($err);
-                    }
-                });
+            $self->ua->POST(
+                $self->endpoint('sdk_token'),
+                encode_json_utf8(\%args),
+                content_type => 'application/json',
+                $self->auth_headers,
+            );
+        }
+        )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8($res->content);
+                $log->tracef('Have response %s', $data);
+                return Future->done($data);
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf('Token generation failed - %s', $err);
+                return Future->fail($err);
+            }
+        });
 
 }
 
@@ -1232,25 +1232,13 @@ sub _do_request {
         my $prev_result = shift;
         return (
             $self->rate_limiting(
-                reset_backoff  => $last_success,
-                priority => $priority
+                reset_backoff => $last_success,
+                priority      => $priority
             ))->then($request);
     }
     while => sub {
         my $result = shift;
-        my $retry =($result->failure // '') eq '429 Too Many Requests';
-        #warn "result status is " . $result->state;
-        #warn "failure is " . ($result->failure // '');
-        #my $data;
-        #try {
-        #    warn "trying";
-        #    $data = decode_json_utf8($result->get->content);
-        #    warn "in trying";
-        #}
-        #  catch {warn "error is $@";}
-        #  use Data::Dumper;
-        #warn ('Have response ' .  Dumper($data));
-
+        my $retry = ($result->failure // '') eq '429 Too Many Requests';
         $last_success = !$retry;
         $retry;
         }
@@ -1273,8 +1261,8 @@ sub rate_limiter {
     my $self = shift;
     return $self->{rate_limiter} //= do {
         my $limiter = WebService::Async::Onfido::RateLimiter->new(
-            limit    => $self->requests_per_minute,
-            interval => 60,
+            limit       => $self->requests_per_minute,
+            interval    => 60,
             backoff_min => int(2 * 60 / $self->requests_per_minute) + 1,
         );
         $self->add_child($limiter);
