@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 use Test::MockTime::HiRes qw(set_relative_time);
-use Test::More tests => 99;
+use Test::More tests => 100;
 use Test::Exception;
-#use Test::NoWarnings;
+use Test::NoWarnings;
 use Path::Tiny;
 use JSON::MaybeUTF8 qw(:v1);
 use IO::Async::Loop;
@@ -16,8 +16,8 @@ my $pid = fork();
 die "fork error " unless defined($pid);
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
-    #open(STDOUT, '>/dev/null');
-    #open(STDERR, '>/dev/null');
+    open(STDOUT, '>/dev/null');
+    open(STDERR, '>/dev/null');
     exec('perl', $mock_server, 'daemon');
 }
 
@@ -238,26 +238,16 @@ sub request_test_rate_limit{
 # before that it will return 429 status code
 my $id = 0;
 my @result = request_test_rate_limit($onfido, id => $id++, try_times => 1)->get;
-diag(explain(\@result));
 is($result[0], 0, '1st time return ok, 0 time backoff, 0 seconds');
 @result = request_test_rate_limit($onfido, id => $id++, try_times => 2)->get;
-diag(explain(\@result));
 is($result[0], 2, '2nd time return ok, 1 time backoff, 2 seconds because it failed 1 time . the backoff is 2');
 @result = request_test_rate_limit($onfido, id => $id++, try_times => 3)->get;
-diag(explain(\@result));
 is($result[0], 2+4, '3rd time return ok, 2 times backoff, 2 + 4 seconds because it failed 2 time . the backoff is 2 + 4');
 @result = request_test_rate_limit($onfido, id => $id++, try_times => 4)->get;
-diag(explain(\@result));
 is($result[0], 2+4+5, '4th time return ok, 3 times backoff, 2 + 4 + 5 seconds because it failed 3 time . the backoff is 2 + 4 + 5 , max value is 5');
 is($result[1]->{status}, 'ok','the status is ok' );
 @result = request_test_rate_limit($onfido, id => $id++, try_times => 5)->get;
-diag(explain(\@result));
-is($result[0], 2+4+5+5, '5th time return ok, 4 times backoff, 0 seconds because it already reached max failure times. max value is 5');
-
-
-
-
-
+is($result[0], 2+4+5+5, '5th time return ok, 4 times backoff, max value is 5');
 
 # ratelimit
 # clear rate limiting

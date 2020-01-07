@@ -1234,7 +1234,6 @@ sub _do_request {
     state $last_success = 1;
     return try_repeat {
         my $prev_result = shift;
-        warn "trying...";
         return $request->(
             $self->rate_limiting(
                 reset_backoff  => $last_success,
@@ -1243,7 +1242,6 @@ sub _do_request {
     }
     while => sub {
         my $result = shift;
-        warn "failure : " . $result->failure if $result->failure;
         my $retry =($result->failure // '') eq '429 Too Many Requests';
         $last_success = !$retry;
         $retry;
@@ -1269,8 +1267,7 @@ sub rate_limiter {
         my $limiter = WebService::Async::Onfido::RateLimiter->new(
             limit    => $self->requests_per_minute,
             interval => 60,
-            # TODO will add back
-            #backoff_min => int(2 * 60 / $self->requests_per_minute) + 1,
+            backoff_min => int(2 * 60 / $self->requests_per_minute) + 1,
         );
         $self->add_child($limiter);
         $limiter;

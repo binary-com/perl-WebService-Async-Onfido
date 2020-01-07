@@ -62,7 +62,7 @@ sub _init {
     }
 
     $self->{backoff_min} = delete $args->{backoff_min} // 30;
-    $self->{backoff_max} = delete $args->{backoff_max} // 300;
+    $self->{backoff_max} = delete $args->{backoff_max} // 3600;
     for my $k (qw(limit interval backoff_min backoff_max)){
         die "Invalid value for $k: $self->{$k}" unless int($self->{$k}) > 0;
     }
