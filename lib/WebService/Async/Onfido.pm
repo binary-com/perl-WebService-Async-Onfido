@@ -496,25 +496,30 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Documen
 sub get_document_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('document', %args);
-    $self->rate_limiting->then(
-        sub {
-            $self->ua->GET($uri, $self->auth_headers,);
-        }
-        )->then(
-        sub {
-            try {
-                my ($res) = @_;
-                $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                return Future->done(WebService::Async::Onfido::Document->new(%$data, onfido => $self));
-            }
-            catch {
-                my ($err) = $@;
-                $log->errorf('Failed - %s', $err);
-                return Future->fail($err);
-            }
+    $self->_do_request(
+        request => sub {
+            my $prepare_future = shift;
+            $prepare_future->then(
+                sub {
+                    $self->ua->GET($uri, $self->auth_headers,);
+                }
+                )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+                        my $data = decode_json_utf8($res->content);
+                        $log->tracef('Have response %s', $data);
+                        return Future->done(WebService::Async::Onfido::Document->new(%$data, onfido => $self));
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf('Failed - %s', $err);
+                        return Future->fail($err);
+                    }
+                });
         });
+
 }
 
 =head2 photo_list
@@ -538,7 +543,10 @@ sub photo_list {
     my ($self, %args) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('photos', %args);
-    $self->rate_limiting->then(
+        $self->_do_request(
+        request => sub{
+            my $prepare_future = shift;
+    $prepare_future->then(
         sub {
             $self->ua->GET($uri, $self->auth_headers,);
         }
@@ -563,7 +571,10 @@ sub photo_list {
                 $src->completed->fail('Failed to get photo list.') unless $src->completed->is_ready;
                 return Future->fail($err);
             }
-        })->retain;
+        })
+        }
+    )->retain;
+
     return $src;
 }
 
@@ -586,25 +597,32 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Photo>
 sub get_photo_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo', %args);
-    $self->rate_limiting->then(
-        sub {
-            $self->ua->GET($uri, $self->auth_headers,);
+        $self->_do_request(
+        request => sub{
+            my $prepare_future = shift;
+            $prepare_future->then(
+                sub {
+                    $self->ua->GET($uri, $self->auth_headers,);
+                }
+            )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        $log->tracef("GET %s => %s", $uri, $res->decoded_content);
+                        my $data = decode_json_utf8($res->content);
+                        $log->tracef('Have response %s', $data);
+                        return Future->done(WebService::Async::Onfido::Photo->new(%$data, onfido => $self));
+                    }
+                      catch {
+                          my ($err) = $@;
+                          $log->errorf('Failed - %s', $err);
+                          return Future->fail($err);
+                      }
+                  });
         }
-        )->then(
-        sub {
-            try {
-                my ($res) = @_;
-                $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                return Future->done(WebService::Async::Onfido::Photo->new(%$data, onfido => $self));
-            }
-            catch {
-                my ($err) = $@;
-                $log->errorf('Failed - %s', $err);
-                return Future->fail($err);
-            }
-        });
+    );
+
+
 }
 
 =head2 document_upload
