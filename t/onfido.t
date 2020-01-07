@@ -210,17 +210,12 @@ sub request_test_rate_limit{
     my $start_time = time();
     $onfido->_do_request(
         request => sub {
-            my $prepare_future = shift;
-            $prepare_future->then(
-                sub {
                     $onfido->ua->POST(
                         $onfido->endpoint('test_rate_limit'),
                         encode_json_utf8(\%args),
                         content_type => 'application/json',
                         $onfido->auth_headers,
                     );
-                }
-                )
         })->then(
             sub {
                 my ($res) = @_;
