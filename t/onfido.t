@@ -220,13 +220,14 @@ sub request_test_rate_limit{
                         $onfido->auth_headers,
                     );
                 }
-                )->then(
-                    sub {
-                            my ($res) = @_;
-                            my $data = decode_json_utf8($res->content);
-                    Future->done(time - $start_time, $data);
-                })
-            })->else(
+                )
+        })->then(
+            sub {
+                my ($res) = @_;
+                my $data = decode_json_utf8($res->content);
+                Future->done(time - $start_time, $data);
+            })
+      ->else(
                 sub {
                     my $failure = shift;
                     Future->done(time - $start_time, $failure);
