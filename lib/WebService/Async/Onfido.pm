@@ -320,29 +320,34 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_delete {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
-        sub {
-            $self->ua->do_request(
-                uri    => $self->endpoint('applicant', %args),
-                method => 'DELETE',
-                $self->auth_headers,
-            );
-        }
-        )->then(
-        sub {
-            try {
-                my ($res) = @_;
-                return Future->done if $res->code == 204;
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                return Future->fail($data);
-            }
-            catch {
-                my ($err) = $@;
-                $log->errorf('Applicant delete failed - %s', $err);
-                return Future->fail($err);
-            }
+    $self->_do_request(
+        request => sub {
+            my $prepare_future = shift;
+            $prepare_future->then(
+                sub {
+                    $self->ua->do_request(
+                        uri    => $self->endpoint('applicant', %args),
+                        method => 'DELETE',
+                        $self->auth_headers,
+                    );
+                }
+                )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        return Future->done if $res->code == 204;
+                        my $data = decode_json_utf8($res->content);
+                        $log->tracef('Have response %s', $data);
+                        return Future->fail($data);
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf('Applicant delete failed - %s', $err);
+                        return Future->fail($err);
+                    }
+                });
         });
+
 }
 
 =head2 applicant_get
