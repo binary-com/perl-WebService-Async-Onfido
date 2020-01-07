@@ -663,7 +663,10 @@ sub document_upload {
         ],
         %{$self->auth_headers},
     );
-    $self->rate_limiting->then(
+    $self->_do_request(
+        request => sub{
+            my $prepare_future = shift;
+    $prepare_future->then(
         sub {
             $self->ua->do_request(
                 request => $req,
@@ -694,6 +697,10 @@ sub document_upload {
                 return Future->fail($err);
             }
         });
+
+        }
+    );
+
 }
 
 =head2 live_photo_upload
