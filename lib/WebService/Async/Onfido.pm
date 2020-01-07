@@ -241,28 +241,33 @@ instance on successful completion.
 
 sub applicant_create {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
-        sub {
-            $self->ua->POST(
-                $self->endpoint('applicants'),
-                encode_json_utf8(\%args),
-                content_type => 'application/json',
-                $self->auth_headers,
-            );
-        }
-        )->then(
-        sub {
-            try {
-                my ($res) = @_;
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                return Future->done(WebService::Async::Onfido::Applicant->new(%$data, onfido => $self));
-            }
-            catch {
-                my ($err) = $@;
-                $log->errorf('Applicant creation failed - %s', $err);
-                return Future->fail($err);
-            }
+
+    $self->_do_request(
+        request => sub {
+            my $prepare_future = shift;
+            $prepare_future->then(
+                sub {
+                    $self->ua->POST(
+                        $self->endpoint('applicants'),
+                        encode_json_utf8(\%args),
+                        content_type => 'application/json',
+                        $self->auth_headers,
+                    );
+                }
+                )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        my $data = decode_json_utf8($res->content);
+                        $log->tracef('Have response %s', $data);
+                        return Future->done(WebService::Async::Onfido::Applicant->new(%$data, onfido => $self));
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf('Applicant creation failed - %s', $err);
+                        return Future->fail($err);
+                    }
+                });
         });
 }
 
@@ -276,28 +281,32 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_update {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
-        sub {
-            $self->ua->PUT(
-                $self->endpoint('applicant', %args),
-                encode_json_utf8(\%args),
-                content_type => 'application/json',
-                $self->auth_headers,
-            );
-        }
-        )->then(
-        sub {
-            try {
-                my ($res) = @_;
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                return Future->done();
-            }
-            catch {
-                my ($err) = $@;
-                $log->errorf('Applicant update failed - %s', $err);
-                return Future->fail($err);
-            }
+    $self->_do_request(
+        request => sub {
+            my $prepare_future = shift;
+            $prepare_future->then(
+                sub {
+                    $self->ua->PUT(
+                        $self->endpoint('applicant', %args),
+                        encode_json_utf8(\%args),
+                        content_type => 'application/json',
+                        $self->auth_headers,
+                    );
+                }
+                )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        my $data = decode_json_utf8($res->content);
+                        $log->tracef('Have response %s', $data);
+                        return Future->done();
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf('Applicant update failed - %s', $err);
+                        return Future->fail($err);
+                    }
+                });
         });
 }
 
@@ -1236,13 +1245,13 @@ sub _do_request {
         my $prev_result = shift;
         return $request->(
             $self->rate_limiting(
-                reset_backoff  => $last_success,
-                priority => $priority
+                reset_backoff => $last_success,
+                priority      => $priority
             ));
     }
     while => sub {
         my $result = shift;
-        my $retry =($result->failure // '') eq '429 Too Many Requests';
+        my $retry = ($result->failure // '') eq '429 Too Many Requests';
         $last_success = !$retry;
         $retry;
         }
@@ -1265,8 +1274,8 @@ sub rate_limiter {
     my $self = shift;
     return $self->{rate_limiter} //= do {
         my $limiter = WebService::Async::Onfido::RateLimiter->new(
-            limit    => $self->requests_per_minute,
-            interval => 60,
+            limit       => $self->requests_per_minute,
+            interval    => 60,
             backoff_min => int(2 * 60 / $self->requests_per_minute) + 1,
         );
         $self->add_child($limiter);
