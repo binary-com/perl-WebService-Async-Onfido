@@ -114,7 +114,22 @@ sub is_limited {
 Method checks availability for free slot.
 It returns future, when slot will be available, then future will be resolved.
 
+=head3 args
+
+=item priority
+
+Requests with igh priority will be moved to the head of queue
+
+=item reset_backoff
+
+If the previous request ok, then we should reset backoff value
+
 =cut
+
+# A queue is maintained in the array. The slot (item in the queue) is the format:
+# [Future f1, Future f2]
+# f1 represent that the request is ready. f2 is a $loop->future->delay.
+# slot[n]'s f2 will observer slot[n-limit]'s f1. When slot[n-limit] is done, then slot[n][f2] will start a timer with delay 'interval'.  When time is reached, slot[n][f2] will mark slot[n][f1] as done.
 
 sub acquire {
     my ($self, %args)         = @_;
@@ -123,7 +138,6 @@ sub acquire {
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
     my $queue        = $self->{queue};
 
-    my $restore_backoff_cancelled_slots = 0;
     if($reset_backoff){
         $self->backoff->reset_value;
     }
@@ -136,6 +150,7 @@ sub acquire {
     my $new_slot = [$loop->new_future->new, $loop->new_future, $priority];
     weaken(my $f = $new_slot->[0]);
     weaken(my $weak_self = $self);
+    # if f1 is cancelled, then we must remove it from the queue
     $f->on_cancel(sub{
                       my $slot = first {$_->[0] eq $f} $self->{queue}->@*;
                       $slot->[1]->cancel unless $slot->[1]->is_ready;
@@ -147,12 +162,12 @@ sub acquire {
     # GUARD
     die "something is wrong, the queue's length shouldn't less than the limit" if scalar @$queue < $limit;
 
+    # find the place that insert new slot (or append)
     my $new_position       = 0;
     my $not_ready_position = 0;
     for my $index (0 .. $#$queue) {
         $not_ready_position++ if $queue->[$index][0]->is_ready;
         #backoff the finished slots
-        #TODO filter out the cancelled slots[0]
         if ($backoff && $queue->[$index][0]->is_ready) {
             $queue->[$index][0] = Future->done(time() + $backoff - $self->interval);
         }
@@ -160,10 +175,12 @@ sub acquire {
         $new_position = $index;
         last;
     }
+    # if no place find, then append
     $new_position ||= $#$queue + 1;
 
     @$queue = (@$queue[0 .. $new_position - 1], $new_slot, @$queue[$new_position .. $#$queue]);
-    $self->_rebuild_queue(($backoff || $restore_backoff_cancelled_slots) ? $not_ready_position : $new_position);
+    #if there is backoff, we must rebuild from first slot that are not ready
+    $self->_rebuild_queue($backoff ? $not_ready_position : $new_position);
     return $queue->[$new_position][0];
 }
 

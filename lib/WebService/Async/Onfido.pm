@@ -781,7 +781,6 @@ sub applicant_check {
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
-    # TODO add priority
     $self->_do_request(
         sub {
             $self->ua->POST(
@@ -1223,6 +1222,9 @@ sub rate_limiting {
 
 sub requests_per_minute { shift->{requests_per_minute} //= 300 }
 
+# try request with rate limit
+# requests with high priority will be do first
+# repeat if there is an error of '429 too many requests'
 sub _do_request {
     my ($self, $request, $priority) = @_;
     $priority //= 0;
