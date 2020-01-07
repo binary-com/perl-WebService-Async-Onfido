@@ -209,7 +209,7 @@ sub request_test_rate_limit{
     my ($onfido, %args) = @_;
     my $start_time = time();
     $onfido->_do_request(
-        request => sub {
+        sub {
                     $onfido->ua->POST(
                         $onfido->endpoint('test_rate_limit'),
                         encode_json_utf8(\%args),

@@ -1098,7 +1098,7 @@ Takes the following named parameters:
 sub sdk_token {
     my ($self, %args) = @_;
     $self->_do_request(
-        request => sub {
+        sub {
             $self->ua->POST(
                 $self->endpoint('sdk_token'),
                 encode_json_utf8(\%args),
@@ -1224,9 +1224,8 @@ sub rate_limiting {
 sub requests_per_minute { shift->{requests_per_minute} //= 300 }
 
 sub _do_request {
-    my ($self, %args) = @_;
-    my $request = $args{request};
-    my $priority = $args{priority} // 0;
+    my ($self, $request, $priority) = @_;
+    $priority //= 0;
     state $last_success = 1;
     return try_repeat {
         my $prev_result = shift;
