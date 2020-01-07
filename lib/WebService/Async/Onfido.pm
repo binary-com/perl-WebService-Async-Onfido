@@ -777,8 +777,7 @@ sub applicant_check {
             push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
             push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
         } else {
-            push @content, "reports[][name]="
-                . uri_escape_utf8($report);    # TODO chylli check the caller to test the case that the reports include string report name
+            push @content, "reports[][name]=" . uri_escape_utf8($report);
         }
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
@@ -791,7 +790,8 @@ sub applicant_check {
                 content_type => 'application/x-www-form-urlencoded',
                 $self->auth_headers,
             );
-        }
+        },
+        1
         )->catch(
         http => sub {
             my ($message, undef, $response, $request) = @_;
