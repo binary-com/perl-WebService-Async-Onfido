@@ -191,12 +191,11 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
-
 # replace onfido's default ratelimiter with new ratelimiter with smaller interval
-$onfido->{rate_limiter} = do{
+$onfido->{rate_limiter} = do {
     my $limiter = WebService::Async::Onfido::RateLimiter->new(
-        limit    => 2,
-        interval => 2,
+        limit       => 2,
+        interval    => 2,
         backoff_min => 2,
         backoff_max => 5,
     );
@@ -205,45 +204,69 @@ $onfido->{rate_limiter} = do{
 };
 $onfido->endpoints->{test_rate_limit} = $onfido->base_uri . '/test_rate_limit';
 
-sub request_test_rate_limit{
+sub request_test_rate_limit {
     my ($onfido, %args) = @_;
     my $start_time = time();
     $onfido->_do_request(
         sub {
-                    $onfido->ua->POST(
-                        $onfido->endpoint('test_rate_limit'),
-                        encode_json_utf8(\%args),
-                        content_type => 'application/json',
-                        $onfido->auth_headers,
-                    );
-        })->then(
-            sub {
-                my ($res) = @_;
-                my $data = decode_json_utf8($res->content);
-                Future->done(time - $start_time, $data);
-            })
-      ->else(
-                sub {
-                    my $failure = shift;
-                    Future->done(time - $start_time, $failure);
-                }
+            $onfido->ua->POST(
+                $onfido->endpoint('test_rate_limit'),
+                encode_json_utf8(\%args),
+                content_type => 'application/json',
+                $onfido->auth_headers,
             );
+        }
+        )->then(
+        sub {
+            my ($res) = @_;
+            my $data = decode_json_utf8($res->content);
+            Future->done(time - $start_time, $data);
+        }
+        )->else(
+        sub {
+            my $failure = shift;
+            Future->done(time - $start_time, $failure);
+        });
 }
 
 # try_times means try Nth times the mocked onfido server will return correct value,
 # before that it will return 429 status code
-my $id = 0;
-my @result = request_test_rate_limit($onfido, id => $id++, try_times => 1)->get;
+my $id     = 0;
+my @result = request_test_rate_limit(
+    $onfido,
+    id        => $id++,
+    try_times => 1
+)->get;
 is($result[0], 0, '1st time return ok, 0 time backoff, 0 seconds');
-@result = request_test_rate_limit($onfido, id => $id++, try_times => 2)->get;
+@result = request_test_rate_limit(
+    $onfido,
+    id        => $id++,
+    try_times => 2
+)->get;
 is($result[0], 2, '2nd time return ok, 1 time backoff, 2 seconds because it failed 1 time . the backoff is 2');
-@result = request_test_rate_limit($onfido, id => $id++, try_times => 3)->get;
-is($result[0], 2+4, '3rd time return ok, 2 times backoff, 2 + 4 seconds because it failed 2 time . the backoff is 2 + 4');
-@result = request_test_rate_limit($onfido, id => $id++, try_times => 4)->get;
-is($result[0], 2+4+5, '4th time return ok, 3 times backoff, 2 + 4 + 5 seconds because it failed 3 time . the backoff is 2 + 4 + 5 , max value is 5');
-is($result[1]->{status}, 'ok','the status is ok' );
-@result = request_test_rate_limit($onfido, id => $id++, try_times => 5)->get;
-is($result[0], 2+4+5+5, '5th time return ok, 4 times backoff, max value is 5');
+@result = request_test_rate_limit(
+    $onfido,
+    id        => $id++,
+    try_times => 3
+)->get;
+is($result[0], 2 + 4, '3rd time return ok, 2 times backoff, 2 + 4 seconds because it failed 2 time . the backoff is 2 + 4');
+@result = request_test_rate_limit(
+    $onfido,
+    id        => $id++,
+    try_times => 4
+)->get;
+is(
+    $result[0],
+    2 + 4 + 5,
+    '4th time return ok, 3 times backoff, 2 + 4 + 5 seconds because it failed 3 time . the backoff is 2 + 4 + 5 , max value is 5'
+);
+is($result[1]->{status}, 'ok', 'the status is ok');
+@result = request_test_rate_limit(
+    $onfido,
+    id        => $id++,
+    try_times => 5
+)->get;
+is($result[0], 2 + 4 + 5 + 5, '5th time return ok, 4 times backoff, max value is 5');
 
 # ratelimit
 # clear rate limiting
@@ -256,7 +279,6 @@ $loop->add(
         base_uri            => 'http://localhost:3000',
         requests_per_minute => 5,
     ));
-
 
 for (1 .. 5) {
     ok(!$onfido->is_rate_limited, "not limited yet");

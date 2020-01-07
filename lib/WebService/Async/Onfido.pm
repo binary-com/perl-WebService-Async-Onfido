@@ -88,7 +88,7 @@ sub applicant_list {
     (
         repeat {
             $log->tracef('GET %s', "$uri");
-            $self->rate_limiting->then(
+            $self->_do_request(
                 sub {
                     $self->ua->GET($uri, $self->auth_headers,);
                 }
@@ -160,7 +160,7 @@ sub paging {
     (
         repeat {
             $log->tracef('GET %s', "$uri");
-            $self->rate_limiting->then(
+            $self->_do_request(
                 sub {
                     $self->ua->GET($uri, $self->auth_headers,);
                 }
@@ -241,7 +241,7 @@ instance on successful completion.
 
 sub applicant_create {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->POST(
                 $self->endpoint('applicants'),
@@ -276,7 +276,7 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_update {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->PUT(
                 $self->endpoint('applicant', %args),
@@ -311,7 +311,7 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_delete {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('applicant', %args),
@@ -346,7 +346,7 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
 sub applicant_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('applicant', %args),
@@ -372,7 +372,7 @@ sub applicant_get {
 
 sub check_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('check', %args),
@@ -417,7 +417,7 @@ sub document_list {
     my ($self, %args) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('documents', %args);
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->GET($uri, $self->auth_headers,);
         }
@@ -467,7 +467,7 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Documen
 sub get_document_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('document', %args);
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->GET($uri, $self->auth_headers,);
         }
@@ -509,7 +509,7 @@ sub photo_list {
     my ($self, %args) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('photos', %args);
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->GET($uri, $self->auth_headers,);
         }
@@ -557,7 +557,7 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Photo>
 sub get_photo_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo', %args);
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->GET($uri, $self->auth_headers,);
         }
@@ -616,7 +616,7 @@ sub document_upload {
         ],
         %{$self->auth_headers},
     );
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 request => $req,
@@ -687,7 +687,7 @@ sub live_photo_upload {
         %{$self->auth_headers},
     );
     $log->tracef('Photo upload: %s', $req->as_string("\n"));
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 request => $req,
@@ -783,7 +783,7 @@ sub applicant_check {
     }
     push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
     # TODO add priority
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->POST(
                 $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
@@ -826,7 +826,7 @@ sub check_list {
     my $f            = $src->completed;
     my $uri          = $self->endpoint('checks', applicant_id => $applicant_id);
     $log->tracef('GET %s', "$uri");
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $uri,
@@ -860,7 +860,7 @@ sub check_list {
 
 sub report_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('report', %args),
@@ -895,7 +895,7 @@ sub report_list {
     my $uri = $self->endpoint('reports', check_id => $check_id);
     $log->tracef('GET %s', "$uri");
 
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $uri,
@@ -943,7 +943,7 @@ Returns a photo file blob
 
 sub download_photo {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('photo_download', %args),
@@ -986,7 +986,7 @@ Returns a document file blob
 
 sub download_document {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(
+    $self->_do_request(
         sub {
             $self->ua->do_request(
                 uri    => $self->endpoint('document_download', %args),
