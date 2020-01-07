@@ -1099,9 +1099,6 @@ sub sdk_token {
     my ($self, %args) = @_;
     $self->_do_request(
         request => sub {
-            my $prepare_future = shift;
-            $prepare_future->then(
-                sub {
                     $self->ua->POST(
                         $self->endpoint('sdk_token'),
                         encode_json_utf8(\%args),
@@ -1123,7 +1120,6 @@ sub sdk_token {
                         return Future->fail($err);
                     }
                 });
-        });
 
 }
 
@@ -1234,15 +1230,27 @@ sub _do_request {
     state $last_success = 1;
     return try_repeat {
         my $prev_result = shift;
-        return $request->(
+        return (
             $self->rate_limiting(
                 reset_backoff  => $last_success,
                 priority => $priority
-            ));
+            ))->then($request);
     }
     while => sub {
         my $result = shift;
         my $retry =($result->failure // '') eq '429 Too Many Requests';
+        #warn "result status is " . $result->state;
+        #warn "failure is " . ($result->failure // '');
+        #my $data;
+        #try {
+        #    warn "trying";
+        #    $data = decode_json_utf8($result->get->content);
+        #    warn "in trying";
+        #}
+        #  catch {warn "error is $@";}
+        #  use Data::Dumper;
+        #warn ('Have response ' .  Dumper($data));
+
         $last_success = !$retry;
         $retry;
         }
