@@ -282,14 +282,15 @@ $loop->add(
 
 for (1 .. 5) {
     ok(!$onfido->is_rate_limited, "not limited yet");
-    my $result = $onfido->rate_limiting;
+    my $result = $onfido->rate_limiting(label => "a$_");
     $onfido->loop->loop_once(0);
     ok($result->is_ready, 'all results are ready at first because they are in the rate limit');
 }
 my @results;
 for (1 .. 10) {
     ok($onfido->is_rate_limited, "is rate_limited now");
-    my $result = $onfido->rate_limiting;
+    my $result = $onfido->rate_limiting(label => "b$_");
+    $onfido->loop->loop_once(0);
     ok(!$result->is_ready, 'all results are not ready now because they are out of rate limit');
     push @results, $result;
 }
@@ -301,11 +302,13 @@ $onfido->loop->loop_once(0);
 ok($onfido->is_rate_limited, "still rate_limited again");
 for (1 .. 5) {
     my $result = shift @results;
+    $onfido->loop->loop_once(0);
     ok($result->is_ready, 'now the first 5 future should be ready because they are in the rate limit now');
 }
 ok($onfido->is_rate_limited, "here still rate_limited");
 for (1 .. 5) {
     my $result = shift @results;
+    $onfido->loop->loop_once(0);
     ok(!$result->is_ready, 'now the last 5 futures should not be ready because they are still out of rate limit');
 }
 
@@ -317,6 +320,6 @@ ok($onfido->is_rate_limited, "still rate_limited because new queue has been fill
 # advance 3rd interval
 set_relative_time(60 * 3);
 # trigger loop delay_future
-$onfido->loop->loop_once(0);
+$onfido->loop->loop_once(0) for (1..10); # run loop several times to trigger timer
 ok(!$onfido->is_rate_limited, "all futures ready, should not limited");
 kill('TERM', $pid);

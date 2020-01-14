@@ -145,6 +145,7 @@ sub set_timer {
             }
             my $now = time;
             if ($slot && !$slot->[0]->is_ready) {
+                warn "marking " . ($slot->[0]->label || $slot->[0]) . " done at $now\n" if $ENV{RATELIMITER_DEBUG};
                 $slot->[0]->done($now);
                 @$history = grep { $now - $interval < $_ } @$history;
                 push @$history, $now;
@@ -179,12 +180,13 @@ sub acquire {
     my ($self, %args) = @_;
     my $priority      = $args{priority}      // 0;
     my $reset_backoff = $args{reset_backoff} // 1;
+    my $label = $args{label} // '';
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
     my $queue = $self->{queue};
     my $slot = [$self->loop->new_future->new, $priority];
     @$queue = sort { $b->[1] <=> $a->[1] } ($queue->@*, $slot);
     $self->set_timer($reset_backoff);
-    return $slot->[0];
+    return $slot->[0]->set_label($label);
 }
 
 1;
