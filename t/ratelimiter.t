@@ -121,4 +121,9 @@ is_deeply(
     'the executing time of backoff is ok'
 );
 
+for my $i (0..$#request_futures){
+    for my $j (0..$request_futures[$i]->$#*){
+        is($request_futures[$i][$j]->state, 'done', "request future $i $j done");
+    }
+}
 done_testing;

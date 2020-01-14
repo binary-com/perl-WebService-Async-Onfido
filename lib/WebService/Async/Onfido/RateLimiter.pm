@@ -135,9 +135,7 @@ sub set_timer {
         warn "here timer state " . $self->{_timer}->state;
         if($self->{_timer} && !$self->{_timer}->is_ready){
             warn "here parepare cancel";
-            eval{
-                $self->{_timer}->cancel;
-            };
+            $self->{_timer}->cancel;
             warn "error $@" if $@;
             warn "here cancel timer";
         }
