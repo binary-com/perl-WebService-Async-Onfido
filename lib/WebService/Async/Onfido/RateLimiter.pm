@@ -6,7 +6,7 @@ use warnings;
 use Scalar::Util qw(refaddr weaken);
 use List::Util qw(first);
 use Algorithm::Backoff;
-
+use feature qw(state);
 use Data::Dumper;
 our $VERSION = '0.001';
 
@@ -71,7 +71,7 @@ sub _init {
     # fill the dummy items to normalize the process of queue
     $self->{queue} = [];
     $self->{history} = [];
-
+    $self->{last_reset_backoff} = 1;
     return $self->next::method($args);
 }
 
@@ -117,18 +117,23 @@ sub _calc_delay{
 sub set_timer {
     my $self = shift;
     my $reset_backoff = shift;
-    if($reset_backoff){
-        $self->backoff->reset_value;
-    }
+
+    warn "reset backoff: $reset_backoff";
+    $self->backoff->reset_value if $reset_backoff;
+    my $backoff_changed = ($reset_backoff xor $self->{last_reset_backoff});
+    warn "backoff changed: $backoff_changed";
+    $self->{last_reset_backoff} = $reset_backoff;
+
     #we still need to fetch next_value even if we needn't use backoff
-    # because the backoff 'next_value' is started from 0,
-    my $backoff = $self->backoff->next_value;
-    if($backoff){
+    # be++cause the backoff 'next_value' is started from 0,
+    if($backoff_changed){
         if($self->{_timer} && !$self->{_timer}->is_ready){
             $self->{_timer}->cancel;
         }
     }
     return if($self->{_timer} && !$self->{_timer}->is_ready);
+    my $backoff = $self->backoff->next_value;
+    warn "backoff value $backoff";
     my $delay = $backoff || $self->_calc_delay;
     my $queue = $self->{queue};
     my $interval = $self->{interval};
@@ -140,12 +145,13 @@ sub set_timer {
                                                                              #filter cancelled slot
                                                                              last unless $slot->[0]->is_ready;
                                                                          }
-                                                                         #TODO if no slot, should push into history ?
                                                                          my $now = time;
-                                                                         $slot->[0]->done($now) if $slot && !$slot->[0]->is_ready;
-                                                                         @$history = grep {$now - $interval < $_ } @$history;
-                                                                         push @$history, $now;
-                                                                         $self->set_timer(1) if @$queue;
+                                                                         if ($slot && !$slot->[0]->is_ready){
+                                                                             $slot->[0]->done($now);
+                                                                             @$history = grep {$now - $interval < $_ } @$history;
+                                                                             push @$history, $now;
+                                                                         }
+                                                                         $self->set_timer($self->{last_reset_backoff}) if @$queue;
                                                                      });
 }
 
