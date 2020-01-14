@@ -119,17 +119,19 @@ sub set_timer {
     my $reset_backoff = shift;
 
     $self->backoff->reset_value if $reset_backoff;
+    #if reset_backoff arg diff with the last arg, we need to cancel the timer
     my $backoff_changed = ($reset_backoff xor $self->{last_reset_backoff});
     $self->{last_reset_backoff} = $reset_backoff;
 
-    #we still need to fetch next_value even if we needn't use backoff
-    # be++cause the backoff 'next_value' is started from 0,
     if ($backoff_changed) {
         if ($self->{_timer} && !$self->{_timer}->is_ready) {
             $self->{_timer}->cancel;
         }
     }
     return if ($self->{_timer} && !$self->{_timer}->is_ready);
+
+    #we still need to fetch next_value even if we needn't use backoff
+    # be++cause the backoff 'next_value' is started from 0,
     my $backoff = $self->backoff->next_value;
     my $delay    = $backoff || $self->_calc_delay;
     my $queue    = $self->{queue};
