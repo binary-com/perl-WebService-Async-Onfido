@@ -104,17 +104,14 @@ $loop->run();
 my @executing_time;
 $executing_time[0] = [map { $_->get } $requests[0]->@*];
 $executing_time[1] = [map { $_->is_done ? $_->get : $_->state } $requests[1]->@*];
-diag(explain($executing_time[0]));
 is_deeply(
     $executing_time[0],
     [[0, 0], [1, 1], [2, 2], [3, 6], [4, 7], [4, 5], [5, 10], [6, 11], [8, 12], [8, 15], [17, 17], [17, 17], [17, 20], [25, 25]],
     'the executing time is ok'
 );
-diag(explain($value_of_is_limited[0]));
 is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
 is(scalar $limiter[0]->{queue}->@*, 0, 'the queue will be shrink');
 is(scalar $limiter[0]->{history}->@*, 1, 'the queue will be shrink');
-diag(explain($executing_time[1]));
 is_deeply(
     $executing_time[1],
     [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11, 22], [12, 22], [13, 23], 'cancelled', [15, 23], [16, 24], [17, 24]],
