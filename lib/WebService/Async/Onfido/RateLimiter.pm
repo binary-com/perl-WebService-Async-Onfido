@@ -118,10 +118,8 @@ sub set_timer {
     my $self          = shift;
     my $reset_backoff = shift;
 
-    warn "reset backoff: $reset_backoff";
     $self->backoff->reset_value if $reset_backoff;
     my $backoff_changed = ($reset_backoff xor $self->{last_reset_backoff});
-    warn "backoff changed: $backoff_changed";
     $self->{last_reset_backoff} = $reset_backoff;
 
     #we still need to fetch next_value even if we needn't use backoff
@@ -133,7 +131,6 @@ sub set_timer {
     }
     return if ($self->{_timer} && !$self->{_timer}->is_ready);
     my $backoff = $self->backoff->next_value;
-    warn "backoff value $backoff";
     my $delay    = $backoff || $self->_calc_delay;
     my $queue    = $self->{queue};
     my $interval = $self->{interval};
