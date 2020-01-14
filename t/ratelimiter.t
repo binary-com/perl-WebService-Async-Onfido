@@ -47,8 +47,7 @@ for my $t (0 .. 100){
     my $f = $loop->delay_future(after => $t)
       ->on_ready(sub{diag("time $t -----------------------------")});
 }
-#for my $index (0 .. $#request_queue) {
-for my $index (0 .. 0) {
+for my $index (0 .. $#request_queue) {
     for my $request_info ($request_queue[$index]->@*) {
         my $f = $loop->delay_future(after => $request_info->[0]);
         $f = $f->then(
@@ -71,7 +70,7 @@ my @value_of_is_limited;
 
 sub submit_request {
     my ($index, $arg) = @_;
-    diag("queue $index requesting $arg->[0]...") if $index == 0;
+    diag("queue $index requesting $arg->[0]...");
     push $value_of_is_limited[$index]->@*, $limiter[$index]->is_limited;
     my $f = $limiter[$index]->acquire(
         priority      => $arg->[1],
@@ -80,7 +79,7 @@ sub submit_request {
         sub {
             my $execute_time = shift;
             my $done_time    = $execute_time - $now;
-            diag("queue $index request " . $arg->[0] . " is done at $done_time") if $index == 0;
+            diag("queue $index request " . $arg->[0] . " is done at $done_time");
             Future->done([$arg->[0], $execute_time - $now]);
         }
         )->else(
@@ -115,11 +114,11 @@ diag(explain($value_of_is_limited[0]));
 is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
 is(scalar $limiter[0]->{queue}->@*, 0, 'the queue will be shrink');
 is(scalar $limiter[0]->{history}->@*, 1, 'the queue will be shrink');
-
-#is_deeply(
-#    $executing_time[1],
-#    [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11, 22], [12, 22], [13, 23], 'cancelled', [15, 23], [16, 24], [17, 24]],
-#    'the executing time of backoff is ok'
-#);
+diag(explain($executing_time[1]));
+is_deeply(
+    $executing_time[1],
+    [[0, 0], [1, 3], [2, 3], [4, 9], [5, 9], [6, 10], [11, 22], [12, 22], [13, 23], 'cancelled', [15, 23], [16, 24], [17, 24]],
+    'the executing time of backoff is ok'
+);
 
 done_testing;

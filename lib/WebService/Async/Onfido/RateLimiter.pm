@@ -120,11 +120,31 @@ sub _calc_delay{
 
 sub set_timer {
     my $self = shift;
-    my $caller = shift;
-    warn "here prepare start timer by $caller...";
+    my $reset_backoff = shift;
+    if($reset_backoff){
+        $self->backoff->reset_value;
+    }
+    warn "here reset_backoff $reset_backoff";
+    #we still need to fetch next_value even if we needn't use backoff
+    # because the backoff 'next_value' is started from 0,
+    my $backoff = $self->backoff->next_value;
+    warn "here backoff $backoff....";
+    if($backoff){
+        warn "here in $backoff";
+        warn "here timer " . $self->{_timer};
+        warn "here timer state " . $self->{_timer}->state;
+        if($self->{_timer} && !$self->{_timer}->is_ready){
+            warn "here parepare cancel";
+            eval{
+                $self->{_timer}->cancel;
+            };
+            warn "error $@" if $@;
+            warn "here cancel timer";
+        }
+    }
+    warn "here backoff $backoff";
     return if($self->{_timer} && !$self->{_timer}->is_ready);
-    warn "here starting timer by $caller...";
-    my $delay = $self->_calc_delay;
+    my $delay = $backoff || $self->_calc_delay;
     warn "delay $delay";
     my $queue = $self->{queue};
     warn "queueref in set_timer $queue";
@@ -149,7 +169,7 @@ sub set_timer {
                                                                          $slot->[0]->done($now) if $slot && !$slot->[0]->is_ready;
                                                                          @$history = grep {$now - $interval < $_ } @$history;
                                                                          push @$history, $now;
-                                                                         $self->set_timer("timer") if @$queue;
+                                                                         $self->set_timer(1) if @$queue;
                                                                      });
 }
 
@@ -184,8 +204,10 @@ sub acquire {
     my $queue        = $self->{queue};
     warn "queueref in acquire $queue";
     my $slot = [$self->loop->new_future->new, $priority];
+    warn "here";
     @$queue = sort {$b->[1] <=> $a->[1]} ($queue->@*, $slot);
-    $self->set_timer("acquire");
+    warn "here";
+    $self->set_timer($reset_backoff);
     warn "slot in acquire $slot";
     warn "queue @$queue";
     warn "queue length " . scalar(@$queue);
