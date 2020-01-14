@@ -43,9 +43,8 @@ my @request_queue = ([
 );
 my @request_futures;
 my $now = time();
-for my $t (0 .. 100){
-    my $f = $loop->delay_future(after => $t)
-      ->on_ready(sub{diag("time $t -----------------------------")});
+for my $t (0 .. 100) {
+    my $f = $loop->delay_future(after => $t)->on_ready(sub { diag("time $t -----------------------------") });
 }
 for my $index (0 .. $#request_queue) {
     for my $request_info ($request_queue[$index]->@*) {
@@ -58,8 +57,6 @@ for my $index (0 .. $#request_queue) {
         push $request_futures[$index]->@*, $f;
     }
 }
-
-
 
 my @requests;
 my @value_of_is_limited;
@@ -94,15 +91,15 @@ my $timeout_f = $loop->delay_future(after => 40)->on_done(
         fail('timeout');
         $loop->stop;
     });
-my $wait_all_f = Future->wait_all($request_futures[0][-1], $request_futures[1][01])->then(sub{
-                                                                                              Future->wait_all($requests[0][-1], $requests[1][-1])->on_ready(sub{
-                                                                                                                                                                 warn "stopping";
-                                                                                                                                                                 $timeout_f->cancel;
-                                                                                                                                                                 $loop->stop;
-                                                                                                                                                             });
-                                                                                          });
-
-
+my $wait_all_f = Future->wait_all($request_futures[0][-1], $request_futures[1][01])->then(
+    sub {
+        Future->wait_all($requests[0][-1], $requests[1][-1])->on_ready(
+            sub {
+                warn "stopping";
+                $timeout_f->cancel;
+                $loop->stop;
+            });
+    });
 
 $loop->run();
 my @executing_time;
@@ -114,7 +111,7 @@ is_deeply(
     'the executing time is ok'
 );
 is_deeply($value_of_is_limited[0], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], 'the status of is_limited is ok');
-is(scalar $limiter[0]->{queue}->@*, 0, 'the queue will be shrink');
+is(scalar $limiter[0]->{queue}->@*,   0, 'the queue will be shrink');
 is(scalar $limiter[0]->{history}->@*, 1, 'the queue will be shrink');
 diag(explain($executing_time[1]));
 is_deeply(
@@ -124,8 +121,8 @@ is_deeply(
     'the executing time of backoff is ok'
 );
 
-for my $i (0..$#request_futures){
-    for my $j (0..$request_futures[$i]->$#*){
+for my $i (0 .. $#request_futures) {
+    for my $j (0 .. $request_futures[$i]->$#*) {
         is($request_futures[$i][$j]->state, 'done', "request future $i $j has no error");
     }
 }

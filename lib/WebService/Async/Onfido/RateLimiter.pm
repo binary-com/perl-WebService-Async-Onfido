@@ -63,14 +63,14 @@ sub _init {
 
     $self->{backoff_min} = delete $args->{backoff_min} // 30;
     $self->{backoff_max} = delete $args->{backoff_max} // 3600;
-    for my $k (qw(limit interval backoff_min backoff_max)){
+    for my $k (qw(limit interval backoff_min backoff_max)) {
         die "Invalid value for $k: $self->{$k}" unless int($self->{$k}) > 0;
     }
 
-    $self->{_start_time}          = time();
+    $self->{_start_time} = time();
     # fill the dummy items to normalize the process of queue
-    $self->{queue} = [];
-    $self->{history} = [];
+    $self->{queue}              = [];
+    $self->{history}            = [];
     $self->{last_reset_backoff} = 1;
     return $self->next::method($args);
 }
@@ -104,10 +104,10 @@ sub is_limited {
     return $self->_calc_delay > 0 ? 1 : 0;
 }
 
-sub _calc_delay{
-    my $self = shift;
+sub _calc_delay {
+    my $self    = shift;
     my $history = $self->{history};
-    my $delay = 0;
+    my $delay   = 0;
     if (@$history >= $self->{limit}) {
         $delay = $history->[-$self->{limit}] + $self->{interval} - time();
     }
@@ -115,7 +115,7 @@ sub _calc_delay{
 }
 
 sub set_timer {
-    my $self = shift;
+    my $self          = shift;
     my $reset_backoff = shift;
 
     warn "reset backoff: $reset_backoff";
@@ -126,33 +126,34 @@ sub set_timer {
 
     #we still need to fetch next_value even if we needn't use backoff
     # be++cause the backoff 'next_value' is started from 0,
-    if($backoff_changed){
-        if($self->{_timer} && !$self->{_timer}->is_ready){
+    if ($backoff_changed) {
+        if ($self->{_timer} && !$self->{_timer}->is_ready) {
             $self->{_timer}->cancel;
         }
     }
-    return if($self->{_timer} && !$self->{_timer}->is_ready);
+    return if ($self->{_timer} && !$self->{_timer}->is_ready);
     my $backoff = $self->backoff->next_value;
     warn "backoff value $backoff";
-    my $delay = $backoff || $self->_calc_delay;
-    my $queue = $self->{queue};
+    my $delay    = $backoff || $self->_calc_delay;
+    my $queue    = $self->{queue};
     my $interval = $self->{interval};
-    my $history = $self->{history};
-    $self->{_timer} = $self->loop->delay_future(after => $delay)->on_done(sub{
-                                                                         my $slot;
-                                                                         my $count = 0;
-                                                                         while($slot = shift @$queue){
-                                                                             #filter cancelled slot
-                                                                             last unless $slot->[0]->is_ready;
-                                                                         }
-                                                                         my $now = time;
-                                                                         if ($slot && !$slot->[0]->is_ready){
-                                                                             $slot->[0]->done($now);
-                                                                             @$history = grep {$now - $interval < $_ } @$history;
-                                                                             push @$history, $now;
-                                                                         }
-                                                                         $self->set_timer($self->{last_reset_backoff}) if @$queue;
-                                                                     });
+    my $history  = $self->{history};
+    $self->{_timer} = $self->loop->delay_future(after => $delay)->on_done(
+        sub {
+            my $slot;
+            my $count = 0;
+            while ($slot = shift @$queue) {
+                #filter cancelled slot
+                last unless $slot->[0]->is_ready;
+            }
+            my $now = time;
+            if ($slot && !$slot->[0]->is_ready) {
+                $slot->[0]->done($now);
+                @$history = grep { $now - $interval < $_ } @$history;
+                push @$history, $now;
+            }
+            $self->set_timer($self->{last_reset_backoff}) if @$queue;
+        });
 }
 
 =head2 acquire
@@ -178,13 +179,13 @@ If the previous request ok, then we should reset backoff value
 # slot[n]'s f2 will observer slot[n-limit]'s f1. When slot[n-limit] is done, then slot[n][f2] will start a timer with delay 'interval'.  When time is reached, slot[n][f2] will mark slot[n][f1] as done.
 
 sub acquire {
-    my ($self, %args)         = @_;
-    my $priority     = $args{priority} // 0;
+    my ($self, %args) = @_;
+    my $priority      = $args{priority}      // 0;
     my $reset_backoff = $args{reset_backoff} // 1;
     die "Invalid value for priority: $priority" unless int($priority) eq $priority;
-    my $queue        = $self->{queue};
+    my $queue = $self->{queue};
     my $slot = [$self->loop->new_future->new, $priority];
-    @$queue = sort {$b->[1] <=> $a->[1]} ($queue->@*, $slot);
+    @$queue = sort { $b->[1] <=> $a->[1] } ($queue->@*, $slot);
     $self->set_timer($reset_backoff);
     return $slot->[0];
 }
