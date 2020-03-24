@@ -33,7 +33,7 @@ sub reports {
 	return $self->onfido->report_list(
 		check_id => $self->id,
 		%args
-	)->map(sub { $log->infof('Have report %s', $_->as_string);  $_->{check} = $self; $_ });
+	)->map(sub { $log->debugf('Have report %s', $_->as_string);  $_->{check} = $self; $_ });
 }
 
 1;
