@@ -793,9 +793,9 @@ sub applicant_check {
         http => sub {
             my ($message, undef, $response, $request) = @_;
             $log->errorf('Request %s received %s with full response as %s',
-                $request->as_string("\n"),
+                $request->uri,
                 $message,
-                $response->as_string("\n"),
+                $response->content,
             );
             # Just pass it on
             Future->fail($message, http => $response, $request);
