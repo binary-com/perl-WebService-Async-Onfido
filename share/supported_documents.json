@@ -1,19 +1,19 @@
 [
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "AFG",
     "country_grouping": "Asia",
-    "country_name": "Afghanistan"
+    "country_name": "Afghanistan",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "AGO",
-    "country_name": "Angola",
     "country_grouping": "Africa",
+    "country_name": "Angola",
     "doc_types_list": [
-      "National Identity Card",
-      "Passport"
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
@@ -21,132 +21,132 @@
     "country_grouping": "Americas",
     "country_name": "Anguilla",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
-    "country_name": "Albania",
+    "country_code": "ALB",
     "country_grouping": "Europe",
-    "country_code": "ALB"
+    "country_name": "Albania",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
     "country_code": "AND",
+    "country_grouping": "Europe",
     "country_name": "Andorra",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
+    "country_code": "ARE",
     "country_grouping": "Asia",
     "country_name": "United Arab Emirates",
-    "country_code": "ARE"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
+    "country_code": "ARG",
     "country_grouping": "Americas",
     "country_name": "Argentina",
-    "country_code": "ARG"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
     "country_code": "ARM",
-    "country_name": "Armenia",
     "country_grouping": "Asia",
+    "country_name": "Armenia",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence"
-    ],
     "country_code": "ASM",
+    "country_grouping": "Oceania",
     "country_name": "American Samoa",
-    "country_grouping": "Oceania"
+    "doc_types_list": [
+        "Driving Licence"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "ATG",
     "country_grouping": "Americas",
     "country_name": "Antigua and Barbuda",
-    "country_code": "ATG"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "AUS",
-    "country_name": "Australia",
     "country_grouping": "Oceania",
+    "country_name": "Australia",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "country_name": "Austria",
-    "country_grouping": "Europe",
     "country_code": "AUT",
+    "country_grouping": "Europe",
+    "country_name": "Austria",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
+    "country_code": "AZE",
     "country_grouping": "Asia",
     "country_name": "Azerbaijan",
-    "country_code": "AZE"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
     "country_code": "BDI",
-    "country_name": "Burundi",
     "country_grouping": "Africa",
+    "country_name": "Burundi",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "Residence Permit",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit (German)"
-    ],
     "country_code": "BEL",
     "country_grouping": "Europe",
-    "country_name": "Belgium"
+    "country_name": "Belgium",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit (German)",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "BEN",
-    "country_name": "Benin",
     "country_grouping": "Africa",
+    "country_name": "Benin",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
@@ -154,7 +154,7 @@
     "country_grouping": "Africa",
     "country_name": "Burkina Faso",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
@@ -162,349 +162,349 @@
     "country_grouping": "Asia",
     "country_name": "Bangladesh",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Residence Permit"
-    ],
     "country_code": "BGR",
+    "country_grouping": "Europe",
     "country_name": "Bulgaria",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "country_name": "Bahrain",
-    "country_grouping": "Asia",
     "country_code": "BHR",
+    "country_grouping": "Asia",
+    "country_name": "Bahrain",
     "doc_types_list": [
-      "Passport",
-      "National Identity Card"
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "country_name": "Bahamas",
-    "country_grouping": "Americas",
     "country_code": "BHS",
+    "country_grouping": "Americas",
+    "country_name": "Bahamas",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
     "country_code": "BIH",
     "country_grouping": "Europe",
-    "country_name": "Bosnia and Herzegovina"
-  },
-  {
-    "country_grouping": "Americas",
-    "country_name": "Saint Barthelemy",
-    "country_code": "BLM",
+    "country_name": "Bosnia and Herzegovina",
     "doc_types_list": [
-      "Driving Licence"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
+    "country_code": "BLM",
+    "country_grouping": "Americas",
+    "country_name": "Saint Barthelemy",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence"
-    ],
-    "country_name": "Belarus",
+        "Driving Licence"
+    ]
+  },
+  {
+    "country_code": "BLR",
     "country_grouping": "Europe",
-    "country_code": "BLR"
+    "country_name": "Belarus",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
     "country_code": "BLZ",
-    "country_name": "Belize",
     "country_grouping": "Americas",
+    "country_name": "Belize",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
     "country_code": "BMU",
-    "country_name": "Bermuda",
     "country_grouping": "Americas",
+    "country_name": "Bermuda",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
     "country_code": "BOL",
+    "country_grouping": "Americas",
     "country_name": "Bolivia (Plurinational State of)",
-    "country_grouping": "Americas"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "BRA",
     "country_grouping": "Americas",
     "country_name": "Brazil",
-    "country_code": "BRA",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card (RG Card)",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card (RG Card)",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
     "country_code": "BRB",
     "country_grouping": "Americas",
-    "country_name": "Barbados"
-  },
-  {
+    "country_name": "Barbados",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Brunei Darussalam",
-    "country_grouping": "Asia",
-    "country_code": "BRN"
-  },
-  {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "BTN",
-    "country_name": "Bhutan",
-    "country_grouping": "Asia"
-  },
-  {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
-    "country_name": "Botswana",
-    "country_grouping": "Africa",
-    "country_code": "BWA"
-  },
-  {
-    "country_name": "Central African Republic",
-    "country_grouping": "Africa",
-    "country_code": "CAF",
-    "doc_types_list": [
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
+    "country_code": "BRN",
+    "country_grouping": "Asia",
+    "country_name": "Brunei Darussalam",
     "doc_types_list": [
-      "Driving Licence",
-      "Visa",
-      "National Health Insurance Card",
-      "National Health Insurance Card (Health Card)",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
-    "country_grouping": "Americas",
-    "country_name": "Canada",
-    "country_code": "CAN"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "BTN",
+    "country_grouping": "Asia",
+    "country_name": "Bhutan",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "BWA",
+    "country_grouping": "Africa",
+    "country_name": "Botswana",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "CAF",
+    "country_grouping": "Africa",
+    "country_name": "Central African Republic",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "CAN",
+    "country_grouping": "Americas",
+    "country_name": "Canada",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Health Insurance Card (Health Card)",
+        "National Health Insurance Card",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
+  },
+  {
+    "country_code": "CHE",
     "country_grouping": "Europe",
     "country_name": "Switzerland",
-    "country_code": "CHE",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
     "country_code": "CHL",
+    "country_grouping": "Americas",
     "country_name": "Chile",
-    "country_grouping": "Americas",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
     "country_code": "CHN",
+    "country_grouping": "Asia",
     "country_name": "China",
-    "country_grouping": "Asia"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "country_name": "Cote d'Ivoire",
-    "country_grouping": "Africa",
     "country_code": "CIV",
+    "country_grouping": "Africa",
+    "country_name": "Cote d'Ivoire",
     "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "country_name": "Cameroon",
-    "country_grouping": "Africa",
     "country_code": "CMR",
+    "country_grouping": "Africa",
+    "country_name": "Cameroon",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "COD",
+    "country_grouping": "Africa",
     "country_name": "Congo (The Democratic Republic of the)",
-    "country_grouping": "Africa"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "country_name": "Congo",
-    "country_grouping": "Africa",
     "country_code": "COG",
-    "doc_types_list": [
-      "Passport"
-    ]
-  },
-  {
-    "country_name": "Colombia",
-    "country_grouping": "Americas",
-    "country_code": "COL",
-    "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport",
-      "Residence Permit"
-    ]
-  },
-  {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Comoros",
     "country_grouping": "Africa",
-    "country_code": "COM"
+    "country_name": "Congo",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
+    "country_code": "COL",
+    "country_grouping": "Americas",
+    "country_name": "Colombia",
     "doc_types_list": [
-      "Passport"
-    ],
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
+  },
+  {
+    "country_code": "COM",
+    "country_grouping": "Africa",
+    "country_name": "Comoros",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
     "country_code": "CPV",
     "country_grouping": "Africa",
-    "country_name": "Cabo Verde"
-  },
-  {
-    "country_name": "Costa Rica",
-    "country_grouping": "Americas",
-    "country_code": "CRI",
+    "country_name": "Cabo Verde",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
+        "Passport"
     ]
   },
   {
+    "country_code": "CRI",
+    "country_grouping": "Americas",
+    "country_name": "Costa Rica",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
+  },
+  {
+    "country_code": "CUB",
     "country_grouping": "Americas",
     "country_name": "Cuba",
-    "country_code": "CUB",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "CYM",
+    "country_grouping": "Americas",
     "country_name": "Cayman Islands",
-    "country_grouping": "Americas"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "CYP",
     "country_grouping": "Asia",
     "country_name": "Cyprus",
     "doc_types_list": [
-      "Driving Licence (paper)",
-      "Passport",
-      "National Identity Card",
-      "Driving Licence",
-      "Residence Permit"
+        "Driving Licence (paper)",
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
+    "country_code": "CZE",
     "country_grouping": "Europe",
     "country_name": "Czechia",
-    "country_code": "CZE",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "Residence Permit",
-      "National Identity Card",
-      "Visa"
-    ],
-    "country_name": "Germany",
+    "country_code": "DEU",
     "country_grouping": "Europe",
-    "country_code": "DEU"
+    "country_name": "Germany",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "DJI",
     "country_grouping": "Africa",
-    "country_name": "Djibouti"
+    "country_name": "Djibouti",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "DMA",
+    "country_grouping": "Americas",
     "country_name": "Dominica",
-    "country_grouping": "Americas"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "DNK",
-    "country_name": "Denmark",
     "country_grouping": "Europe",
+    "country_name": "Denmark",
     "doc_types_list": [
-      "Residence Permit",
-      "Driving Licence",
-      "Passport Card",
-      "Passport",
-      "Passport (faroe islands)",
-      "Visa"
+        "Driving Licence",
+        "Passport (faroe islands)",
+        "Passport Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
@@ -512,113 +512,113 @@
     "country_grouping": "Americas",
     "country_name": "Dominican Republic",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Algeria",
+    "country_code": "DZA",
     "country_grouping": "Africa",
-    "country_code": "DZA"
-  },
-  {
+    "country_name": "Algeria",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Ecuador",
-    "country_grouping": "Americas",
-    "country_code": "ECU"
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "ECU",
+    "country_grouping": "Americas",
+    "country_name": "Ecuador",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "EGY",
     "country_grouping": "Africa",
     "country_name": "Egypt",
-    "country_code": "EGY",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "ERI",
     "country_grouping": "Africa",
     "country_name": "Eritrea",
-    "country_code": "ERI"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport",
-      "Residence Permit",
-      "Visa"
-    ],
+    "country_code": "ESP",
     "country_grouping": "Europe",
     "country_name": "Spain",
-    "country_code": "ESP"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "EST",
     "country_grouping": "Europe",
     "country_name": "Estonia",
     "doc_types_list": [
-      "Visa",
-      "Driving Licence",
-      "Passport",
-      "National Identity Card",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
     "country_code": "ETH",
     "country_grouping": "Africa",
-    "country_name": "Ethiopia"
+    "country_name": "Ethiopia",
+    "doc_types_list": [
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
-    ],
     "country_code": "FIN",
+    "country_grouping": "Europe",
     "country_name": "Finland",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "FJI",
-    "country_name": "Fiji",
     "country_grouping": "Oceania",
+    "country_name": "Fiji",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
     "country_code": "FRA",
-    "country_name": "France",
     "country_grouping": "Europe",
+    "country_name": "France",
     "doc_types_list": [
-      "Passport",
-      "Residence Permit",
-      "Driving Licence",
-      "National Health Insurance Card (Carte Vitale)",
-      "National Identity Card",
-      "Visa"
+        "Driving Licence",
+        "National Health Insurance Card (Carte Vitale)",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
@@ -626,330 +626,330 @@
     "country_grouping": "Europe",
     "country_name": "Faroe Islands",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
+    "country_code": "FSM",
     "country_grouping": "Oceania",
     "country_name": "Micronesia (Federated States of)",
-    "country_code": "FSM",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "GAB",
     "country_grouping": "Africa",
-    "country_name": "Gabon"
+    "country_name": "Gabon",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Certificate of Naturalisation",
-      "Home Office Letter",
-      "Immigration Status Document",
-      "Asylum Registration Card",
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
-    ],
-    "country_name": "United Kingdom of Great Britain and Northern Ireland",
+    "country_code": "GBR",
     "country_grouping": "Europe",
-    "country_code": "GBR"
+    "country_name": "United Kingdom of Great Britain and Northern Ireland",
+    "doc_types_list": [
+        "Asylum Registration Card",
+        "Certificate of Naturalisation",
+        "Driving Licence",
+        "Home Office Letter",
+        "Immigration Status Document",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "GEO",
-    "country_name": "Georgia",
     "country_grouping": "Asia",
+    "country_name": "Georgia",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "country_name": "Guernsey",
-    "country_grouping": "Europe",
     "country_code": "GGY",
+    "country_grouping": "Europe",
+    "country_name": "Guernsey",
     "doc_types_list": [
-      "Driving Licence"
+        "Driving Licence"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Ghana",
+    "country_code": "GHA",
     "country_grouping": "Africa",
-    "country_code": "GHA"
+    "country_name": "Ghana",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
     "country_code": "GIB",
     "country_grouping": "Europe",
-    "country_name": "Gibraltar"
-  },
-  {
-    "country_name": "Guinea",
-    "country_grouping": "Africa",
-    "country_code": "GIN",
+    "country_name": "Gibraltar",
     "doc_types_list": [
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
+    "country_code": "GIN",
+    "country_grouping": "Africa",
+    "country_name": "Guinea",
     "doc_types_list": [
-      "Passport"
-    ],
+        "Passport"
+    ]
+  },
+  {
     "country_code": "GMB",
+    "country_grouping": "Africa",
     "country_name": "Gambia",
-    "country_grouping": "Africa"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "GNB",
-    "country_name": "Guinea-Bissau",
     "country_grouping": "Africa",
+    "country_name": "Guinea-Bissau",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "GNQ",
     "country_grouping": "Africa",
     "country_name": "Equatorial Guinea",
-    "country_code": "GNQ"
-  },
-  {
-    "country_name": "Greece",
-    "country_grouping": "Europe",
-    "country_code": "GRC",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Visa",
-      "Residence Permit"
+        "Passport"
     ]
   },
   {
+    "country_code": "GRC",
+    "country_grouping": "Europe",
+    "country_name": "Greece",
     "doc_types_list": [
-      "Passport"
-    ],
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
+  },
+  {
     "country_code": "GRD",
-    "country_name": "Grenada",
-    "country_grouping": "Americas"
-  },
-  {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "GRL",
-    "country_name": "Greenland",
-    "country_grouping": "Americas"
-  },
-  {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Guatemala",
     "country_grouping": "Americas",
-    "country_code": "GTM"
+    "country_name": "Grenada",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
+    "country_code": "GRL",
+    "country_grouping": "Americas",
+    "country_name": "Greenland",
     "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence"
-    ],
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "GTM",
+    "country_grouping": "Americas",
+    "country_name": "Guatemala",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
+  },
+  {
     "country_code": "GUM",
     "country_grouping": "Oceania",
-    "country_name": "Guam"
-  },
-  {
-    "country_name": "Guyana",
-    "country_grouping": "Americas",
-    "country_code": "GUY",
+    "country_name": "Guam",
     "doc_types_list": [
-      "Passport"
+        "Driving Licence",
+        "National Identity Card"
     ]
   },
   {
+    "country_code": "GUY",
+    "country_grouping": "Americas",
+    "country_name": "Guyana",
     "doc_types_list": [
-      "National Identity Card (HKID)",
-      "Driving Licence",
-      "Passport"
-    ],
-    "country_name": "Hong Kong",
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "HKG",
     "country_grouping": "Asia",
-    "country_code": "HKG"
+    "country_name": "Hong Kong",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card (HKID)",
+        "Passport"
+    ]
   },
   {
     "country_code": "HND",
     "country_grouping": "Americas",
     "country_name": "Honduras",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card",
-      "Residence Permit"
-    ],
     "country_code": "HRV",
+    "country_grouping": "Europe",
     "country_name": "Croatia",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "HTI",
     "country_grouping": "Americas",
-    "country_name": "Haiti"
+    "country_name": "Haiti",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Residence Permit",
-      "Driving Licence",
-      "National Identity Card",
-      "Visa"
-    ],
     "country_code": "HUN",
     "country_grouping": "Europe",
-    "country_name": "Hungary"
-  },
-  {
-    "country_name": "Indonesia",
-    "country_grouping": "Asia",
-    "country_code": "IDN",
+    "country_name": "Hungary",
     "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
+    "country_code": "IDN",
+    "country_grouping": "Asia",
+    "country_name": "Indonesia",
     "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "IMN",
-    "country_name": "Isle of Man",
-    "country_grouping": "Europe"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "IMN",
+    "country_grouping": "Europe",
+    "country_name": "Isle of Man",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "IND",
     "country_grouping": "Asia",
     "country_name": "India",
-    "country_code": "IND",
     "doc_types_list": [
-      "Voter Id",
-      "Tax Id (PAN Card)",
-      "National Identity Card (Aadhaar Card)",
-      "Passport"
+        "National Identity Card (Aadhaar Card)",
+        "Passport",
+        "Tax Id (PAN Card)",
+        "Voter Id"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport Card",
-      "Passport",
-      "Visa",
-      "Residence Permit"
-    ],
     "country_code": "IRL",
     "country_grouping": "Europe",
-    "country_name": "Ireland"
+    "country_name": "Ireland",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "IRN",
+    "country_grouping": "Asia",
     "country_name": "Iran (Islamic Republic of)",
-    "country_grouping": "Asia"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "IRQ",
+    "country_grouping": "Asia",
     "country_name": "Iraq",
-    "country_grouping": "Asia",
-    "country_code": "IRQ"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "Visa"
-    ],
-    "country_name": "Iceland",
+    "country_code": "ISL",
     "country_grouping": "Europe",
-    "country_code": "ISL"
+    "country_name": "Iceland",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport",
+        "Visa"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence"
-    ],
-    "country_name": "Israel",
+    "country_code": "ISR",
     "country_grouping": "Asia",
-    "country_code": "ISR"
+    "country_name": "Israel",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Visa",
-      "National Identity Card",
-      "Passport Card",
-      "Passport",
-      "Residence Permit"
-    ],
     "country_code": "ITA",
+    "country_grouping": "Europe",
     "country_name": "Italy",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "JAM",
     "country_grouping": "Americas",
     "country_name": "Jamaica",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
+    "country_code": "JEY",
     "country_grouping": "Europe",
     "country_name": "Jersey",
-    "country_code": "JEY"
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "country_name": "Jordan",
-    "country_grouping": "Asia",
     "country_code": "JOR",
+    "country_grouping": "Asia",
+    "country_name": "Jordan",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
@@ -957,313 +957,313 @@
     "country_grouping": "Asia",
     "country_name": "Japan",
     "doc_types_list": [
-      "Postal Identity Card (Juminhyo)",
-      "Social Security Card (Individual Number Paper Slip)",
-      "Driving Licence",
-      "Passport",
-      "National Identity Card (Individual Number Card)",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card (Individual Number Card)",
+        "Passport",
+        "Postal Identity Card (Juminhyo)",
+        "Residence Permit",
+        "Social Security Card (Individual Number Paper Slip)"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
+    "country_code": "KAZ",
     "country_grouping": "Asia",
     "country_name": "Kazakhstan",
-    "country_code": "KAZ"
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "country_name": "Kenya",
-    "country_grouping": "Africa",
     "country_code": "KEN",
+    "country_grouping": "Africa",
+    "country_name": "Kenya",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
     "country_code": "KGZ",
-    "country_name": "Kyrgyzstan",
     "country_grouping": "Asia",
+    "country_name": "Kyrgyzstan",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
     "country_code": "KHM",
-    "country_name": "Cambodia",
     "country_grouping": "Asia",
+    "country_name": "Cambodia",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "KIR",
     "country_grouping": "Oceania",
-    "country_name": "Kiribati"
+    "country_name": "Kiribati",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "KNA",
-    "country_name": "Saint Kitts and Nevis",
     "country_grouping": "Americas",
+    "country_name": "Saint Kitts and Nevis",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
+    "country_code": "KOR",
     "country_grouping": "Asia",
     "country_name": "Korea, The Republic of",
-    "country_code": "KOR",
     "doc_types_list": [
-      "Passport",
-      "National Identity Card",
-      "Driving Licence"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "Kuwait",
+    "country_code": "KWT",
     "country_grouping": "Asia",
-    "country_code": "KWT"
+    "country_name": "Kuwait",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "LAO",
     "country_grouping": "Asia",
     "country_name": "Lao People's Democratic Republic",
-    "country_code": "LAO",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Lebanon",
+    "country_code": "LBN",
     "country_grouping": "Asia",
-    "country_code": "LBN"
-  },
-  {
-    "country_name": "Liberia",
-    "country_grouping": "Africa",
-    "country_code": "LBR",
+    "country_name": "Lebanon",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
+    "country_code": "LBR",
+    "country_grouping": "Africa",
+    "country_name": "Liberia",
     "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "LBY",
-    "country_name": "Libya",
-    "country_grouping": "Africa"
+        "Passport"
+    ]
   },
   {
-    "country_name": "Saint Lucia",
-    "country_grouping": "Americas",
-    "country_code": "LCA",
+    "country_code": "LBY",
+    "country_grouping": "Africa",
+    "country_name": "Libya",
     "doc_types_list": [
-      "Passport"
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "LCA",
+    "country_grouping": "Americas",
+    "country_name": "Saint Lucia",
+    "doc_types_list": [
+        "Passport"
     ]
   },
   {
     "country_code": "LIE",
-    "country_name": "Liechtenstein",
     "country_grouping": "Europe",
+    "country_name": "Liechtenstein",
     "doc_types_list": [
-      "Visa",
-      "Driving Licence",
-      "Passport",
-      "National Identity Card",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
     "country_code": "LKA",
-    "country_name": "Sri Lanka",
     "country_grouping": "Asia",
+    "country_name": "Sri Lanka",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Passport"
-    ],
+    "country_code": "LSO",
     "country_grouping": "Africa",
     "country_name": "Lesotho",
-    "country_code": "LSO"
+    "doc_types_list": [
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
     "country_code": "LTU",
     "country_grouping": "Europe",
     "country_name": "Lithuania",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Residence Permit",
-      "Passport",
-      "Visa"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
+    "country_code": "LUX",
     "country_grouping": "Europe",
     "country_name": "Luxembourg",
-    "country_code": "LUX",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
-    ],
     "country_code": "LVA",
+    "country_grouping": "Europe",
     "country_name": "Latvia",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
     "country_code": "MAC",
-    "country_name": "Macao",
     "country_grouping": "Asia",
+    "country_name": "Macao",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "Residence Permit"
+        "Driving Licence",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence"
-    ],
     "country_code": "MAF",
+    "country_grouping": "Americas",
     "country_name": "Saint Martin (French part)",
-    "country_grouping": "Americas"
-  },
-  {
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
-    "country_name": "Morocco",
-    "country_grouping": "Africa",
-    "country_code": "MAR"
+        "Driving Licence"
+    ]
   },
   {
+    "country_code": "MAR",
+    "country_grouping": "Africa",
+    "country_name": "Morocco",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "MCO",
     "country_grouping": "Europe",
     "country_name": "Monaco",
-    "country_code": "MCO",
     "doc_types_list": [
-      "Passport",
-      "National Identity Card",
-      "Residence Permit"
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
-    "country_name": "Moldova, The Republic of",
+    "country_code": "MDA",
     "country_grouping": "Europe",
-    "country_code": "MDA"
-  },
-  {
+    "country_name": "Moldova, The Republic of",
     "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "MDG",
-    "country_name": "Madagascar",
-    "country_grouping": "Africa"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
+    "country_code": "MDG",
+    "country_grouping": "Africa",
+    "country_name": "Madagascar",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "MDV",
     "country_grouping": "Asia",
     "country_name": "Maldives",
-    "country_code": "MDV",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Voter Id (INE)",
-      "Voter Id (IFE)",
-      "Driving Licence",
-      "Work Permit",
-      "Passport"
-    ],
     "country_code": "MEX",
+    "country_grouping": "Americas",
     "country_name": "Mexico",
-    "country_grouping": "Americas"
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport",
+        "Voter Id (IFE)",
+        "Voter Id (INE)",
+        "Work Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "MHL",
     "country_grouping": "Oceania",
-    "country_name": "Marshall Islands"
+    "country_name": "Marshall Islands",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
+    "country_code": "MKD",
     "country_grouping": "Europe",
     "country_name": "Macedonia, The former Yugoslav Republic of",
-    "country_code": "MKD",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Mali",
+    "country_code": "MLI",
     "country_grouping": "Africa",
-    "country_code": "MLI"
-  },
-  {
-    "country_name": "Malta",
-    "country_grouping": "Europe",
-    "country_code": "MLT",
+    "country_name": "Mali",
     "doc_types_list": [
-      "Visa",
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
+        "Passport"
     ]
   },
   {
-    "country_name": "Myanmar",
-    "country_grouping": "Asia",
-    "country_code": "MMR",
+    "country_code": "MLT",
+    "country_grouping": "Europe",
+    "country_name": "Malta",
     "doc_types_list": [
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
+  },
+  {
+    "country_code": "MMR",
+    "country_grouping": "Asia",
+    "country_name": "Myanmar",
+    "doc_types_list": [
+        "Passport"
     ]
   },
   {
@@ -1271,74 +1271,74 @@
     "country_grouping": "Europe",
     "country_name": "Montenegro",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
+    "country_code": "MNG",
     "country_grouping": "Asia",
     "country_name": "Mongolia",
-    "country_code": "MNG",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
     "country_code": "MNP",
-    "country_name": "Northern Mariana Islands",
     "country_grouping": "Oceania",
+    "country_name": "Northern Mariana Islands",
     "doc_types_list": [
-      "Driving Licence"
+        "Driving Licence"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
-    "country_name": "Mozambique",
+    "country_code": "MOZ",
     "country_grouping": "Africa",
-    "country_code": "MOZ"
-  },
-  {
-    "country_name": "Montserrat",
-    "country_grouping": "Americas",
-    "country_code": "MSR",
+    "country_name": "Mozambique",
     "doc_types_list": [
-      "Passport"
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
+    "country_code": "MSR",
+    "country_grouping": "Americas",
+    "country_name": "Montserrat",
     "doc_types_list": [
-      "National Identity Card",
-      "Passport"
-    ],
+        "Passport"
+    ]
+  },
+  {
     "country_code": "MUS",
     "country_grouping": "Africa",
-    "country_name": "Mauritius"
-  },
-  {
-    "country_name": "Malawi",
-    "country_grouping": "Africa",
-    "country_code": "MWI",
+    "country_name": "Mauritius",
     "doc_types_list": [
-      "Passport",
-      "National Identity Card"
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
+    "country_code": "MWI",
+    "country_grouping": "Africa",
+    "country_name": "Malawi",
+    "doc_types_list": [
+        "National Identity Card",
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "MYS",
     "country_grouping": "Asia",
     "country_name": "Malaysia",
-    "country_code": "MYS",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card (MyKAD)",
-      "National Identity Card (MyTentera)",
-      "Passport",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card (MyKAD)",
+        "National Identity Card (MyTentera)",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
@@ -1346,376 +1346,376 @@
     "country_grouping": "Africa",
     "country_name": "Namibia",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Passport"
-    ],
+    "country_code": "NER",
     "country_grouping": "Africa",
     "country_name": "Niger",
-    "country_code": "NER"
+    "doc_types_list": [
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
     "country_code": "NGA",
     "country_grouping": "Africa",
     "country_name": "Nigeria",
     "doc_types_list": [
-      "Driving Licence",
-      "Voter Id",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Voter Id"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "NIC",
     "country_grouping": "Americas",
-    "country_name": "Nicaragua"
+    "country_name": "Nicaragua",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "country_name": "Netherlands",
-    "country_grouping": "Europe",
     "country_code": "NLD",
+    "country_grouping": "Europe",
+    "country_name": "Netherlands",
     "doc_types_list": [
-      "Residence Permit",
-      "Visa",
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
     "country_code": "NOR",
-    "country_name": "Norway",
     "country_grouping": "Europe",
+    "country_name": "Norway",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "NPL",
     "country_grouping": "Asia",
     "country_name": "Nepal",
-    "country_code": "NPL"
-  },
-  {
     "doc_types_list": [
-      "Passport"
-    ],
-    "country_code": "NRU",
-    "country_name": "Nauru",
-    "country_grouping": "Oceania"
+        "Passport"
+    ]
   },
   {
+    "country_code": "NRU",
+    "country_grouping": "Oceania",
+    "country_name": "Nauru",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "NZL",
     "country_grouping": "Oceania",
     "country_name": "New Zealand",
-    "country_code": "NZL",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Residence Permit",
-      "Passport"
-    ],
     "country_code": "OMN",
     "country_grouping": "Asia",
-    "country_name": "Oman"
+    "country_name": "Oman",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
-    ],
-    "country_name": "Pakistan",
+    "country_code": "PAK",
     "country_grouping": "Asia",
-    "country_code": "PAK"
-  },
-  {
+    "country_name": "Pakistan",
     "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Panama",
-    "country_grouping": "Americas",
-    "country_code": "PAN"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "PAN",
+    "country_grouping": "Americas",
+    "country_name": "Panama",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "PCN",
     "country_grouping": "Oceania",
     "country_name": "Pitcairn",
-    "country_code": "PCN",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
-    ],
     "country_code": "PER",
     "country_grouping": "Americas",
-    "country_name": "Peru"
+    "country_name": "Peru",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
+    "country_code": "PHL",
     "country_grouping": "Asia",
     "country_name": "Philippines",
-    "country_code": "PHL",
     "doc_types_list": [
-      "Driving Licence",
-      "Postal Identity Card",
-      "Professional Qualification Card",
-      "Social Security Card",
-      "National Identity Card",
-      "Voter Id",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Postal Identity Card",
+        "Professional Qualification Card",
+        "Social Security Card",
+        "Voter Id"
     ]
   },
   {
+    "country_code": "PLW",
     "country_grouping": "Oceania",
     "country_name": "Palau",
-    "country_code": "PLW",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Papua New Guinea",
+    "country_code": "PNG",
     "country_grouping": "Oceania",
-    "country_code": "PNG"
+    "country_name": "Papua New Guinea",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Residence Permit",
-      "Driving Licence",
-      "Passport Card",
-      "Passport",
-      "Visa"
-    ],
+    "country_code": "POL",
     "country_grouping": "Europe",
     "country_name": "Poland",
-    "country_code": "POL"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
+    "country_code": "PRI",
     "country_grouping": "Americas",
     "country_name": "Puerto Rico",
-    "country_code": "PRI",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card"
     ]
   },
   {
     "country_code": "PRK",
-    "country_name": "Korea, The Democratic People's Republic of",
     "country_grouping": "Asia",
+    "country_name": "Korea, The Democratic People's Republic of",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Visa",
-      "Driving Licence",
-      "National Identity Card",
-      "Residence Permit"
-    ],
     "country_code": "PRT",
+    "country_grouping": "Europe",
     "country_name": "Portugal",
-    "country_grouping": "Europe"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
+    "country_code": "PRY",
     "country_grouping": "Americas",
     "country_name": "Paraguay",
-    "country_code": "PRY"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "PSE",
     "country_grouping": "Asia",
     "country_name": "Palestine, State of",
-    "country_code": "PSE"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence"
-    ],
     "country_code": "PYF",
     "country_grouping": "Oceania",
-    "country_name": "French Polynesia"
+    "country_name": "French Polynesia",
+    "doc_types_list": [
+        "Driving Licence"
+    ]
   },
   {
     "country_code": "QAT",
     "country_grouping": "Asia",
     "country_name": "Qatar",
     "doc_types_list": [
-      "National Identity Card",
-      "Residence Permit",
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
     "country_code": "ROU",
-    "country_name": "Romania",
     "country_grouping": "Europe",
+    "country_name": "Romania",
     "doc_types_list": [
-      "Residence Permit",
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
     ]
   },
   {
     "country_code": "RUS",
-    "country_name": "Russian Federation",
     "country_grouping": "Europe",
+    "country_name": "Russian Federation",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card (Internal Passport)"
+        "Driving Licence",
+        "National Identity Card (Internal Passport)",
+        "Passport"
     ]
   },
   {
-    "country_name": "Rwanda",
-    "country_grouping": "Africa",
     "country_code": "RWA",
+    "country_grouping": "Africa",
+    "country_name": "Rwanda",
     "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Residence Permit",
-      "Passport"
-    ],
+    "country_code": "SAU",
     "country_grouping": "Asia",
     "country_name": "Saudi Arabia",
-    "country_code": "SAU"
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "SDN",
+    "country_grouping": "Africa",
     "country_name": "Sudan",
-    "country_grouping": "Africa"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
     "country_code": "SEN",
-    "country_name": "Senegal",
     "country_grouping": "Africa",
+    "country_name": "Senegal",
     "doc_types_list": [
-      "National Identity Card",
-      "Passport"
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
     "country_code": "SGP",
-    "country_name": "Singapore",
     "country_grouping": "Asia",
+    "country_name": "Singapore",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Work Permit (FIN card)",
-      "National Identity Card (NRIC)",
-      "Work Permit",
-      "Work Permit (S Pass)",
-      "Work Permit (Employment Pass)",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card (NRIC)",
+        "National Identity Card",
+        "Passport",
+        "Work Permit (Employment Pass)",
+        "Work Permit (FIN card)",
+        "Work Permit (S Pass)",
+        "Work Permit"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "SLB",
     "country_grouping": "Oceania",
     "country_name": "Solomon Islands",
-    "country_code": "SLB"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Sierra Leone",
+    "country_code": "SLE",
     "country_grouping": "Africa",
-    "country_code": "SLE"
+    "country_name": "Sierra Leone",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
-    ],
-    "country_name": "El Salvador",
+    "country_code": "SLV",
     "country_grouping": "Americas",
-    "country_code": "SLV"
+    "country_name": "El Salvador",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "country_name": "San Marino",
-    "country_grouping": "Europe",
     "country_code": "SMR",
+    "country_grouping": "Europe",
+    "country_name": "San Marino",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
     "country_code": "SOM",
-    "country_name": "Somalia",
     "country_grouping": "Africa",
+    "country_name": "Somalia",
     "doc_types_list": [
-      "National Identity Card",
-      "Passport"
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card"
-    ],
     "country_code": "SRB",
     "country_grouping": "Europe",
-    "country_name": "Serbia"
+    "country_name": "Serbia",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "country_name": "South Sudan",
-    "country_grouping": "Africa",
     "country_code": "SSD",
+    "country_grouping": "Africa",
+    "country_name": "South Sudan",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
@@ -1723,360 +1723,360 @@
     "country_grouping": "Africa",
     "country_name": "Sao Tome and Principe",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "SUR",
     "country_grouping": "Americas",
     "country_name": "Suriname",
-    "country_code": "SUR"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Visa",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
+    "country_code": "SVK",
     "country_grouping": "Europe",
     "country_name": "Slovakia",
-    "country_code": "SVK"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
+    ]
   },
   {
+    "country_code": "SVN",
     "country_grouping": "Europe",
     "country_name": "Slovenia",
-    "country_code": "SVN",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Visa"
     ]
   },
   {
-    "country_name": "Sweden",
-    "country_grouping": "Europe",
     "country_code": "SWE",
+    "country_grouping": "Europe",
+    "country_name": "Sweden",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card",
-      "Tax Id",
-      "Visa",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Tax Id",
+        "Visa"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport",
-      "National Identity Card"
-    ],
     "country_code": "SWZ",
     "country_grouping": "Africa",
-    "country_name": "Swaziland"
+    "country_name": "Swaziland",
+    "doc_types_list": [
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
     "country_code": "SYC",
+    "country_grouping": "Africa",
     "country_name": "Seychelles",
-    "country_grouping": "Africa",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "country_name": "Syrian Arab Republic",
-    "country_grouping": "Asia",
     "country_code": "SYR",
+    "country_grouping": "Asia",
+    "country_name": "Syrian Arab Republic",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "country_name": "Turks and Caicos Islands",
-    "country_grouping": "Americas",
     "country_code": "TCA",
+    "country_grouping": "Americas",
+    "country_name": "Turks and Caicos Islands",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "country_name": "Chad",
-    "country_grouping": "Africa",
     "country_code": "TCD",
+    "country_grouping": "Africa",
+    "country_name": "Chad",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "TGO",
     "country_grouping": "Africa",
     "country_name": "Togo",
-    "country_code": "TGO"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "country_name": "Thailand",
-    "country_grouping": "Asia",
     "country_code": "THA",
+    "country_grouping": "Asia",
+    "country_name": "Thailand",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
     "country_code": "TJK",
-    "country_name": "Tajikistan",
     "country_grouping": "Asia",
+    "country_name": "Tajikistan",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport"
+        "Driving Licence",
+        "Passport"
     ]
   },
   {
+    "country_code": "TKM",
     "country_grouping": "Asia",
     "country_name": "Turkmenistan",
-    "country_code": "TKM",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "TON",
     "country_grouping": "Oceania",
-    "country_name": "Tonga"
+    "country_name": "Tonga",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
     "country_code": "TTO",
     "country_grouping": "Americas",
-    "country_name": "Trinidad and Tobago"
+    "country_name": "Trinidad and Tobago",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
     "country_code": "TUN",
     "country_grouping": "Africa",
-    "country_name": "Tunisia"
+    "country_name": "Tunisia",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Residence Permit",
-      "Passport"
-    ],
     "country_code": "TUR",
     "country_grouping": "Asia",
-    "country_name": "Turkey"
+    "country_name": "Turkey",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
     "country_code": "TUV",
+    "country_grouping": "Oceania",
     "country_name": "Tuvalu",
-    "country_grouping": "Oceania"
-  },
-  {
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
-    ],
-    "country_code": "TWN",
-    "country_name": "Taiwan (Province of China)",
-    "country_grouping": "Asia"
+        "Passport"
+    ]
   },
   {
+    "country_code": "TWN",
+    "country_grouping": "Asia",
+    "country_name": "Taiwan (Province of China)",
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit"
+    ]
+  },
+  {
+    "country_code": "TZA",
     "country_grouping": "Africa",
     "country_name": "Tanzania, United Republic of",
-    "country_code": "TZA",
     "doc_types_list": [
-      "Driving Licence",
-      "Voter Id",
-      "National Identity Card",
-      "Passport",
-      "Residence Permit"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport",
+        "Residence Permit",
+        "Voter Id"
     ]
   },
   {
     "country_code": "UGA",
-    "country_name": "Uganda",
     "country_grouping": "Africa",
+    "country_name": "Uganda",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "country_name": "Ukraine",
-    "country_grouping": "Europe",
     "country_code": "UKR",
+    "country_grouping": "Europe",
+    "country_name": "Ukraine",
     "doc_types_list": [
-      "Passport",
-      "Driving Licence",
-      "National Identity Card"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card",
-      "Driving Licence",
-      "Passport"
-    ],
     "country_code": "URY",
+    "country_grouping": "Americas",
     "country_name": "Uruguay",
-    "country_grouping": "Americas"
+    "doc_types_list": [
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "National Identity Card (State Identity Card) (State ID)",
-      "Driving Licence",
-      "National Identity Card (State ID)",
-      "Residence Permit (Green Card)",
-      "National Identity Card (Real ID ) (State ID)",
-      "Driving Licence (Enhanced)",
-      "Work Permit",
-      "Passport Card",
-      "Passport",
-      "Visa",
-      "Driving Licence (Vertical )",
-      "Driving Licence (Intermediate)"
-    ],
+    "country_code": "USA",
     "country_grouping": "Americas",
     "country_name": "United States of America",
-    "country_code": "USA"
-  },
-  {
-    "country_name": "Uzbekistan",
-    "country_grouping": "Asia",
-    "country_code": "UZB",
     "doc_types_list": [
-      "Passport"
+        "Driving Licence (Enhanced)",
+        "Driving Licence (Intermediate)",
+        "Driving Licence (Vertical )",
+        "Driving Licence",
+        "National Identity Card (Real ID ) (State ID)",
+        "National Identity Card (State ID)",
+        "National Identity Card (State Identity Card) (State ID)",
+        "Passport Card",
+        "Passport",
+        "Residence Permit (Green Card)",
+        "Visa",
+        "Work Permit"
     ]
   },
   {
+    "country_code": "UZB",
+    "country_grouping": "Asia",
+    "country_name": "Uzbekistan",
+    "doc_types_list": [
+        "Passport"
+    ]
+  },
+  {
+    "country_code": "VAT",
     "country_grouping": "Europe",
     "country_name": "Holy See",
-    "country_code": "VAT",
     "doc_types_list": [
-      "Passport"
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Saint Vincent and the Grenadines",
+    "country_code": "VCT",
     "country_grouping": "Americas",
-    "country_code": "VCT"
+    "country_name": "Saint Vincent and the Grenadines",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
-    ],
+    "country_code": "VEN",
     "country_grouping": "Americas",
     "country_name": "Venezuela (Bolivarian Republic of)",
-    "country_code": "VEN"
-  },
-  {
-    "country_name": "Virgin Islands (British)",
-    "country_grouping": "Americas",
-    "country_code": "VGB",
     "doc_types_list": [
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
+    "country_code": "VGB",
+    "country_grouping": "Americas",
+    "country_name": "Virgin Islands (British)",
     "doc_types_list": [
-      "National Identity Card"
-    ],
-    "country_code": "VIR",
-    "country_name": "Virgin Islands (U.S.)",
-    "country_grouping": "Americas"
+        "Passport"
+    ]
   },
   {
+    "country_code": "VIR",
+    "country_grouping": "Americas",
+    "country_name": "Virgin Islands (U.S.)",
+    "doc_types_list": [
+        "National Identity Card"
+    ]
+  },
+  {
+    "country_code": "VNM",
     "country_grouping": "Asia",
     "country_name": "Viet Nam",
-    "country_code": "VNM",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
-    "country_name": "Vanuatu",
+    "country_code": "VUT",
     "country_grouping": "Oceania",
-    "country_code": "VUT"
+    "country_name": "Vanuatu",
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "doc_types_list": [
-      "Passport"
-    ],
+    "country_code": "WSM",
     "country_grouping": "Oceania",
     "country_name": "Samoa",
-    "country_code": "WSM"
+    "doc_types_list": [
+        "Passport"
+    ]
   },
   {
-    "country_name": "Yemen",
-    "country_grouping": "Asia",
     "country_code": "YEM",
+    "country_grouping": "Asia",
+    "country_name": "Yemen",
     "doc_types_list": [
-      "Driving Licence",
-      "Passport",
-      "Passport (Overseas )"
+        "Driving Licence",
+        "Passport (Overseas )",
+        "Passport"
     ]
   },
   {
     "country_code": "ZAF",
-    "country_name": "South Africa",
     "country_grouping": "Africa",
+    "country_name": "South Africa",
     "doc_types_list": [
-      "Driving Licence",
-      "National Identity Card",
-      "Passport"
+        "Driving Licence",
+        "National Identity Card",
+        "Passport"
     ]
   },
   {
-    "doc_types_list": [
-      "Driving Licence",
-      "Passport"
-    ],
-    "country_name": "Zambia",
+    "country_code": "ZMB",
     "country_grouping": "Africa",
-    "country_code": "ZMB"
+    "country_name": "Zambia",
+    "doc_types_list": [
+        "Driving Licence",
+        "Passport"
+    ]
   },
   {
-    "country_name": "Zimbabwe",
-    "country_grouping": "Africa",
     "country_code": "ZWE",
+    "country_grouping": "Africa",
+    "country_name": "Zimbabwe",
     "doc_types_list": [
-      "Passport",
-      "National Identity Card"
+        "National Identity Card",
+        "Passport"
     ]
   }
 ]
