@@ -111,7 +111,7 @@ sub applicant_list {
                 if(my $next = $links{next}) {
                     ($uri) = $next;
                 } else {
-                    $f->done unless $f->is_ready;
+                    $src->finish;
                 }
                 return Future->done;
             } catch {
@@ -122,7 +122,7 @@ sub applicant_list {
         }, sub {
             my ($err, @details) = @_;
             $log->errorf('Failed to request document_list: %s', $err);
-            $src->completed->fail($err, @details) unless $src->completed->is_ready;
+            $src->fail($err, @details) unless $src->is_ready;
             Future->fail($err, @details);
         })
     } until => sub { $f->is_ready })->retain;
@@ -175,7 +175,7 @@ sub paging {
                 if(my $next = $links{next}) {
                     ($uri) = $next;
                 } else {
-                    $f->done unless $f->is_ready;
+                    $src->finish;
                 }
                 return Future->done;
             } catch {
@@ -186,7 +186,7 @@ sub paging {
         }, sub {
             my ($err, @details) = @_;
             $log->errorf('Failed to request %s: %s', $uri, $err);
-            $src->completed->fail($err, @details) unless $src->completed->is_ready;
+            $src->fail($err, @details) unless $src->is_ready;
             Future->fail($err, @details);
         })
     } until => sub { $f->is_ready })->retain;
@@ -426,12 +426,12 @@ sub document_list {
                     )
                 );
             }
-            $f->done unless $f->is_ready;
+            $src->finish;
             return Future->done;
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
-            $src->completed->fail('Failed to get document list.') unless $src->completed->is_ready;
+            $src->fail('Failed to get document list.') unless $src->is_ready;
             return Future->fail($err);
         }
     })->retain;
@@ -527,12 +527,12 @@ sub photo_list {
                     )
                 );
             }
-            $f->done unless $f->is_ready;
+            $src->finish;
             return Future->done;
         } catch {
             my ($err) = $@;
             $log->errorf('Failed - %s', $err);
-            $src->completed->fail('Failed to get photo list.') unless $src->completed->is_ready;
+            $src->fail('Failed to get photo list.') unless $src->is_ready;
             return Future->fail($err);
         }
     })->retain;
@@ -848,7 +848,7 @@ sub check_list {
                     )
                 );
             }
-            $f->done unless $f->is_ready;
+            $src->finish;
             Future->done;
         } catch {
             my ($err) = $@;
@@ -917,7 +917,7 @@ sub report_list {
                     )
                 );
             }
-            $f->done unless $f->is_ready;
+            $src->finish;
             Future->done;
         } catch {
             my ($err) = $@;
