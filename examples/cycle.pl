@@ -45,13 +45,13 @@ my $app = $onfido->applicant_create(
     gender     => 'male',
     dob        => '1980-01-22',
     country    => 'GBR',
-    addresses => [ {
+    address => {
         building_number => '100',
         street          => 'Main Street',
         town            => 'London',
         postcode        => 'SW4 6EH',
         country         => 'GBR',
-    } ],
+    },
 )->get;
 
 $log->infof('Applicant created: %s', $app->as_string);

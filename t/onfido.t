@@ -39,14 +39,13 @@ lives_ok {
         gender     => 'male',
         dob        => '1980-01-22',
         country    => 'GBR',
-        addresses  => [{
-                building_number => '100',
-                street          => 'Main Street',
-                town            => 'London',
-                postcode        => 'SW4 6EH',
-                country         => 'GBR',
-            }
-        ],
+        address  => {
+            building_number => '100',
+            street          => 'Main Street',
+            town            => 'London',
+            postcode        => 'SW4 6EH',
+            country         => 'GBR',
+        },
     )->get;
 }
 'create applicant ok';

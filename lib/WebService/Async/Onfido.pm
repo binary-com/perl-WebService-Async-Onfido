@@ -212,7 +212,7 @@ sub extract_links {
     my %links;
     for (map { split /\h*,\h*/ } @links) {
         # Format is like:
-        # <https://api.onfido.com/v2/applicants?page=2>; rel="next"
+        # <https://api.eu.onfido.com/v3.4/applicants?page=2>; rel="next"
         if(my ($url, $rel) = m{<(http[^>]+)>;\h*rel="([^"]+)"}) {
             $links{lc $rel} = URI->new($url);
         }
@@ -1163,7 +1163,7 @@ sub endpoint {
 sub base_uri {
     my $self = shift;
     return $self->{base_uri} if blessed($self->{base_uri});
-    $self->{base_uri} = URI->new($self->{base_uri} // 'https://api.onfido.com');
+    $self->{base_uri} = URI->new($self->{base_uri} // 'https://api.eu.onfido.com');
     return $self->{base_uri};
 }
 

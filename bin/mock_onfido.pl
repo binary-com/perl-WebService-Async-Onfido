@@ -32,14 +32,14 @@ my %checks;
 ################################################################################
 # applicants
 # create applicant
-post '/v2/applicants' => sub {
+post '/v3.4/applicants' => sub {
     my $c         = shift;
     my $data      = $c->req->json;
     my $id        = Data::UUID->new->create_str();
     my $applicant = {
         id         => $id,
         created_at => Date::Utility->new()->datetime_iso8601,
-        href       => "v2/applicants/$id",
+        href       => "v3.4/applicants/$id",
     };
     for my $k (keys %$data) {
         $applicant->{$k} = $data->{$k};
@@ -48,14 +48,14 @@ post '/v2/applicants' => sub {
     $c->render(json => $applicant);
 };
 
-get '/v2/applicants' => sub {
+get '/v3.4/applicants' => sub {
     my $c = shift;
 
     # TODO page
     return $c->render(json => {applicants => [sort { $b->{created_at} cmp $a->{created_at} } values %applicants]});
 };
 
-put '/v2/applicants/:id' => sub {
+put '/v3.4/applicants/:id' => sub {
     my $c         = shift;
     my $id        = $c->stash('id');
     my $applicant = $applicants{$id};
@@ -66,7 +66,7 @@ put '/v2/applicants/:id' => sub {
     $c->render(json => $applicant);
 };
 
-get '/v2/applicants/:id' => sub {
+get '/v3.4/applicants/:id' => sub {
     my $c  = shift;
     my $id = $c->stash('id');
 
@@ -76,7 +76,7 @@ get '/v2/applicants/:id' => sub {
     $c->render(json => $applicant);
 };
 
-del '/v2/applicants/:id' => sub {
+del '/v3.4/applicants/:id' => sub {
     my $c  = shift;
     my $id = $c->stash('id');
     if (exists $applicants{$id}) {
@@ -92,7 +92,7 @@ del '/v2/applicants/:id' => sub {
 ################################################################################
 # documents
 
-post '/v2/applicants/:applicant_id/documents' => sub {
+post '/v3.4/applicants/:applicant_id/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = Data::UUID->new->create_str();
@@ -100,8 +100,8 @@ post '/v2/applicants/:applicant_id/documents' => sub {
     my $document     = {
         id            => $document_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/applicants/$applicant_id/documents/$document_id",
-        download_href => "/v2/applicants/$applicant_id/documents/$document_id/download",
+        href          => "/v3.4/applicants/$applicant_id/documents/$document_id",
+        download_href => "/v3.4/applicants/$applicant_id/documents/$document_id/download",
         _applicant_id => $applicant_id,
         file_name     => basename($file->filename),
         file_size     => $file->size,
@@ -116,7 +116,7 @@ post '/v2/applicants/:applicant_id/documents' => sub {
     return $c->render(json => clone_and_remove_private($document));
 };
 
-get '/v2/applicants/:applicant_id/documents' => sub {
+get '/v3.4/applicants/:applicant_id/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my @documents =
@@ -126,7 +126,7 @@ get '/v2/applicants/:applicant_id/documents' => sub {
     return $c->render(json => {documents => \@documents});
 };
 
-get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
+get '/v3.4/applicants/:applicant_id/documents/:document_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
@@ -138,7 +138,7 @@ get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
     return $c->render(json => clone_and_remove_private($documents{$document_id}));
 };
 
-get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
+get '/v3.4/applicants/:applicant_id/documents/:document_id/download' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
@@ -154,7 +154,7 @@ get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
     );
 };
 
-post '/v2/live_photos' => sub {
+post '/v3.4/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
 
@@ -164,8 +164,8 @@ post '/v2/live_photos' => sub {
     my $photo    = {
         id            => $photo_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/live_photos/$photo_id",
-        download_href => "/v2/live_photos/$photo_id/download",
+        href          => "/v3.4/live_photos/$photo_id",
+        download_href => "/v3.4/live_photos/$photo_id/download",
     };
     my $file = $c->param('file');
     $photo->{file_name} = basename($file->filename);
@@ -178,7 +178,7 @@ post '/v2/live_photos' => sub {
     return $c->render(json => clone_and_remove_private($photo));
 };
 
-get '/v2/live_photos' => sub {
+get '/v3.4/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
     my @photos =
@@ -188,7 +188,7 @@ get '/v2/live_photos' => sub {
     return $c->render(json => {live_photos => \@photos});
 };
 
-get '/v2/live_photos/:photo_id' => sub {
+get '/v3.4/live_photos/:photo_id' => sub {
     my $c        = shift;
     my $photo_id = $c->stash('photo_id');
     my $photo    = clone_and_remove_private($photos{$photo_id});
@@ -196,7 +196,7 @@ get '/v2/live_photos/:photo_id' => sub {
     return $c->render(json => $photo);
 };
 
-get '/v2/live_photos/:photo_id/download' => sub {
+get '/v3.4/live_photos/:photo_id/download' => sub {
     my $c        = shift;
     my $photo_id = $c->stash('photo_id');
     unless (exists($photos{$photo_id})) {
@@ -255,14 +255,14 @@ sub create_report {
     return [map { clone_and_remove_private($_) } @reports];
 }
 
-post '/v2/applicants/:applicant_id/checks' => sub {
+post '/v3.4/applicants/:applicant_id/checks' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = Data::UUID->new->create_str();
     my $check        = {
         id            => $check_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/applicants/$applicant_id/checks/$check_id",
+        href          => "/v3.4/applicants/$applicant_id/checks/$check_id",
         type          => $c->param('type'),
         status        => 'in_progress',
         result        => 'clear',
@@ -277,7 +277,7 @@ post '/v2/applicants/:applicant_id/checks' => sub {
     return $c->render(json => clone_and_remove_private($check));
 };
 
-get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
+get '/v3.4/applicants/:applicant_id/checks/:check_id' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
@@ -291,7 +291,7 @@ get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
 };
 
-get '/v2/applicants/:applicant_id/checks' => sub {
+get '/v3.4/applicants/:applicant_id/checks' => sub {
     my $c            = shift;
     my $applicant_id = $c->stash('applicant_id');
     my @checks =
@@ -301,7 +301,7 @@ get '/v2/applicants/:applicant_id/checks' => sub {
     return $c->render(json => {checks => \@checks});
 };
 
-get '/v2/checks/:check_id/reports' => sub {
+get '/v3.4/checks/:check_id/reports' => sub {
     my $c        = shift;
     my $check_id = $c->stash('check_id');
     my @reports =
@@ -312,7 +312,7 @@ get '/v2/checks/:check_id/reports' => sub {
     return $c->render(json => {reports => \@reports});
 };
 
-get '/v2/checks/:check_id/reports/:report_id' => sub {
+get '/v3.4/checks/:check_id/reports/:report_id' => sub {
     my $c         = shift;
     my $check_id  = $c->stash('check_id');
     my $report_id = $c->stash('report_id');
@@ -325,7 +325,7 @@ get '/v2/checks/:check_id/reports/:report_id' => sub {
 };
 
 my @sdk_tokens;
-post '/v2/sdk_token' => sub {
+post '/v3.4/sdk_token' => sub {
     my $c            = shift;
     my $data         = $c->req->json;
     my $applicant_id = $data->{applicant_id};

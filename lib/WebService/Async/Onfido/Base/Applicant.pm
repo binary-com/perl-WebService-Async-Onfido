@@ -184,13 +184,13 @@ A collection of identification numbers belonging to this applicant.
 
 sub id_numbers : method { shift->{ id_numbers } }
 
-=head2 addresses
+=head2 address
 
-The address history of the applicant.
+The current address of the applicant.
 
 =cut
 
-sub addresses : method { shift->{ addresses } }
+sub address : method { shift->{ address } }
 
 1;
 
