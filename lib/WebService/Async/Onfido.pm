@@ -615,7 +615,7 @@ Takes the following named parameters:
 sub document_upload {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('documents');
-    
+
     my $req = HTTP::Request::Common::POST(
         $uri,
         content_type => 'form-data',

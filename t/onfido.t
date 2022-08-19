@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 51;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
@@ -127,8 +127,8 @@ my $check;
 lives_ok {
     $check = $onfido->applicant_check(
         applicant_id => $app->id,
-        report_names      => [ 
-            'document', 
+        report_names      => [
+            'document',
             'facial_similarity',
         ],
         documents_ids => [
@@ -143,6 +143,7 @@ lives_ok {
 "create check ok";
 isa_ok($check, "WebService::Async::Onfido::Check", "check class is right");
 is_deeply($check->tags, ['tag1', 'tag2'], 'result is ok');
+is $check->download_uri, $onfido->endpoint('check_download', check_id => $check->id), 'Expected download uri';
 
 # get check
 my $check2;

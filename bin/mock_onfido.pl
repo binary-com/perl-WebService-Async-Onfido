@@ -119,7 +119,7 @@ post '/v3.4/documents' => sub {
 get '/v3.4/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
-    
+
     use Path::Tiny;
     use Data::Dumper;
     Path::Tiny::path('/tmp/log.txt')
