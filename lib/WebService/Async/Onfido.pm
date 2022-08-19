@@ -407,11 +407,6 @@ sub document_list {
     my $uri = $self->endpoint('documents');
     $uri->query('applicant_id=' . uri_escape_utf8($args{applicant_id}));
 
-    use Path::Tiny;
-    use Data::Dumper;
-    Path::Tiny::path('/tmp/log.txt')
-        ->append_utf8(Dumper($uri) . "\n");
-
     $self->rate_limiting->then(sub {
         $self->ua->GET(
             $uri,
