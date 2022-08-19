@@ -294,9 +294,9 @@ get '/v3.4/checks' => sub {
     return $c->render(json => {checks => \@checks});
 };
 
-get '/v3.4/checks/:check_id/reports' => sub {
+get '/v3.4/reports' => sub {
     my $c        = shift;
-    my $check_id = $c->stash('check_id');
+    my $check_id = $c->param('check_id');
     my @reports =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
@@ -305,12 +305,10 @@ get '/v3.4/checks/:check_id/reports' => sub {
     return $c->render(json => {reports => \@reports});
 };
 
-get '/v3.4/checks/:check_id/reports/:report_id' => sub {
+get '/v3.4/reports/:report_id' => sub {
     my $c         = shift;
-    my $check_id  = $c->stash('check_id');
     my $report_id = $c->stash('report_id');
-    unless (exists($reports{$report_id})
-        && $reports{$report_id}{_check_id} eq $check_id)
+    unless (exists($reports{$report_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }

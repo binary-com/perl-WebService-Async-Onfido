@@ -885,6 +885,7 @@ sub report_list {
     my $f = $src->completed;
 
     my $uri = $self->endpoint('reports', check_id => $check_id);
+    $uri->query('check_id=' . uri_escape_utf8($check_id));
     $log->tracef('GET %s', "$uri");
 
     $self->rate_limiting->then(sub {
