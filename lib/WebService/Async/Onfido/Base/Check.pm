@@ -84,9 +84,15 @@ sub result : method { shift->{ result } }
 
 A link to a PDF output of the check results. Append .pdf to get the pdf file..
 
+Since v3 this PDF is meant to be downloaded from the API.
+
 =cut
 
-sub download_uri : method { shift->{ download_uri } }
+sub download_uri : method { 
+    my $self = shift;
+
+    return $self->onfido->endpoint('check_download', check_id => $self->id); 
+}
 
 =head2 form_uri
 

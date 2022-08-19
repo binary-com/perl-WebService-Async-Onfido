@@ -36,11 +36,6 @@ sub reports {
 	)->map(sub { $log->debugf('Have report %s', $_->as_string);  $_->{check} = $self; $_ });
 }
 
-sub download {
-	my ($self) = @_;
-	
-}
-
 1;
 
 __END__
