@@ -120,20 +120,10 @@ get '/v3.4/documents' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
 
-    use Path::Tiny;
-    use Data::Dumper;
-    Path::Tiny::path('/tmp/log.txt')
-        ->append_utf8(Dumper($applicant_id) . "\n");
     my @documents =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
-
-
-    use Path::Tiny;
-    use Data::Dumper;
-    Path::Tiny::path('/tmp/log.txt')
-        ->append_utf8(Dumper(\@documents) . "\n");
 
     return $c->render(json => {documents => \@documents});
 };
