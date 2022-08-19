@@ -5,7 +5,6 @@ use Date::Utility;
 use Data::UUID;
 use File::Basename;
 use Path::Tiny;
-use JSON::MaybeUTF8 qw(:v1);
 
 # In this script we think the key like '_xxxxx' in hash as private keys. Will not send them
 plugin 'RenderFile';
@@ -93,16 +92,16 @@ del '/v3.4/applicants/:id' => sub {
 ################################################################################
 # documents
 
-post '/v3.4/applicants/:applicant_id/documents' => sub {
+post '/v3.4/documents' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
     my $document_id  = Data::UUID->new->create_str();
     my $file         = $c->param('file');
     my $document     = {
         id            => $document_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v3.4/applicants/$applicant_id/documents/$document_id",
-        download_href => "/v3.4/applicants/$applicant_id/documents/$document_id/download",
+        href          => "/v3.4/documents/$document_id",
+        download_href => "/v3.4/documents/$document_id/download",
         _applicant_id => $applicant_id,
         file_name     => basename($file->filename),
         file_size     => $file->size,
@@ -117,34 +116,42 @@ post '/v3.4/applicants/:applicant_id/documents' => sub {
     return $c->render(json => clone_and_remove_private($document));
 };
 
-get '/v3.4/applicants/:applicant_id/documents' => sub {
+get '/v3.4/documents' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
+    
+    use Path::Tiny;
+    use Data::Dumper;
+    Path::Tiny::path('/tmp/log.txt')
+        ->append_utf8(Dumper($applicant_id) . "\n");
     my @documents =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
+
+
+    use Path::Tiny;
+    use Data::Dumper;
+    Path::Tiny::path('/tmp/log.txt')
+        ->append_utf8(Dumper(\@documents) . "\n");
+
     return $c->render(json => {documents => \@documents});
 };
 
-get '/v3.4/applicants/:applicant_id/documents/:document_id' => sub {
+get '/v3.4/documents/:document_id' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$document_id})
-        && $documents{$document_id}{_applicant_id} eq $applicant_id)
+    unless (exists($documents{$document_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => clone_and_remove_private($documents{$document_id}));
 };
 
-get '/v3.4/applicants/:applicant_id/documents/:document_id/download' => sub {
+get '/v3.4/documents/:document_id/download' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$document_id})
-        && $documents{$document_id}{_applicant_id} eq $applicant_id)
+    unless (exists($documents{$document_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }

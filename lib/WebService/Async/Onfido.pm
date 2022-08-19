@@ -404,7 +404,14 @@ each document found.
 sub document_list {
     my ($self, %args) = @_;
     my $src = $self->source;
-    my $uri = $self->endpoint('documents', %args);
+    my $uri = $self->endpoint('documents');
+    $uri->query('applicant_id=' . uri_escape_utf8($args{applicant_id}));
+
+    use Path::Tiny;
+    use Data::Dumper;
+    Path::Tiny::path('/tmp/log.txt')
+        ->append_utf8(Dumper($uri) . "\n");
+
     $self->rate_limiting->then(sub {
         $self->ua->GET(
             $uri,
@@ -607,12 +614,13 @@ Takes the following named parameters:
 
 sub document_upload {
     my ($self, %args) = @_;
-    my $uri = $self->endpoint('documents', applicant_id => delete $args{applicant_id});
+    my $uri = $self->endpoint('documents');
+    
     my $req = HTTP::Request::Common::POST(
         $uri,
         content_type => 'form-data',
         content => [
-            %args{grep { exists $args{$_} } qw(type side issuing_country)},
+            %args{grep { exists $args{$_} } qw(type side issuing_country applicant_id)},
             file => [ undef, $args{filename}, 'Content-Type' => _get_mime_type($args{filename}), Content => $args{data} ],
         ],
         %{$self->auth_headers},
