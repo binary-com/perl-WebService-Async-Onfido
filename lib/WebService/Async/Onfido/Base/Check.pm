@@ -48,14 +48,6 @@ The API endpoint to retrieve the check..
 
 sub href : method { shift->{ href } }
 
-=head2 type
-
-The type of check: standard or express..
-
-=cut
-
-sub type : method { shift->{ type } }
-
 =head2 status
 
 The current state of the check in the checking process..
@@ -120,11 +112,11 @@ sub results_uri : method { shift->{ results_uri } }
 
 =head2 reports
 
-expandable The list of report objects associated with the check..
+The list of report ids associated with the check..
 
 =cut
 
-sub reports : method { shift->{ reports } }
+sub reports_ids : method { shift->{ reports_ids } }
 
 1;
 

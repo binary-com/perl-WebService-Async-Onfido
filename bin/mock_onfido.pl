@@ -5,6 +5,7 @@ use Date::Utility;
 use Data::UUID;
 use File::Basename;
 use Path::Tiny;
+use JSON::MaybeUTF8 qw(:v1);
 
 # In this script we think the key like '_xxxxx' in hash as private keys. Will not send them
 plugin 'RenderFile';
@@ -212,40 +213,23 @@ get '/v3.4/live_photos/:photo_id/download' => sub {
 
 sub create_report {
     my ($c, $check_id, $applicant_id) = @_;
-    use URI::Escape qw(uri_unescape);
-    my $params = $c->req->params->to_string;
-    $params = uri_unescape($params);
-    my @params = map { s/reports|\[|\]//g; $_ } grep { /reports/ } split '&', $params;
-    my @req_reports;
-    my $req_report;
-    for my $param (@params) {
-        my @pair = split '=', $param;
-
-        # name always be first pair
-        if ($pair[0] eq 'name') {
-            push @req_reports, $req_report if $req_report;
-            $req_report = {@pair};
-        } else {
-            $req_report->{$pair[0]} = $pair[1];
-        }
-    }
-    push @req_reports, $req_report;
+    my $params = $c->req->json;
     my @reports;
     my @document_ids =
         map  { $_->{id} }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
-    for my $req (@req_reports) {
+    for my $req ($params->{report_names}) {
         my $report_id = Data::UUID->new->create_str();
         my $report    = {
             id         => $report_id,
             _check_id  => $check_id,
             created_at => Date::Utility->new()->datetime_iso8601,
-            name       => $req->{name},
+            name       => $req,
             status     => 'complete',
             result     => 'clear',
             breakdown  => {},
             properties => {document_type => 'passport'},
-            $req->{name} eq 'document'
+            $req eq 'document'
             ? (documents => [map { {id => $_} } @document_ids])
             : (),
         };
@@ -255,25 +239,26 @@ sub create_report {
     return [map { clone_and_remove_private($_) } @reports];
 }
 
-post '/v3.4/applicants/:applicant_id/checks' => sub {
+post '/v3.4/checks' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $data         = $c->req->json;
+
+    my $applicant_id = $data->{applicant_id};
     my $check_id     = Data::UUID->new->create_str();
     my $check        = {
         id            => $check_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
         href          => "/v3.4/applicants/$applicant_id/checks/$check_id",
-        type          => $c->param('type'),
         status        => 'in_progress',
         result        => 'clear',
         redirect_uri  => 'https://somewhere.else',
         results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
-        download_uri  => "https://api.eu.onfido.com/v3.4/checks/$check_id/download",
-        reports       => create_report($c, $check_id, $applicant_id),
-        tags          => $c->req->params->to_hash->{'tags[]'},
+        reports_ids   => create_report($c, $check_id, $applicant_id),
+        tags          => $data->{tags},
         _applicant_id => $applicant_id,
     };
     $checks{$check_id} = $check;
+
     return $c->render(json => clone_and_remove_private($check));
 };
 
@@ -291,9 +276,10 @@ get '/v3.4/applicants/:applicant_id/checks/:check_id' => sub {
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
 };
 
-get '/v3.4/applicants/:applicant_id/checks' => sub {
+get '/v3.4/checks' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
+
     my @checks =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
@@ -344,6 +330,7 @@ post '/v3.4/sdk_token' => sub {
 
 sub clone_and_remove_private {
     my $result = shift;
+
     return $result unless $result && ref($result) eq 'HASH';
     $result = clone($result);
     for my $k (keys %$result) {
@@ -351,6 +338,7 @@ sub clone_and_remove_private {
             delete $result->{$k};
         }
     }
+
     return $result;
 }
 

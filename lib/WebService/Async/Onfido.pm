@@ -760,16 +760,18 @@ Returns a L<Future> which will resolve with the result.
 
 sub applicant_check {
     my ($self, %args) = @_;
+    use Path::Tiny;
     $self->rate_limiting->then(sub {
         $self->ua->POST(
             $self->endpoint('checks'),
             encode_json_utf8(\%args),
-            content_type => 'application/x-www-form-urlencoded',
+            content_type => 'application/json',
             $self->auth_headers,
         )
     })->catch(
         http => sub {
             my ($message, undef, $response, $request) = @_;
+
             $log->errorf('Request %s received %s with full response as %s',
                 $request->uri,
                 $message,
@@ -802,7 +804,9 @@ sub check_list {
     my $applicant_id = delete $args{applicant_id} or die 'Need an applicant ID';
     my $src = $self->source;
     my $f = $src->completed;
-    my $uri = $self->endpoint('checks', applicant_id => $applicant_id);
+    my $uri = $self->endpoint('checks');
+    $uri->query('applicant_id=' . uri_escape_utf8($applicant_id));
+
     $log->tracef('GET %s', "$uri");
     $self->rate_limiting->then(sub {
         $self->ua->do_request(

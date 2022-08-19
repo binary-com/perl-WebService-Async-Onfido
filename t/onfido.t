@@ -138,7 +138,7 @@ lives_ok {
         suppress_from_email        => 0,
         asynchronous                      => 1,
         charge_applicant_for_check => 0,
-        )->get
+        )->get;
 }
 "create check ok";
 isa_ok($check, "WebService::Async::Onfido::Check", "check class is right");
@@ -153,13 +153,16 @@ lives_ok {
         )->get
 }
 "get check ok";
+
 isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
 $check->{status} = 'complete'; # after get check, it will be 'complete';
 is_deeply($check2, $check, 'result is ok');
 
 # check list
 lives_ok { $src = $onfido->check_list(applicant_id => $app->id) } "check list ok";
+
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
+
 is_deeply($src->as_arrayref->get->[0], $check, 'the most recent check is the one we created just now');
 
 #get report
