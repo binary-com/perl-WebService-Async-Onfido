@@ -127,17 +127,16 @@ my $check;
 lives_ok {
     $check = $onfido->applicant_check(
         applicant_id => $app->id,
-        type         => 'standard',
-        reports      => [
-            {name => 'document'},
-            {
-                name    => 'facial_similarity',
-                variant => 'standard'
-            }
+        report_names      => [ 
+            'document', 
+            'facial_similarity',
+        ],
+        documents_ids => [
+            '0001', '0002'
         ],
         tags                       => ['tag1', 'tag2'],
         suppress_from_email        => 0,
-        async                      => 1,
+        asynchronous                      => 1,
         charge_applicant_for_check => 0,
         )->get
 }

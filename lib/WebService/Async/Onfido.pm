@@ -733,16 +733,18 @@ Takes the following named parameters:
 
 =over 4
 
-=item * C<type> - either C<standard> or C<express>
+=item * C<applicant_id> - the applicant requesting the check
 
-=item * C<reports> - the reports to generate for this applicant (arrayref)
+=item * C<document_ids> - arrayref of documents ids to be analyzed on this check
+
+=item * C<report_names> - arrayref of the reports to be made (e.g: document, facial_similarity_photo)
 
 =item * C<tags> - custom tags to apply to these reports
 
 =item * C<suppress_form_emails> - if true, do B<not> send out the email to
 the applicant
 
-=item * C<async> - return immediately and perform check in the background
+=item * C<asynchronous> - return immediately and perform check in the background (default true since v3)
 
 =item * C<charge_applicant_for_check> - the applicant must enter payment
 details for this check, and it will not count towards the quota for this
@@ -758,34 +760,10 @@ Returns a L<Future> which will resolve with the result.
 
 sub applicant_check {
     my ($self, %args) = @_;
-    $args{type} //= 'standard';
-    $_ = $_ ? 'true' : 'false' for @args{qw(
-        suppress_form_emails async charge_applicant_for_check
-    )};
-    my $reports = delete($args{reports}) || [];
-    my $tags = delete $args{tags};
-    my @content = map {
-        uri_escape_utf8($_) . '=' . uri_escape_utf8($args{$_})
-    } sort keys %args;
-    for my $report (@$reports) {
-        if(ref $report) {
-            my %copy = %$report;
-            my $docs = delete($copy{documents}) || [];
-            $docs = [ $docs ] unless ref $docs;
-            # Since name is necessary, we make it as the first parameter of report, and we can split the reports by it in the mocked server
-            my $name = delete($copy{name});
-            push @content, "reports[][" . uri_escape_utf8('name') . ']=' . uri_escape_utf8($name);
-            push @content, "reports[][" . uri_escape_utf8($_) . "]=" . uri_escape_utf8($report->{$_}) for sort keys %copy;
-            push @content, "reports[][documents][][id]=" . uri_escape_utf8($_) for @$docs;
-        } else {
-            push @content, "reports[][name]=" . uri_escape_utf8($report); # TODO chylli check the caller to test the case that the reports include string report name
-        }
-    }
-    push @content, "tags[]=" . uri_escape_utf8($_) for @{$tags || []};
     $self->rate_limiting->then(sub {
         $self->ua->POST(
-            $self->endpoint('checks', applicant_id => delete $args{applicant_id}),
-            join('&', @content),
+            $self->endpoint('checks'),
+            encode_json_utf8(\%args),
             content_type => 'application/x-www-form-urlencoded',
             $self->auth_headers,
         )
