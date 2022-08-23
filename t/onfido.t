@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 51;
+use Test::More tests => 52;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
@@ -168,8 +168,9 @@ is_deeply($src->as_arrayref->get->[0], $check, 'the most recent check is the one
 
 #get report
 my ($report, $report2);
-lives_ok { $report = $check->reports->as_arrayref->get->[0] } "get report from check ok";
+lives_ok { $report = $check->reports->filter(name => 'document')->as_arrayref->get->[0] } "get report from check ok";
 isa_ok($report, 'WebService::Async::Onfido::Report');
+is $report->name, 'document';
 
 lives_ok {
     $report2 = $onfido->report_get(

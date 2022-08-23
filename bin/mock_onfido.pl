@@ -215,7 +215,7 @@ sub create_report {
     my @document_ids =
         map  { $_->{id} }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
-    for my $req ($params->{report_names}) {
+    for my $req ($params->{report_names}->@*) {
         my $report_id = Data::UUID->new->create_str();
         my $report    = {
             id         => $report_id,
