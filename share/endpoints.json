@@ -5,7 +5,7 @@
     "document": "/v3.4/documents/{document_id}",
     "document_download": "/v3.4/documents/{document_id}/download",
     "checks": "/v3.4/checks",
-    "check": "/v3.4/applicants/{applicant_id}/checks/{check_id}",
+    "check": "/v3.4/checks/{check_id}",
     "photos": "/v3.4/live_photos{?applicant_id}",
     "photo": "/v3.4/live_photos/{live_photo_id}",
     "photo_upload": "/v3.4/live_photos",

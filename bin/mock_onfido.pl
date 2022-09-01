@@ -259,14 +259,11 @@ post '/v3.4/checks' => sub {
     return $c->render(json => clone_and_remove_private($check));
 };
 
-get '/v3.4/applicants/:applicant_id/checks/:check_id' => sub {
+get '/v3.4/checks/:check_id' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
 
-    unless (exists($checks{$check_id})
-        && $checks{$check_id}{_applicant_id} eq $applicant_id)
-    {
+    unless (exists($checks{$check_id})){
         return $c->render(json => {status => 'Not Found'});
     }
     $checks{$check_id}{status} = 'complete';
