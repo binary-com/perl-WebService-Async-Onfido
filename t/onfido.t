@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 52;
+use Test::More tests => 53;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
@@ -158,6 +158,7 @@ lives_ok {
 isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
 $check->{status} = 'complete'; # after get check, it will be 'complete';
 is_deeply($check2, $check, 'result is ok');
+is $check->applicant_id, $app->id, 'Expected applicant id';
 
 # check list
 lives_ok { $src = $onfido->check_list(applicant_id => $app->id) } "check list ok";

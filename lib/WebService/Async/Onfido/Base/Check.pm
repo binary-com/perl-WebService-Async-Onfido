@@ -110,13 +110,22 @@ A link to the corresponding results page on the Onfido dashboard.
 
 sub results_uri : method { shift->{ results_uri } }
 
-=head2 reports
+=head2 reports_ids
 
 The list of report ids associated with the check..
 
 =cut
 
 sub reports_ids : method { shift->{ reports_ids } }
+
+
+=head2 applicant_id
+
+The applicant the check belongs to
+
+=cut
+
+sub applicant_id : method { shift->{ applicant_id } }
 
 1;
 

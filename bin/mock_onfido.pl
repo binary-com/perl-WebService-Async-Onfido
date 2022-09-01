@@ -252,7 +252,7 @@ post '/v3.4/checks' => sub {
         results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
         reports_ids   => create_report($c, $check_id, $applicant_id),
         tags          => $data->{tags},
-        _applicant_id => $applicant_id,
+        applicant_id  => $applicant_id,
     };
     $checks{$check_id} = $check;
 
@@ -277,7 +277,7 @@ get '/v3.4/checks' => sub {
     my @checks =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
-        grep { $_->{_applicant_id} eq $applicant_id } values %checks;
+        grep { $_->applicant_id eq $applicant_id } values %checks;
     return $c->render(json => {checks => \@checks});
 };
 
