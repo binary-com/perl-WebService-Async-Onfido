@@ -277,7 +277,7 @@ get '/v3.4/checks' => sub {
     my @checks =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
-        grep { $_->applicant_id eq $applicant_id } values %checks;
+        grep { $_->{applicant_id} eq $applicant_id } values %checks;
     return $c->render(json => {checks => \@checks});
 };
 
