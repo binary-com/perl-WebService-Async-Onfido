@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 53;
 use Test::Exception;
 use Test::NoWarnings;
 use Path::Tiny;
@@ -39,14 +39,13 @@ lives_ok {
         gender     => 'male',
         dob        => '1980-01-22',
         country    => 'GBR',
-        addresses  => [{
-                building_number => '100',
-                street          => 'Main Street',
-                town            => 'London',
-                postcode        => 'SW4 6EH',
-                country         => 'GBR',
-            }
-        ],
+        address  => {
+            building_number => '100',
+            street          => 'Main Street',
+            town            => 'London',
+            postcode        => 'SW4 6EH',
+            country         => 'GBR',
+        },
     )->get;
 }
 'create applicant ok';
@@ -128,23 +127,23 @@ my $check;
 lives_ok {
     $check = $onfido->applicant_check(
         applicant_id => $app->id,
-        type         => 'standard',
-        reports      => [
-            {name => 'document'},
-            {
-                name    => 'facial_similarity',
-                variant => 'standard'
-            }
+        report_names      => [
+            'document',
+            'facial_similarity',
+        ],
+        documents_ids => [
+            '0001', '0002'
         ],
         tags                       => ['tag1', 'tag2'],
         suppress_from_email        => 0,
-        async                      => 1,
+        asynchronous                      => 1,
         charge_applicant_for_check => 0,
-        )->get
+        )->get;
 }
 "create check ok";
 isa_ok($check, "WebService::Async::Onfido::Check", "check class is right");
 is_deeply($check->tags, ['tag1', 'tag2'], 'result is ok');
+is $check->download_uri, $onfido->endpoint('check_download', check_id => $check->id), 'Expected download uri';
 
 # get check
 my $check2;
@@ -155,19 +154,24 @@ lives_ok {
         )->get
 }
 "get check ok";
+
 isa_ok($check2, "WebService::Async::Onfido::Check", "check class is right");
 $check->{status} = 'complete'; # after get check, it will be 'complete';
 is_deeply($check2, $check, 'result is ok');
+is $check->applicant_id, $app->id, 'Expected applicant id';
 
 # check list
 lives_ok { $src = $onfido->check_list(applicant_id => $app->id) } "check list ok";
+
 isa_ok($src, 'Ryu::Source', 'the applicant list is a Ryu::Source');
+
 is_deeply($src->as_arrayref->get->[0], $check, 'the most recent check is the one we created just now');
 
 #get report
 my ($report, $report2);
-lives_ok { $report = $check->reports->as_arrayref->get->[0] } "get report from check ok";
+lives_ok { $report = $check->reports->filter(name => 'document')->as_arrayref->get->[0] } "get report from check ok";
 isa_ok($report, 'WebService::Async::Onfido::Report');
+is $report->name, 'document';
 
 lives_ok {
     $report2 = $onfido->report_get(

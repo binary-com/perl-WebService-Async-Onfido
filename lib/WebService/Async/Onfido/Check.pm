@@ -19,6 +19,7 @@ use Log::Any qw($log);
 
 sub as_string {
     my ($self) = @_;
+
     sprintf 'Check %s, result was %s (created %s as ID %s)', $self->status, $self->result, $self->created_at, $self->id
 }
 

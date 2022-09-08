@@ -32,14 +32,14 @@ my %checks;
 ################################################################################
 # applicants
 # create applicant
-post '/v2/applicants' => sub {
+post '/v3.4/applicants' => sub {
     my $c         = shift;
     my $data      = $c->req->json;
     my $id        = Data::UUID->new->create_str();
     my $applicant = {
         id         => $id,
         created_at => Date::Utility->new()->datetime_iso8601,
-        href       => "v2/applicants/$id",
+        href       => "v3.4/applicants/$id",
     };
     for my $k (keys %$data) {
         $applicant->{$k} = $data->{$k};
@@ -48,14 +48,14 @@ post '/v2/applicants' => sub {
     $c->render(json => $applicant);
 };
 
-get '/v2/applicants' => sub {
+get '/v3.4/applicants' => sub {
     my $c = shift;
 
     # TODO page
     return $c->render(json => {applicants => [sort { $b->{created_at} cmp $a->{created_at} } values %applicants]});
 };
 
-put '/v2/applicants/:id' => sub {
+put '/v3.4/applicants/:id' => sub {
     my $c         = shift;
     my $id        = $c->stash('id');
     my $applicant = $applicants{$id};
@@ -66,7 +66,7 @@ put '/v2/applicants/:id' => sub {
     $c->render(json => $applicant);
 };
 
-get '/v2/applicants/:id' => sub {
+get '/v3.4/applicants/:id' => sub {
     my $c  = shift;
     my $id = $c->stash('id');
 
@@ -76,7 +76,7 @@ get '/v2/applicants/:id' => sub {
     $c->render(json => $applicant);
 };
 
-del '/v2/applicants/:id' => sub {
+del '/v3.4/applicants/:id' => sub {
     my $c  = shift;
     my $id = $c->stash('id');
     if (exists $applicants{$id}) {
@@ -92,16 +92,16 @@ del '/v2/applicants/:id' => sub {
 ################################################################################
 # documents
 
-post '/v2/applicants/:applicant_id/documents' => sub {
+post '/v3.4/documents' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
     my $document_id  = Data::UUID->new->create_str();
     my $file         = $c->param('file');
     my $document     = {
         id            => $document_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/applicants/$applicant_id/documents/$document_id",
-        download_href => "/v2/applicants/$applicant_id/documents/$document_id/download",
+        href          => "/v3.4/documents/$document_id",
+        download_href => "/v3.4/documents/$document_id/download",
         _applicant_id => $applicant_id,
         file_name     => basename($file->filename),
         file_size     => $file->size,
@@ -116,34 +116,32 @@ post '/v2/applicants/:applicant_id/documents' => sub {
     return $c->render(json => clone_and_remove_private($document));
 };
 
-get '/v2/applicants/:applicant_id/documents' => sub {
+get '/v3.4/documents' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
+
     my @documents =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
+
     return $c->render(json => {documents => \@documents});
 };
 
-get '/v2/applicants/:applicant_id/documents/:document_id' => sub {
+get '/v3.4/documents/:document_id' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$document_id})
-        && $documents{$document_id}{_applicant_id} eq $applicant_id)
+    unless (exists($documents{$document_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }
     return $c->render(json => clone_and_remove_private($documents{$document_id}));
 };
 
-get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
+get '/v3.4/documents/:document_id/download' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $document_id  = $c->stash('document_id');
-    unless (exists($documents{$document_id})
-        && $documents{$document_id}{_applicant_id} eq $applicant_id)
+    unless (exists($documents{$document_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }
@@ -154,7 +152,7 @@ get '/v2/applicants/:applicant_id/documents/:document_id/download' => sub {
     );
 };
 
-post '/v2/live_photos' => sub {
+post '/v3.4/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
 
@@ -164,8 +162,8 @@ post '/v2/live_photos' => sub {
     my $photo    = {
         id            => $photo_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/live_photos/$photo_id",
-        download_href => "/v2/live_photos/$photo_id/download",
+        href          => "/v3.4/live_photos/$photo_id",
+        download_href => "/v3.4/live_photos/$photo_id/download",
     };
     my $file = $c->param('file');
     $photo->{file_name} = basename($file->filename);
@@ -178,7 +176,7 @@ post '/v2/live_photos' => sub {
     return $c->render(json => clone_and_remove_private($photo));
 };
 
-get '/v2/live_photos' => sub {
+get '/v3.4/live_photos' => sub {
     my $c            = shift;
     my $applicant_id = $c->param('applicant_id');
     my @photos =
@@ -188,7 +186,7 @@ get '/v2/live_photos' => sub {
     return $c->render(json => {live_photos => \@photos});
 };
 
-get '/v2/live_photos/:photo_id' => sub {
+get '/v3.4/live_photos/:photo_id' => sub {
     my $c        = shift;
     my $photo_id = $c->stash('photo_id');
     my $photo    = clone_and_remove_private($photos{$photo_id});
@@ -196,7 +194,7 @@ get '/v2/live_photos/:photo_id' => sub {
     return $c->render(json => $photo);
 };
 
-get '/v2/live_photos/:photo_id/download' => sub {
+get '/v3.4/live_photos/:photo_id/download' => sub {
     my $c        = shift;
     my $photo_id = $c->stash('photo_id');
     unless (exists($photos{$photo_id})) {
@@ -212,40 +210,23 @@ get '/v2/live_photos/:photo_id/download' => sub {
 
 sub create_report {
     my ($c, $check_id, $applicant_id) = @_;
-    use URI::Escape qw(uri_unescape);
-    my $params = $c->req->params->to_string;
-    $params = uri_unescape($params);
-    my @params = map { s/reports|\[|\]//g; $_ } grep { /reports/ } split '&', $params;
-    my @req_reports;
-    my $req_report;
-    for my $param (@params) {
-        my @pair = split '=', $param;
-
-        # name always be first pair
-        if ($pair[0] eq 'name') {
-            push @req_reports, $req_report if $req_report;
-            $req_report = {@pair};
-        } else {
-            $req_report->{$pair[0]} = $pair[1];
-        }
-    }
-    push @req_reports, $req_report;
+    my $params = $c->req->json;
     my @reports;
     my @document_ids =
         map  { $_->{id} }
         grep { $_->{_applicant_id} eq $applicant_id } values %documents;
-    for my $req (@req_reports) {
+    for my $req ($params->{report_names}->@*) {
         my $report_id = Data::UUID->new->create_str();
         my $report    = {
             id         => $report_id,
             _check_id  => $check_id,
             created_at => Date::Utility->new()->datetime_iso8601,
-            name       => $req->{name},
+            name       => $req,
             status     => 'complete',
             result     => 'clear',
             breakdown  => {},
             properties => {document_type => 'passport'},
-            $req->{name} eq 'document'
+            $req eq 'document'
             ? (documents => [map { {id => $_} } @document_ids])
             : (),
         };
@@ -255,55 +236,54 @@ sub create_report {
     return [map { clone_and_remove_private($_) } @reports];
 }
 
-post '/v2/applicants/:applicant_id/checks' => sub {
+post '/v3.4/checks' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $data         = $c->req->json;
+
+    my $applicant_id = $data->{applicant_id};
     my $check_id     = Data::UUID->new->create_str();
     my $check        = {
         id            => $check_id,
         created_at    => Date::Utility->new()->datetime_iso8601,
-        href          => "/v2/applicants/$applicant_id/checks/$check_id",
-        type          => $c->param('type'),
+        href          => "/v3.4/checks/$check_id",
         status        => 'in_progress',
         result        => 'clear',
         redirect_uri  => 'https://somewhere.else',
         results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
-        download_uri  => "https://onfido.com/dashboard/pdf/information_requests/<REQUEST_ID>",
-        reports       => create_report($c, $check_id, $applicant_id),
-        tags          => $c->req->params->to_hash->{'tags[]'},
-        _applicant_id => $applicant_id,
+        reports_ids   => create_report($c, $check_id, $applicant_id),
+        tags          => $data->{tags},
+        applicant_id  => $applicant_id,
     };
     $checks{$check_id} = $check;
+
     return $c->render(json => clone_and_remove_private($check));
 };
 
-get '/v2/applicants/:applicant_id/checks/:check_id' => sub {
+get '/v3.4/checks/:check_id' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
     my $check_id     = $c->stash('check_id');
 
-    unless (exists($checks{$check_id})
-        && $checks{$check_id}{_applicant_id} eq $applicant_id)
-    {
+    unless (exists($checks{$check_id})){
         return $c->render(json => {status => 'Not Found'});
     }
     $checks{$check_id}{status} = 'complete';
     return $c->render(json => clone_and_remove_private($checks{$check_id}));
 };
 
-get '/v2/applicants/:applicant_id/checks' => sub {
+get '/v3.4/checks' => sub {
     my $c            = shift;
-    my $applicant_id = $c->stash('applicant_id');
+    my $applicant_id = $c->param('applicant_id');
+
     my @checks =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
-        grep { $_->{_applicant_id} eq $applicant_id } values %checks;
+        grep { $_->{applicant_id} eq $applicant_id } values %checks;
     return $c->render(json => {checks => \@checks});
 };
 
-get '/v2/checks/:check_id/reports' => sub {
+get '/v3.4/reports' => sub {
     my $c        = shift;
-    my $check_id = $c->stash('check_id');
+    my $check_id = $c->param('check_id');
     my @reports =
         sort { $b->{created_at} cmp $a->{created_at} }
         map  { clone_and_remove_private($_) }
@@ -312,12 +292,10 @@ get '/v2/checks/:check_id/reports' => sub {
     return $c->render(json => {reports => \@reports});
 };
 
-get '/v2/checks/:check_id/reports/:report_id' => sub {
+get '/v3.4/reports/:report_id' => sub {
     my $c         = shift;
-    my $check_id  = $c->stash('check_id');
     my $report_id = $c->stash('report_id');
-    unless (exists($reports{$report_id})
-        && $reports{$report_id}{_check_id} eq $check_id)
+    unless (exists($reports{$report_id}))
     {
         return $c->render(json => {status => 'Not Found'});
     }
@@ -325,7 +303,7 @@ get '/v2/checks/:check_id/reports/:report_id' => sub {
 };
 
 my @sdk_tokens;
-post '/v2/sdk_token' => sub {
+post '/v3.4/sdk_token' => sub {
     my $c            = shift;
     my $data         = $c->req->json;
     my $applicant_id = $data->{applicant_id};
@@ -344,6 +322,7 @@ post '/v2/sdk_token' => sub {
 
 sub clone_and_remove_private {
     my $result = shift;
+
     return $result unless $result && ref($result) eq 'HASH';
     $result = clone($result);
     for my $k (keys %$result) {
@@ -351,6 +330,7 @@ sub clone_and_remove_private {
             delete $result->{$k};
         }
     }
+
     return $result;
 }
 

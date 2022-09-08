@@ -48,14 +48,6 @@ The API endpoint to retrieve the check..
 
 sub href : method { shift->{ href } }
 
-=head2 type
-
-The type of check: standard or express..
-
-=cut
-
-sub type : method { shift->{ type } }
-
 =head2 status
 
 The current state of the check in the checking process..
@@ -84,9 +76,15 @@ sub result : method { shift->{ result } }
 
 A link to a PDF output of the check results. Append .pdf to get the pdf file..
 
+Since v3 this PDF is meant to be downloaded from the API.
+
 =cut
 
-sub download_uri : method { shift->{ download_uri } }
+sub download_uri : method {
+    my $self = shift;
+
+    return $self->onfido->endpoint('check_download', check_id => $self->id);
+}
 
 =head2 form_uri
 
@@ -112,13 +110,22 @@ A link to the corresponding results page on the Onfido dashboard.
 
 sub results_uri : method { shift->{ results_uri } }
 
-=head2 reports
+=head2 reports_ids
 
-expandable The list of report objects associated with the check..
+The list of report ids associated with the check..
 
 =cut
 
-sub reports : method { shift->{ reports } }
+sub reports_ids : method { shift->{ reports_ids } }
+
+
+=head2 applicant_id
+
+The applicant the check belongs to
+
+=cut
+
+sub applicant_id : method { shift->{ applicant_id } }
 
 1;
 

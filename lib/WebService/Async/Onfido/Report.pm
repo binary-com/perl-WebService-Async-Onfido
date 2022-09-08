@@ -17,6 +17,7 @@ WebService::Async::Onfido::Report - represents data for Onfido
 
 sub as_string {
     my ($self) = @_;
+
     sprintf 'Report %s %s, result was %s (created %s as ID %s)', $self->name, $self->status, $self->result, $self->created_at, $self->id
 }
 
