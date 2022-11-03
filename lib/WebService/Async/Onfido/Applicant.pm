@@ -17,14 +17,14 @@ WebService::Async::Onfido::Applicant - represents data for Onfido
 
 sub as_string {
     my ($self) = @_;
-    sprintf '%s %s (ID %s)', $self->first_name, $self->last_name, $self->id
+    return sprintf '%s %s (ID %s)', $self->first_name, $self->last_name, $self->id
 }
 
-sub onfido { shift->{onfido} }
+sub onfido {return shift->{onfido} }
 
 sub documents {
     my ($self, %args) = @_;
-    $self->onfido->document_list(
+    return $self->onfido->document_list(
         applicant_id => $self->id,
         %args
     )->map(sub { $_->{applicant} = $self; $_ });
@@ -32,7 +32,7 @@ sub documents {
 
 sub photos {
     my ($self, %args) = @_;
-    $self->onfido->photo_list(
+    return $self->onfido->photo_list(
         applicant_id => $self->id,
         %args
     )->map(sub { $_->{applicant} = $self; $_ });
@@ -40,12 +40,13 @@ sub photos {
 
 sub checks {
     my ($self, %args) = @_;
-    $self->onfido->check_list(
+    return $self->onfido->check_list(
         applicant_id => $self->id,
         %args
     )->map(sub { $_->{applicant} = $self; $_ });
 }
 
+## no critic (ProhibitBuiltinHomonyms)
 sub delete : method {
     my ($self, %args) = @_;
     return $self->onfido->applicant_delete(

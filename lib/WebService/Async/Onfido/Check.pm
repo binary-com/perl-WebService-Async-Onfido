@@ -20,12 +20,12 @@ use Log::Any qw($log);
 sub as_string {
     my ($self) = @_;
 
-    sprintf 'Check %s, result was %s (created %s as ID %s)', $self->status, $self->result, $self->created_at, $self->id
+    return sprintf 'Check %s, result was %s (created %s as ID %s)', $self->status, $self->result, $self->created_at, $self->id
 }
 
-sub applicant { shift->{applicant} // die 'no applicant defined' }
+sub applicant { return shift->{applicant} // die 'no applicant defined' }
 
-sub onfido { shift->{onfido} }
+sub onfido { return shift->{onfido} }
 
 sub reports {
 	my ($self, %args) = @_;
