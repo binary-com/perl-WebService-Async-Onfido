@@ -1165,7 +1165,7 @@ sub ua {
                 pipeline                 => 0,
                 stall_timeout            => 60,
                 max_connections_per_host => 2,
-                user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; BINARY@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
+                user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; DERIV@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
         );
         $ua
@@ -1245,11 +1245,11 @@ __END__
 
 =head1 AUTHOR
 
-binary.com
+deriv.com
 
 =head1 COPYRIGHT
 
-Copyright Binary.com 2019.
+Copyright Deriv.com 2019.
 
 =head1 LICENSE
 
