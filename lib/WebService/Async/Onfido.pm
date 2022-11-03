@@ -66,7 +66,7 @@ sub configure {
     for my $k (qw(token requests_per_minute base_uri)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
-    $self->next::method(%args);
+    return $self->next::method(%args);
 }
 
 =head2 applicant_list
@@ -234,7 +234,7 @@ instance on successful completion.
 
 sub applicant_create {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->POST(
             $self->endpoint('applicants'),
             encode_json_utf8(\%args),
@@ -270,7 +270,7 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_update {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->PUT(
             $self->endpoint('applicant', %args),
             encode_json_utf8(\%args),
@@ -301,7 +301,7 @@ Returns a L<Future> which resolves to empty on success.
 
 sub applicant_delete {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('applicant', %args),
             method => 'DELETE',
@@ -332,7 +332,7 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 
 sub applicant_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('applicant', %args),
             method => 'GET',
@@ -359,7 +359,7 @@ sub applicant_get {
 
 sub check_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri    => $self->endpoint('check', %args),
             method => 'GET',
@@ -461,7 +461,7 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Documen
 sub get_document_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('document', %args);
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -560,7 +560,7 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Photo>
 sub get_photo_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo', %args);
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -620,7 +620,7 @@ sub document_upload {
         ],
         %{$self->auth_headers},
     );
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             request => $req,
         )
@@ -688,7 +688,7 @@ sub live_photo_upload {
         %{$self->auth_headers},
     );
     $log->tracef('Photo upload: %s', $req->as_string("\n"));
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             request => $req,
         )
@@ -764,7 +764,7 @@ Returns a L<Future> which will resolve with the result.
 sub applicant_check {
     my ($self, %args) = @_;
     use Path::Tiny;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->POST(
             $self->endpoint('checks'),
             encode_json_utf8(\%args),
@@ -846,7 +846,7 @@ sub check_list {
 
 sub report_get {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('report', %args),
             method => 'GET',
@@ -932,7 +932,7 @@ Returns a photo file blob
 
 sub download_photo {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('photo_download', %args),
             method => 'GET',
@@ -973,7 +973,7 @@ Returns a document file blob
 
 sub download_document {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->do_request(
             uri => $self->endpoint('document_download', %args),
             method => 'GET',
@@ -1004,7 +1004,7 @@ as their value.
 sub countries_list {
     my ($self) = @_;
 
-    $self->ua->GET(SUPPORTED_COUNTRIES_URL)->then(sub {
+    return $self->ua->GET(SUPPORTED_COUNTRIES_URL)->then(sub {
         try {
             my ($res) = @_;
             my $onfido_countries = decode_json_utf8($res->content);
@@ -1085,7 +1085,7 @@ Takes the following named parameters:
 
 sub sdk_token {
     my ($self, %args) = @_;
-    $self->rate_limiting->then(sub {
+    return $self->rate_limiting->then(sub {
         $self->ua->POST(
             $self->endpoint('sdk_token'),
             encode_json_utf8(\%args),
@@ -1115,7 +1115,7 @@ templates, used by L</endpoint>.
 
 sub endpoints {
     my ($self) = @_;
-    $self->{endpoints} ||= do {
+    return $self->{endpoints} ||= do {
         my $path = Path::Tiny::path(__DIR__)->parent(3)->child('share/endpoints.json');
         $path = Path::Tiny::path(
             File::ShareDir::dist_file(
@@ -1141,7 +1141,7 @@ Returns a L<URI> instance.
 
 sub endpoint {
     my ($self, $endpoint, %args) = @_;
-    URI::Template->new(
+    return URI::Template->new(
         $self->endpoints->{$endpoint}
     )->process(%args);
 }
@@ -1153,11 +1153,11 @@ sub base_uri {
     return $self->{base_uri};
 }
 
-sub token { shift->{token} }
+sub token {return shift->{token} }
 
 sub ua {
     my ($self) = @_;
-    $self->{ua} //= do {
+    return $self->{ua} //= do {
         $self->add_child(
             my $ua = Net::Async::HTTP->new(
                 fail_on_error            => 1,
@@ -1181,7 +1181,7 @@ sub auth_headers {
 
 sub ryu {
     my ($self) = @_;
-    $self->{ryu} //= do {
+    return $self->{ryu} //= do {
         $self->add_child(
             my $ryu = Ryu::Async->new
         );
@@ -1224,11 +1224,11 @@ sub rate_limiting {
     return $self->{rate_limit};
 }
 
-sub requests_per_minute { shift->{requests_per_minute} //= 300 }
+sub requests_per_minute {return shift->{requests_per_minute} //= 300 }
 
 sub source {
     my ($self) = shift;
-    $self->ryu->source(@_)
+    return $self->ryu->source(@_)
 }
 
 sub _get_mime_type {

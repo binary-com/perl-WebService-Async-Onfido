@@ -78,6 +78,7 @@ The address state.  US states must use the USPS abbreviation (see also ISO 3166-
 
 =cut
 
+## no critic (ProhibitBuiltinHomonyms)
 sub state : method {return shift->{ state } }
 
 =head2 postcode
