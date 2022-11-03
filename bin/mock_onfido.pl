@@ -1,3 +1,4 @@
+## no critic (RequireExplicitPackage)
 # Automatically enables "strict", "warnings", "utf8" and Perl 5.10 features
 use Mojolicious::Lite;
 use Clone 'clone';
