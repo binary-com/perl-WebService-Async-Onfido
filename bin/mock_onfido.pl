@@ -344,5 +344,3 @@ sub END {
         $f->remove;
     }
 }
-
-1;
