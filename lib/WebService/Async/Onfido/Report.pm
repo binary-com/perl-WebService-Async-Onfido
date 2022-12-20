@@ -18,7 +18,7 @@ WebService::Async::Onfido::Report - represents data for Onfido
 sub as_string {
     my ($self) = @_;
 
-    sprintf 'Report %s %s, result was %s (created %s as ID %s)', $self->name, $self->status, $self->result, $self->created_at, $self->id
+    return sprintf 'Report %s %s, result was %s (created %s as ID %s)', $self->name, $self->status, $self->result, $self->created_at, $self->id
 }
 
 1;
@@ -27,9 +27,9 @@ __END__
 
 =head1 AUTHOR
 
-binary.com C<< BINARY@cpan.org >>
+deriv.com C<< DERIV@cpan.org >>
 
 =head1 LICENSE
 
-Copyright binary.com 2019. Licensed under the same terms as Perl itself.
+Copyright deriv.com 2019. Licensed under the same terms as Perl itself.
 

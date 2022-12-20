@@ -2,9 +2,9 @@
 use strict;
 use warnings;
 
-use 5.014000;
+use 5.006;
 
-use ExtUtils::MakeMaker 6.48;
+use ExtUtils::MakeMaker 7.64;
 
 use File::ShareDir::Install;
 $File::ShareDir::Install::INCLUDE_DOTFILES = 1;
@@ -14,9 +14,9 @@ install_share dist => "share";
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Webservice to connect to Onfido API",
-  "AUTHOR" => "binary.com <BINARY\@cpan.org>",
+  "AUTHOR" => "DERIV <DERIV\@cpan.org>",
   "CONFIGURE_REQUIRES" => {
-    "ExtUtils::MakeMaker" => "6.64",
+    "ExtUtils::MakeMaker" => "7.64",
     "File::ShareDir::Install" => "0.06"
   },
   "DISTNAME" => "WebService-Async-Onfido",
@@ -25,28 +25,45 @@ my %WriteMakefileArgs = (
     "bin/onfido-tool"
   ],
   "LICENSE" => "perl",
-  "MIN_PERL_VERSION" => "5.014000",
+  "MIN_PERL_VERSION" => "5.006",
   "NAME" => "WebService::Async::Onfido",
   "PREREQ_PM" => {
+    "Clone" => 0,
+    "Data::UUID" => 0,
+    "Date::Utility" => 0,
     "Dir::Self" => 0,
+    "File::Basename" => 0,
+    "File::ShareDir" => 0,
+    "Future" => 0,
+    "Future::Utils" => 0,
+    "Getopt::Long" => 0,
     "HTML::TreeBuilder" => 0,
+    "HTTP::Request::Common" => 0,
     "IO::Async::Loop" => 0,
     "IO::Async::Notifier" => 0,
     "JSON::MaybeUTF8" => 0,
+    "JSON::MaybeXS" => 0,
     "List::UtilsBy" => 0,
     "Log::Any" => 0,
     "Log::Any::Adapter" => 0,
+    "Mojolicious::Lite" => 0,
     "Net::Async::HTTP" => 0,
     "Path::Tiny" => 0,
     "Ryu::Async" => 0,
+    "Scalar::Util" => 0,
     "Syntax::Keyword::Try" => 0,
     "Template" => 0,
     "URI" => 0,
     "URI::Escape" => 0,
     "URI::QueryParam" => 0,
     "URI::Template" => 0,
+    "constant" => 0,
     "indirect" => 0,
-    "mro" => 0
+    "mro" => 0,
+    "parent" => 0,
+    "strict" => 0,
+    "utf8" => 0,
+    "warnings" => 0
   },
   "TEST_REQUIRES" => {
     "Clone" => 0,
@@ -54,6 +71,7 @@ my %WriteMakefileArgs = (
     "Date::Utility" => 0,
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
+    "FindBin" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
     "Mojolicious::Lite" => 0,
@@ -65,7 +83,7 @@ my %WriteMakefileArgs = (
     "Test::NoWarnings" => 0,
     "URI" => 0
   },
-  "VERSION" => "0.002",
+  "VERSION" => "0.003",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -78,13 +96,21 @@ my %FallbackPrereqs = (
   "Date::Utility" => 0,
   "Dir::Self" => 0,
   "ExtUtils::MakeMaker" => 0,
+  "File::Basename" => 0,
+  "File::ShareDir" => 0,
   "File::Spec" => 0,
+  "FindBin" => 0,
+  "Future" => 0,
+  "Future::Utils" => 0,
+  "Getopt::Long" => 0,
   "HTML::TreeBuilder" => 0,
+  "HTTP::Request::Common" => 0,
   "IO::Async::Loop" => 0,
   "IO::Async::Notifier" => 0,
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
   "JSON::MaybeUTF8" => 0,
+  "JSON::MaybeXS" => 0,
   "List::UtilsBy" => 0,
   "Log::Any" => 0,
   "Log::Any::Adapter" => 0,
@@ -93,6 +119,7 @@ my %FallbackPrereqs = (
   "Net::Async::HTTP" => 0,
   "Path::Tiny" => 0,
   "Ryu::Async" => 0,
+  "Scalar::Util" => 0,
   "Syntax::Keyword::Try" => 0,
   "Template" => 0,
   "Test::CheckDeps" => "0.010",
@@ -103,8 +130,13 @@ my %FallbackPrereqs = (
   "URI::Escape" => 0,
   "URI::QueryParam" => 0,
   "URI::Template" => 0,
+  "constant" => 0,
   "indirect" => 0,
-  "mro" => 0
+  "mro" => 0,
+  "parent" => 0,
+  "strict" => 0,
+  "utf8" => 0,
+  "warnings" => 0
 );
 
 
