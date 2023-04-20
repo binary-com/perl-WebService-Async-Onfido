@@ -21,12 +21,12 @@ unless ($pid) {
     exec('perl', $mock_server);
 }
 
-sleep 1;
+sleep 3;
 my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
         token    => 'test_token',
-        base_uri => 'http://localhost:1234'
+        base_uri => 'http://localhost:3000'
     ));
 
 #applicant create
