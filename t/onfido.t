@@ -13,14 +13,12 @@ use FindBin qw($Bin);
 
 my $pid = fork();
 die "fork error " unless defined($pid);
-print STDERR "Start: "."$pid"."\n";
+
 unless ($pid) {
-    print STDERR "Enter unless condition: "."$pid"."\n";
-    print STDERR "server starting"."\n";
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
     # open(STDOUT, '>/dev/null');
     # open(STDERR, '>/dev/null');
-    exec('perl', $mock_server, 'daemon');
+    exec('perl', $mock_server);
 }
 
 sleep 1;
@@ -28,7 +26,7 @@ my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
         token    => 'test_token',
-        base_uri => 'http://localhost:3000'
+        base_uri => 'http://localhost:1234'
     ));
 
 #applicant create
@@ -196,5 +194,5 @@ is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok i
 
 # applicant delete
 lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
-print STDERR "End: "."$pid"."\n";
+
 kill('TERM', $pid);
