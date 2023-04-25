@@ -13,14 +13,15 @@ use FindBin qw($Bin);
 
 my $pid = fork();
 die "fork error " unless defined($pid);
+
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
     open(STDOUT, '>/dev/null');
     open(STDERR, '>/dev/null');
-    exec('perl', $mock_server, 'daemon');
+    exec('perl', $mock_server);
 }
 
-sleep 1;
+sleep 3;
 my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
