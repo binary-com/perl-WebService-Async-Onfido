@@ -2,6 +2,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+    Fix test error.
 
 0.002     2022-11-13 07:43:47+00:00 UTC
     Initial release.
