@@ -2,7 +2,6 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-
     Fix test error.
 
 0.003     2023-05-12 07:51:08+00:00 UTC
