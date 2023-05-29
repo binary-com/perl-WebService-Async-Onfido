@@ -3,6 +3,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.004     2023-05-19 09:14:40+00:00 UTC
+    Fix test error.
+
 0.003     2023-05-12 07:51:08+00:00 UTC
     Fix test error.
 
