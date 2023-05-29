@@ -1,11 +1,21 @@
 ## no critic (RequireExplicitPackage RequireEndWithOne)
 # Automatically enables "strict", "warnings", "utf8" and Perl 5.10 features
+
 use Mojolicious::Lite;
 use Clone 'clone';
 use Date::Utility;
 use Data::UUID;
 use File::Basename;
 use Path::Tiny;
+use JSON::MaybeUTF8 qw(:v1);
+
+# proxy
+use WebService::Async::Onfido;
+
+# New HTTP server implementation
+use Net::Async::HTTP::Server;
+use IO::Async::Loop;
+use HTTP::Response;
 
 # In this script we think the key like '_xxxxx' in hash as private keys. Will not send them
 plugin 'RenderFile';
@@ -29,6 +39,262 @@ my %photos;
 my %files;
 my %reports;
 my %checks;
+
+# Router for the HTTP server
+# nested hashref: http method -> path -> controller
+
+my $loop = IO::Async::Loop->new();
+
+sub json_response {
+    my ($req, $payload) = @_;
+    
+      my $response = HTTP::Response->new(200);
+      my $json = encode_json_utf8($payload);
+
+      $response->add_content($json);
+      $response->content_type('application/json');
+      $response->content_length(length $response->content);
+
+      return $response;
+}
+
+sub route_params {
+    my ($req) = @_;
+
+    return grep { $_ ne '' } split /\//, $req->path;
+}
+
+sub form_data {
+    my ($req) = @_;
+    my $body = $req->body;
+    
+    my $uri = URI->new->query($body);
+
+    use Data::Dumper;
+
+    warn Dumper($body, $uri);
+
+    return {};
+}
+
+sub multipart_data {
+    my ($req) = @_;
+
+    my $content_type = +{map { 
+        @$_
+    } $req->headers }->{'Content-Type'};
+
+    my ($boundary) = $content_type =~ /^multipart\/form-data; boundary=(.*)$/;
+
+    return {} unless $boundary;
+
+    my @parts = split /[\r\n]/, $req->body;
+    my $blanks = 0;
+    my $blank_spree = 0;
+    my $is_blank;
+    my $is_at_boundary;
+    my $header;
+    my $value;
+    my $name;
+    my $data = {};
+    my $headers = {};
+    my $meta = {};
+    my $body_mode = 0;
+
+    # a good enough multipart parser
+
+    for my $part (@parts) {
+        $is_at_boundary = $part eq "--$boundary" || $part eq "--$boundary--";
+
+        # clean up if at boundary
+        $data->{$name} = { value => $value, headers => {$headers->%*}, $meta->%*} if $name && $value;
+        $blanks = 0 if $is_at_boundary;  
+        $blank_spree = 0 if $is_at_boundary;  
+        $body_mode = 0 if $is_at_boundary;
+        $name = undef if $is_at_boundary;
+        $value = '' if $is_at_boundary;
+        $headers = {} if $is_at_boundary;
+        $meta = {} if $is_at_boundary;
+
+        next if $is_at_boundary;
+
+        # blanks counter
+        $is_blank = $part eq '';
+
+        $blanks++ if $is_blank;
+
+        $blank_spree++ if $is_blank;
+
+        $blank_spree = 0 unless $is_blank;
+        
+        # body mode
+
+        $body_mode = 1 if $blank_spree > 2;
+
+        next if $is_blank;
+
+        # headers if one blank
+
+        $header = $part unless $body_mode;
+
+        $header = undef if $body_mode;
+
+        my ($field_name) = $header =~ /^Content-Disposition: form-data; name=\"(.*?)\"/ if $header;
+
+        my ($file_name) = $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/ if $header;
+
+        my ($header_name, $header_value) = split ': ', $header if $header;
+
+        $headers->{$header_name} = $header_value if $header;
+
+        $name = $field_name if $field_name;
+        $meta->{filename} = $file_name if $file_name;
+
+        next unless $name;
+
+        $value .= $part if $body_mode;
+    }
+
+    return $data;
+}
+
+my $router = {
+    post => {
+        '/v3.4/applicants' => sub {
+            my $req         = shift;
+            my $data      = decode_json_utf8($req->body);
+            my $id        = Data::UUID->new->create_str();
+            my $applicant = {
+                id         => $id,
+                created_at => Date::Utility->new()->datetime_iso8601,
+                href       => "v3.4/applicants/$id",
+            };
+            for my $k (keys %$data) {
+                $applicant->{$k} = $data->{$k};
+            }
+            $applicants{$id} = $applicant;
+
+            return json_response($req, $applicant);
+        },
+        '/v3.4/documents' => sub {
+            my $req          = shift;
+            my $data         = multipart_data($req);
+            my $applicant_id = $data->{applicant_id}->{value};
+            my $document_id  = Data::UUID->new->create_str();
+            my $file         = $data->{file};
+            my $document     = {
+                id            => $document_id,
+                created_at    => Date::Utility->new()->datetime_iso8601,
+                href          => "/v3.4/documents/$document_id",
+                download_href => "/v3.4/documents/$document_id/download",
+                _applicant_id => $applicant_id,
+                file_name     => basename($data->{file}->{filename}),
+                file_size     => length $data->{file}->{value},
+                file_type     => $data->{file}->{headers}->{'Content-Type'},
+            };
+            for my $param (qw(type side issuing_country)) {
+                $document->{$param} = $data->{$param}->{value};
+            }
+            $files{$document_id} = Path::Tiny->tempfile;
+            $files{$document_id}->spew_raw($data->{file}->{value});
+            $documents{$document_id} = $document;
+            return json_response($req, clone_and_remove_private($document));
+        },
+    },
+    get => {
+        '/v3.4/applicants' => sub {
+            my $req       = shift;
+            return json_response($req, {applicants => [sort { $b->{created_at} cmp $a->{created_at} } values %applicants]});
+        },
+        '/v3.4/applicants/:id' => sub {
+            my $req       = shift;
+            my @stash     = route_params($req);
+            my $id        = $stash[2];
+
+        # There is no description that what result should be if there is no such applicant.
+        # So return 'Not Found' temporarily
+            my $applicant = $applicants{$id} // {status => 'Not Found'};
+
+            return json_response($req, $applicant);
+        },
+        '/v3.4/documents' => sub {
+            my $req          = shift;
+            my $query        = +{ $req->query_form };
+            my $applicant_id = $query->{applicant_id};
+
+            my @documents =
+                sort { $b->{created_at} cmp $a->{created_at} }
+                map  { clone_and_remove_private($_) }
+                grep { $_->{_applicant_id} eq $applicant_id } values %documents;
+
+            return json_response($req, {documents => \@documents});
+        },
+        '/v3.4/documents/:id' => sub {
+            my $req         = shift;
+            my @stash       = route_params($req);
+            my $document_id = $stash[2];
+
+            unless (exists($documents{$document_id}))
+            {
+                return json_response($req, {status => 'Not Found'});
+            }
+
+            return json_response($req, clone_and_remove_private($documents{$document_id}));
+        },
+    },
+    put => {
+        '/v3.4/applicants/:id' => sub {
+            my $req       = shift;
+            my @stash     = route_params($req);
+            my $id        = $stash[2];
+            my $applicant = $applicants{$id};
+            my $data      = decode_json_utf8($req->body);
+            for my $k (keys %$data) {
+                $applicant->{$k} = $data->{$k};
+            }
+
+            return json_response($req, $applicant);
+        }
+    },
+    delete => {
+
+    }
+};
+
+my $httpserver = Net::Async::HTTP::Server->new(
+   on_request => sub {
+        my $self = shift;
+        my ($req) = @_;
+
+        my $controller = $router->{lc $req->method}->{$req->path};
+
+        unless ($controller) {
+            for my $route (keys $router->{lc $req->method}->%*) {
+                my @path_chunks = split /\//, $req->path;
+                my @route_chunks = split /\//, $route;
+
+                next unless scalar @route_chunks == scalar @path_chunks;
+
+                my @matching_chunks = grep {
+                    my $path_chunk = shift @path_chunks;
+
+                    $_ =~ /^:.*/ ? 1 : $_ eq $path_chunk;
+                } @route_chunks;
+
+            use Data::Dumper;
+             warn Dumper($req->path, $route, [@matching_chunks],[@route_chunks]);
+
+                $controller = $router->{lc $req->method}->{$route} if scalar @matching_chunks == scalar @route_chunks;
+            }
+        }
+
+        use Data::Dumper;
+        warn Dumper($controller, $req->method, $req->path);
+
+        $req->respond($controller->($req)) if $controller;
+        $req->respond(HTTP::Response->new(404)) unless $controller;
+   },
+);
 
 ################################################################################
 # applicants
@@ -336,7 +602,7 @@ sub clone_and_remove_private {
 }
 
 # Start the Mojolicious command system
-app->start('daemon', '-l', "http://*:3000");
+# app->start('daemon', '-l', "http://*:3000");
 
 sub END {
     for my $f (values %files) {
@@ -344,3 +610,12 @@ sub END {
         $f->remove;
     }
 }
+
+# Run the http server
+$loop->add($httpserver);
+
+$httpserver->listen(
+   addr => { family => "inet6", socktype => "stream", port => 3001 },
+)->get;
+ 
+$loop->run;
