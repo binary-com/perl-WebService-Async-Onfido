@@ -193,6 +193,6 @@ ok($token->{token}, 'there is a token in the result');
 is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok in the result');
 
 # applicant delete
-lives_ok { my $t = $onfido->applicant_delete(applicant_id => $app->id)->get; } "delete ok";
+lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
 
 kill('TERM', $pid);
