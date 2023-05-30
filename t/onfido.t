@@ -16,8 +16,8 @@ die "fork error " unless defined($pid);
 
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
-    # open(STDOUT, '>/dev/null');
-    # open(STDERR, '>/dev/null');
+    open(STDOUT, '>/dev/null');
+    open(STDERR, '>/dev/null');
     exec($^X, $mock_server);
 }
 
@@ -26,7 +26,7 @@ my $loop = IO::Async::Loop->new;
 $loop->add(
     my $onfido = WebService::Async::Onfido->new(
         token    => 'test_token',
-        base_uri => 'http://localhost:3001'
+        base_uri => 'http://localhost:3000'
     ));
 
 # applicant create
@@ -193,6 +193,6 @@ ok($token->{token}, 'there is a token in the result');
 is($token->{referrer}, 'https://*.example.com/example_page/*', 'referrer is ok in the result');
 
 # applicant delete
-lives_ok { $onfido->applicant_delete(applicant_id => $app->id)->get } "delete ok";
+lives_ok { my $t = $onfido->applicant_delete(applicant_id => $app->id)->get; } "delete ok";
 
 kill('TERM', $pid);
