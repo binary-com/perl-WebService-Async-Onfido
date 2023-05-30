@@ -1,3 +1,5 @@
+package WebService::Async::Onfido::Mock;
+
 use strict;
 use warnings;
 
