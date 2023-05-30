@@ -10,9 +10,6 @@ use File::Basename;
 use Path::Tiny;
 use JSON::MaybeUTF8 qw(:v1);
 
-# proxy
-use WebService::Async::Onfido;
-
 # New HTTP server implementation
 use Net::Async::HTTP::Server;
 use IO::Async::Loop;
