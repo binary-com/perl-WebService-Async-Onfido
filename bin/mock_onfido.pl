@@ -1,5 +1,5 @@
-## no critic (RequireExplicitPackage RequireEndWithOne)
-# Automatically enables "strict", "warnings", "utf8" and Perl 5.10 features
+use strict;
+use warnings;
 
 use Clone 'clone';
 use Date::Utility;
@@ -498,14 +498,20 @@ sub multipart_data {
         $header = undef if $body_mode;
 
         # specific name of the field
+        my $field_name;
 
-        my ($field_name) = $header =~ /^Content-Disposition: form-data; name=\"(.*?)\"/ if $header;
+        ($field_name) = $header =~ /^Content-Disposition: form-data; name=\"(.*?)\"/ if $header;
 
         # extract the file name if any
+        my $file_name;
 
-        my ($file_name) = $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/ if $header;
+        ($file_name) = $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/ if $header;
 
-        my ($header_name, $header_value) = split ': ', $header if $header;
+        # process the headers
+        
+        my $header_name;
+        my $header_value;
+        ($header_name, $header_value) = split ': ', $header if $header;
 
         $headers->{$header_name} = $header_value if $header;
 
