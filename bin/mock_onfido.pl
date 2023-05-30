@@ -396,6 +396,8 @@ sub END {
         print "removing $f\n";
         $f->remove;
     }
+
+    $loop->stop;
 }
 
 # HTTP SERVER UTILITIES
