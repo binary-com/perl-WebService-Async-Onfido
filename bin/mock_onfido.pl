@@ -508,7 +508,7 @@ sub multipart_data {
         ($file_name) = $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/ if $header;
 
         # process the headers
-        
+
         my $header_name;
         my $header_value;
         ($header_name, $header_value) = split ': ', $header if $header;
@@ -527,3 +527,5 @@ sub multipart_data {
 
     return $data;
 }
+
+1;
