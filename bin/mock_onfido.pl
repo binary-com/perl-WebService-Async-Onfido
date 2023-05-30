@@ -1,5 +1,4 @@
-package WebService::Async::Onfido::Mock;
-
+## no critic (RequireExplicitPackage RequireEndWithOne)
 use strict;
 use warnings;
 
@@ -529,5 +528,3 @@ sub multipart_data {
 
     return $data;
 }
-
-1;
