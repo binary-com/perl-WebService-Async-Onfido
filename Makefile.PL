@@ -29,7 +29,6 @@ my %WriteMakefileArgs = (
   "NAME" => "WebService::Async::Onfido",
   "PREREQ_PM" => {
     "Clone" => 0,
-    "Data::Dumper" => 0,
     "Data::UUID" => 0,
     "Date::Utility" => 0,
     "Dir::Self" => 0,
@@ -94,7 +93,6 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "Clone" => 0,
-  "Data::Dumper" => 0,
   "Data::UUID" => 0,
   "Date::Utility" => 0,
   "Dir::Self" => 0,

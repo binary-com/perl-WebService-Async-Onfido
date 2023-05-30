@@ -1,4 +1,5 @@
 ## no critic (RequireExplicitPackage RequireEndWithOne)
+
 use strict;
 use warnings;
 
@@ -30,12 +31,12 @@ my @sdk_tokens;
 # storage utilities
 
 sub create_report {
-    my ($params, $check_id, $applicant_id) = @_;
+    my ( $params, $check_id, $applicant_id ) = @_;
     my @reports;
     my @document_ids =
-        map  { $_->{id} }
-        grep { $_->{_applicant_id} eq $applicant_id } values %documents;
-    for my $req ($params->{report_names}->@*) {
+      map { $_->{id} }
+      grep { $_->{_applicant_id} eq $applicant_id } values %documents;
+    for my $req ( $params->{report_names}->@* ) {
         my $report_id = Data::UUID->new->create_str();
         my $report    = {
             id         => $report_id,
@@ -45,15 +46,15 @@ sub create_report {
             status     => 'complete',
             result     => 'clear',
             breakdown  => {},
-            properties => {document_type => 'passport'},
+            properties => { document_type => 'passport' },
             $req eq 'document'
-            ? (documents => [map { {id => $_} } @document_ids])
+            ? ( documents => [ map { { id => $_ } } @document_ids ] )
             : (),
         };
         $reports{$report_id} = $report;
         push @reports, $report_id;
     }
-    return [map { clone_and_remove_private($_) } @reports];
+    return [ map { clone_and_remove_private($_) } @reports ];
 }
 
 sub clone_and_remove_private {
@@ -61,8 +62,8 @@ sub clone_and_remove_private {
 
     return $result unless $result && ref($result) eq 'HASH';
     $result = clone($result);
-    for my $k (keys %$result) {
-        if ($k =~ /^_/) {
+    for my $k ( keys %$result ) {
+        if ( $k =~ /^_/ ) {
             delete $result->{$k};
         }
     }
@@ -76,20 +77,20 @@ sub clone_and_remove_private {
 my $router = {
     post => {
         '/v3.4/applicants' => sub {
-            my $req         = shift;
-            my $data      = decode_json_utf8($req->body);
+            my $req       = shift;
+            my $data      = decode_json_utf8( $req->body );
             my $id        = Data::UUID->new->create_str();
             my $applicant = {
                 id         => $id,
                 created_at => Date::Utility->new()->datetime_iso8601,
                 href       => "v3.4/applicants/$id",
             };
-            for my $k (keys %$data) {
+            for my $k ( keys %$data ) {
                 $applicant->{$k} = $data->{$k};
             }
             $applicants{$id} = $applicant;
 
-            return json_response($req, $applicant);
+            return json_response( $req, $applicant );
         },
         '/v3.4/documents' => sub {
             my $req          = shift;
@@ -103,7 +104,7 @@ my $router = {
                 href          => "/v3.4/documents/$document_id",
                 download_href => "/v3.4/documents/$document_id/download",
                 _applicant_id => $applicant_id,
-                file_name     => basename($data->{file}->{filename}),
+                file_name     => basename( $data->{file}->{filename} ),
                 file_size     => length $data->{file}->{value},
                 file_type     => $data->{file}->{headers}->{'Content-Type'},
             };
@@ -112,9 +113,9 @@ my $router = {
             }
 
             $files{$document_id} = Path::Tiny->tempfile;
-            $files{$document_id}->spew_raw($data->{file}->{value});
+            $files{$document_id}->spew_raw( $data->{file}->{value} );
             $documents{$document_id} = $document;
-            return json_response($req, clone_and_remove_private($document));
+            return json_response( $req, clone_and_remove_private($document) );
         },
         '/v3.4/live_photos' => sub {
             my $req          = shift;
@@ -130,45 +131,46 @@ my $router = {
                 href          => "/v3.4/live_photos/$photo_id",
                 download_href => "/v3.4/live_photos/$photo_id/download",
             };
-            my $file                = $data->{file};
-            $photo->{file_name}     = basename($data->{file}->{filename});
-            $photo->{file_size}     = length $data->{file}->{value};
-            $photo->{file_type}     = $data->{file}->{headers}->{'Content-Type'};
-            $files{$photo_id}       = Path::Tiny->tempfile;
-            $files{$photo_id}->spew_raw($data->{file}->{value});
+            my $file = $data->{file};
+            $photo->{file_name} = basename( $data->{file}->{filename} );
+            $photo->{file_size} = length $data->{file}->{value};
+            $photo->{file_type} = $data->{file}->{headers}->{'Content-Type'};
+            $files{$photo_id}   = Path::Tiny->tempfile;
+            $files{$photo_id}->spew_raw( $data->{file}->{value} );
             $photo->{_applicant_id} = $applicant_id;
-            $photos{$photo_id}      = $photo;
+            $photos{$photo_id} = $photo;
 
-            return json_response($req, clone_and_remove_private($photo));
+            return json_response( $req, clone_and_remove_private($photo) );
         },
         '/v3.4/checks' => sub {
             my $req          = shift;
-            my $data         = decode_json_utf8($req->body);
+            my $data         = decode_json_utf8( $req->body );
             my $applicant_id = $data->{applicant_id};
             my $check_id     = Data::UUID->new->create_str();
             my $check        = {
-                id            => $check_id,
-                created_at    => Date::Utility->new()->datetime_iso8601,
-                href          => "/v3.4/checks/$check_id",
-                status        => 'in_progress',
-                result        => 'clear',
-                redirect_uri  => 'https://somewhere.else',
-                results_uri   => "https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
-                reports_ids   => create_report($data, $check_id, $applicant_id),
-                tags          => $data->{tags},
-                applicant_id  => $applicant_id,
+                id           => $check_id,
+                created_at   => Date::Utility->new()->datetime_iso8601,
+                href         => "/v3.4/checks/$check_id",
+                status       => 'in_progress',
+                result       => 'clear',
+                redirect_uri => 'https://somewhere.else',
+                results_uri  =>
+"https://onfido.com/dashboard/information_requests/<REQUEST_ID>",
+                reports_ids => create_report( $data, $check_id, $applicant_id ),
+                tags        => $data->{tags},
+                applicant_id => $applicant_id,
             };
             $checks{$check_id} = $check;
 
-            return json_response($req, clone_and_remove_private($check));
+            return json_response( $req, clone_and_remove_private($check) );
         },
         '/v3.4/sdk_token' => sub {
             my $req          = shift;
-            my $data         = decode_json_utf8($req->body);
+            my $data         = decode_json_utf8( $req->body );
             my $applicant_id = $data->{applicant_id};
             my $referrer     = $data->{referrer};
-            unless (exists($applicants{$applicant_id}) && $referrer) {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $applicants{$applicant_id} ) && $referrer ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
             my $sdk_token = {
                 token        => Data::UUID->new->create_str(),
@@ -176,24 +178,32 @@ my $router = {
                 referrer     => $referrer,
             };
             push @sdk_tokens, $sdk_token;
-            return json_response($req, $sdk_token);
+            return json_response( $req, $sdk_token );
         },
     },
     get => {
         '/v3.4/applicants' => sub {
-            my $req       = shift;
-            return json_response($req, {applicants => [sort { $b->{created_at} cmp $a->{created_at} } values %applicants]});
+            my $req = shift;
+            return json_response(
+                $req,
+                {
+                    applicants => [
+                        sort { $b->{created_at} cmp $a->{created_at} }
+                          values %applicants
+                    ]
+                }
+            );
         },
         '/v3.4/applicants/:id' => sub {
-            my $req       = shift;
-            my @stash     = route_params($req);
-            my $id        = $stash[2];
+            my $req   = shift;
+            my @stash = route_params($req);
+            my $id    = $stash[2];
 
-        # There is no description that what result should be if there is no such applicant.
-        # So return 'Not Found' temporarily
-            my $applicant = $applicants{$id} // {status => 'Not Found'};
+# There is no description that what result should be if there is no such applicant.
+# So return 'Not Found' temporarily
+            my $applicant = $applicants{$id} // { status => 'Not Found' };
 
-            return json_response($req, $applicant);
+            return json_response( $req, $applicant );
         },
         '/v3.4/documents' => sub {
             my $req          = shift;
@@ -201,35 +211,34 @@ my $router = {
             my $applicant_id = $query->{applicant_id};
 
             my @documents =
-                sort { $b->{created_at} cmp $a->{created_at} }
-                map  { clone_and_remove_private($_) }
-                grep { $_->{_applicant_id} eq $applicant_id } values %documents;
+              sort { $b->{created_at} cmp $a->{created_at} }
+              map  { clone_and_remove_private($_) }
+              grep { $_->{_applicant_id} eq $applicant_id } values %documents;
 
-            return json_response($req, {documents => \@documents});
+            return json_response( $req, { documents => \@documents } );
         },
         '/v3.4/documents/:id' => sub {
             my $req         = shift;
             my @stash       = route_params($req);
             my $document_id = $stash[2];
 
-            unless (exists($documents{$document_id}))
-            {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $documents{$document_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
 
-            return json_response($req, clone_and_remove_private($documents{$document_id}));
+            return json_response( $req,
+                clone_and_remove_private( $documents{$document_id} ) );
         },
         '/v3.4/documents/:document_id/download' => sub {
             my $req         = shift;
             my @stash       = route_params($req);
             my $document_id = $stash[2];
 
-            unless (exists($documents{$document_id}))
-            {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $documents{$document_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
 
-            return file_response($req, $document_id);
+            return file_response( $req, $document_id );
         },
         '/v3.4/live_photos' => sub {
             my $req          = shift;
@@ -237,46 +246,46 @@ my $router = {
             my $applicant_id = $query->{applicant_id};
 
             my @photos =
-                sort { $b->{created_at} cmp $a->{created_at} }
-                map  { clone_and_remove_private($_) }
-                grep { $_->{_applicant_id} eq $applicant_id } values %photos;
+              sort { $b->{created_at} cmp $a->{created_at} }
+              map  { clone_and_remove_private($_) }
+              grep { $_->{_applicant_id} eq $applicant_id } values %photos;
 
-            return json_response($req, {live_photos => \@photos});
+            return json_response( $req, { live_photos => \@photos } );
         },
         '/v3.4/live_photos/:photo_id' => sub {
             my $req      = shift;
             my @stash    = route_params($req);
             my $photo_id = $stash[2];
 
-            unless (exists($photos{$photo_id}))
-            {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $photos{$photo_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
 
-            return json_response($req, clone_and_remove_private($photos{$photo_id}));
+            return json_response( $req,
+                clone_and_remove_private( $photos{$photo_id} ) );
         },
         '/v3.4/live_photos/:photo_id/download' => sub {
             my $req      = shift;
             my @stash    = route_params($req);
             my $photo_id = $stash[2];
 
-            unless (exists($photos{$photo_id}))
-            {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $photos{$photo_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
 
-            return file_response($req, $photo_id);
+            return file_response( $req, $photo_id );
         },
         '/v3.4/checks/:check_id' => sub {
             my $req      = shift;
             my @stash    = route_params($req);
             my $check_id = $stash[2];
 
-            unless (exists($checks{$check_id})){
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $checks{$check_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
             $checks{$check_id}{status} = 'complete';
-            return json_response($req, clone_and_remove_private($checks{$check_id}));
+            return json_response( $req,
+                clone_and_remove_private( $checks{$check_id} ) );
         },
         '/v3.4/checks' => sub {
             my $req          = shift;
@@ -284,10 +293,10 @@ my $router = {
             my $applicant_id = $query->{applicant_id};
 
             my @checks =
-                sort { $b->{created_at} cmp $a->{created_at} }
-                map  { clone_and_remove_private($_) }
-                grep { $_->{applicant_id} eq $applicant_id } values %checks;
-            return json_response($req, {checks => \@checks});
+              sort { $b->{created_at} cmp $a->{created_at} }
+              map  { clone_and_remove_private($_) }
+              grep { $_->{applicant_id} eq $applicant_id } values %checks;
+            return json_response( $req, { checks => \@checks } );
         },
         '/v3.4/reports' => sub {
             my $req      = shift;
@@ -295,20 +304,20 @@ my $router = {
             my $check_id = $query->{check_id};
 
             my @reports =
-                sort { $b->{created_at} cmp $a->{created_at} }
-                map  { clone_and_remove_private($_) }
-                grep { $_->{_check_id} eq $check_id } values %reports;
-            return json_response($req, {reports => \@reports});
+              sort { $b->{created_at} cmp $a->{created_at} }
+              map  { clone_and_remove_private($_) }
+              grep { $_->{_check_id} eq $check_id } values %reports;
+            return json_response( $req, { reports => \@reports } );
         },
         '/v3.4/reports/:report_id' => sub {
             my $req       = shift;
             my @stash     = route_params($req);
             my $report_id = $stash[2];
-            unless (exists($reports{$report_id}))
-            {
-                return json_response($req, {status => 'Not Found'});
+            unless ( exists( $reports{$report_id} ) ) {
+                return json_response( $req, { status => 'Not Found' } );
             }
-            return json_response($req, clone_and_remove_private($reports{$report_id}));
+            return json_response( $req,
+                clone_and_remove_private( $reports{$report_id} ) );
         },
     },
     put => {
@@ -317,12 +326,12 @@ my $router = {
             my @stash     = route_params($req);
             my $id        = $stash[2];
             my $applicant = $applicants{$id};
-            my $data      = decode_json_utf8($req->body);
-            for my $k (keys %$data) {
+            my $data      = decode_json_utf8( $req->body );
+            for my $k ( keys %$data ) {
                 $applicant->{$k} = $data->{$k};
             }
 
-            return json_response($req, $applicant);
+            return json_response( $req, $applicant );
         }
     },
     delete => {
@@ -331,10 +340,10 @@ my $router = {
             my @stash = route_params($req);
             my $id    = $stash[2];
 
-            if (exists $applicants{$id}) {
+            if ( exists $applicants{$id} ) {
                 $deleted_applicants{$id} = delete $applicants{$id};
                 $deleted_applicants{$id}->{delete_at} =
-                    Date::Utility->new()->datetime_iso8601;
+                  Date::Utility->new()->datetime_iso8601;
             }
 
             # no content
@@ -346,15 +355,15 @@ my $router = {
 # here lies the http server
 
 my $httpserver = Net::Async::HTTP::Server->new(
-   on_request => sub {
+    on_request => sub {
         my $self = shift;
         my ($req) = @_;
 
-        my $controller = $router->{lc $req->method}->{$req->path};
+        my $controller = $router->{ lc $req->method }->{ $req->path };
 
         unless ($controller) {
-            for my $route (keys $router->{lc $req->method}->%*) {
-                my @path_chunks = split /\//, $req->path;
+            for my $route ( keys $router->{ lc $req->method }->%* ) {
+                my @path_chunks  = split /\//, $req->path;
                 my @route_chunks = split /\//, $route;
 
                 next unless scalar @route_chunks == scalar @path_chunks;
@@ -365,13 +374,14 @@ my $httpserver = Net::Async::HTTP::Server->new(
                     $_ =~ /^:.*/ ? 1 : $_ eq $path_chunk;
                 } @route_chunks;
 
-                $controller = $router->{lc $req->method}->{$route} if scalar @matching_chunks == scalar @route_chunks;
+                $controller = $router->{ lc $req->method }->{$route}
+                  if scalar @matching_chunks == scalar @route_chunks;
             }
         }
 
-        $req->respond($controller->($req)) if $controller;
-        $req->respond(HTTP::Response->new(404)) unless $controller;
-   },
+        $req->respond( $controller->($req) ) if $controller;
+        $req->respond( HTTP::Response->new(404) ) unless $controller;
+    },
 );
 
 # Run the HTTP server
@@ -380,13 +390,12 @@ my $loop = IO::Async::Loop->new();
 $loop->add($httpserver);
 
 $httpserver->listen(
-   addr => { family => "inet6", socktype => "stream", port => 3000 },
-)->get;
- 
+    addr => { family => "inet6", socktype => "stream", port => 3000 }, )->get;
+
 $loop->run;
 
 sub END {
-    for my $f (values %files) {
+    for my $f ( values %files ) {
         print "removing $f\n";
         $f->remove;
     }
@@ -397,33 +406,35 @@ sub END {
 # sends a json response
 
 sub json_response {
-    my ($req, $payload) = @_;
-    
-      my $response = HTTP::Response->new(200);
-      my $json = encode_json_utf8($payload);
+    my ( $req, $payload ) = @_;
 
-      $response->add_content($json);
-      $response->content_type('application/json');
-      $response->content_length(length $response->content);
+    my $response = HTTP::Response->new(200);
+    my $json     = encode_json_utf8($payload);
 
-      return $response;
+    $response->add_content($json);
+    $response->content_type('application/json');
+    $response->content_length( length $response->content );
+
+    return $response;
 }
 
 # dumps a file
 
 sub file_response {
-    my ($req, $id) = @_;
+    my ( $req, $id ) = @_;
 
-      my $response = HTTP::Response->new(200);
-      $response->add_content($files{$id}->slurp_raw);
+    my $response = HTTP::Response->new(200);
+    $response->add_content( $files{$id}->slurp_raw );
 
-      my $data = $documents{$id} // $photos{$id};
+    my $data = $documents{$id} // $photos{$id};
 
-      $response->content_type($data->{file_type});
-      $response->content_length($data->{file_size});
-      $response->header('content-disposition' => 'attachment; filename="' . $data->{file_name} . '";');
+    $response->content_type( $data->{file_type} );
+    $response->content_length( $data->{file_size} );
+    $response->header( 'content-disposition' => 'attachment; filename="'
+          . $data->{file_name}
+          . '";' );
 
-      return $response;
+    return $response;
 }
 
 # fetch route params
@@ -439,25 +450,23 @@ sub route_params {
 sub multipart_data {
     my ($req) = @_;
 
-    my $content_type = +{map { 
-        @$_
-    } $req->headers }->{'Content-Type'};
+    my $content_type = +{ map { @$_ } $req->headers }->{'Content-Type'};
 
     my ($boundary) = $content_type =~ /^multipart\/form-data; boundary=(.*)$/;
 
     return {} unless $boundary;
 
-    my @parts = split /[\r\n]/, $req->body;
-    my $blanks = 0;
+    my @parts       = split /[\r\n]/, $req->body;
+    my $blanks      = 0;
     my $blank_spree = 0;
     my $is_blank;
     my $is_at_boundary;
     my $header;
     my $value;
     my $name;
-    my $data = {};
-    my $headers = {};
-    my $meta = {};
+    my $data      = {};
+    my $headers   = {};
+    my $meta      = {};
     my $body_mode = 0;
 
     # a good enough multipart parser
@@ -466,14 +475,16 @@ sub multipart_data {
         $is_at_boundary = $part eq "--$boundary" || $part eq "--$boundary--";
 
         # clean up if at boundary
-        $data->{$name} = { value => $value, headers => {$headers->%*}, $meta->%*} if $name && $value;
-        $blanks = 0 if $is_at_boundary;  
-        $blank_spree = 0 if $is_at_boundary;  
-        $body_mode = 0 if $is_at_boundary;
-        $name = undef if $is_at_boundary;
-        $value = '' if $is_at_boundary;
-        $headers = {} if $is_at_boundary;
-        $meta = {} if $is_at_boundary;
+        $data->{$name} =
+          { value => $value, headers => { $headers->%* }, $meta->%* }
+          if $name && $value;
+        $blanks      = 0     if $is_at_boundary;
+        $blank_spree = 0     if $is_at_boundary;
+        $body_mode   = 0     if $is_at_boundary;
+        $name        = undef if $is_at_boundary;
+        $value       = ''    if $is_at_boundary;
+        $headers     = {}    if $is_at_boundary;
+        $meta        = {}    if $is_at_boundary;
 
         next if $is_at_boundary;
 
@@ -485,7 +496,7 @@ sub multipart_data {
         $blank_spree++ if $is_blank;
 
         $blank_spree = 0 unless $is_blank;
-        
+
         # activate body mode
 
         $body_mode = 1 if $blank_spree > 2;
@@ -501,23 +512,27 @@ sub multipart_data {
         # specific name of the field
         my $field_name;
 
-        ($field_name) = $header =~ /^Content-Disposition: form-data; name=\"(.*?)\"/ if $header;
+        ($field_name) =
+          $header =~ /^Content-Disposition: form-data; name=\"(.*?)\"/
+          if $header;
 
         # extract the file name if any
         my $file_name;
 
-        ($file_name) = $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/ if $header;
+        ($file_name) =
+          $header =~ /^Content-Disposition: form-data;.*filename=\"(.*?)\"/
+          if $header;
 
         # process the headers
 
         my $header_name;
         my $header_value;
-        ($header_name, $header_value) = split ': ', $header if $header;
+        ( $header_name, $header_value ) = split ': ', $header if $header;
 
         $headers->{$header_name} = $header_value if $header;
 
-        $name = $field_name if $field_name;
-        $meta->{filename} = $file_name if $file_name;
+        $name             = $field_name if $field_name;
+        $meta->{filename} = $file_name  if $file_name;
 
         next unless $name;
 
