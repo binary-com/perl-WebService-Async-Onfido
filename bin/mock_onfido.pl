@@ -377,7 +377,7 @@ my $httpserver = Net::Async::HTTP::Server->new(
         }
 
         $req->respond( $controller->($req) ) if $controller;
-        $req->respond( HTTP::Response->new(404) ) unless $controller;
+        $controller ? $req->respond($controller->($req)) : $req->respond(HTTP::Response->new(404));
     },
 );
 
