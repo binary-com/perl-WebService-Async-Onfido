@@ -358,6 +358,10 @@ my $httpserver = Net::Async::HTTP::Server->new(
 
         my $controller = $router->{ lc $req->method }->{ $req->path };
 
+        # parametric route pairing
+        # if some route is parametric (e.g: /:document_id)
+        # we will split that path and compare coincidences against the router
+        # a full coincidence would resolve to that controller
         unless ($controller) {
             for my $route ( keys $router->{ lc $req->method }->%* ) {
                 my @path_chunks  = split /\//, $req->path;
@@ -368,16 +372,22 @@ my $httpserver = Net::Async::HTTP::Server->new(
                 my @matching_chunks = grep {
                     my $path_chunk = shift @path_chunks;
 
+# a parametric path can be considered a coincidence regardless of the actual path value
+# at that position
                     $_ =~ /^:.*/ ? 1 : $_ eq $path_chunk;
                 } @route_chunks;
 
                 $controller = $router->{ lc $req->method }->{$route}
                   if scalar @matching_chunks == scalar @route_chunks;
+
+                last if $controller;
             }
         }
 
         $req->respond( $controller->($req) ) if $controller;
-        $controller ? $req->respond($controller->($req)) : $req->respond(HTTP::Response->new(404));
+        $controller
+          ? $req->respond( $controller->($req) )
+          : $req->respond( HTTP::Response->new(404) );
     },
 );
 
