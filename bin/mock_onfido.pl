@@ -384,7 +384,6 @@ my $httpserver = Net::Async::HTTP::Server->new(
             }
         }
 
-        $req->respond( $controller->($req) ) if $controller;
         $controller
           ? $req->respond( $controller->($req) )
           : $req->respond( HTTP::Response->new(404) );
