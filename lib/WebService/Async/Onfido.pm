@@ -63,10 +63,40 @@ my %FILE_MIME_TYPE_MAPPING = (
 
 sub configure {
     my ($self, %args) = @_;
-    for my $k (qw(token requests_per_minute base_uri)) {
+    for my $k (qw(token requests_per_minute base_uri on_api_hit on_rate_limit)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
     return $self->next::method(%args);
+}
+
+=head2 hook
+
+Executes a hook, if specified at configure time.
+
+Takes the following:
+
+=over 4
+
+=item * C<$hook> - the hook to execute
+
+=item * C<$data> - data to pass to the sub
+
+=back
+
+It returns C<undef>
+
+=cut
+
+sub hook {
+    my ($self, $hook, $data) = @_;
+
+    return undef unless $self->{$hook};
+
+    return undef unless ref($self->{$hook}) eq 'CODE';
+
+    $self->{$hook}->($data);
+
+    return undef;
 }
 
 =head2 applicant_list
@@ -86,6 +116,9 @@ sub applicant_list {
     (repeat {
         $log->tracef('GET %s', "$uri");
         $self->rate_limiting->then(sub {
+            $self->hook('on_api_hit', {
+                GET => $uri
+            });
             $self->ua->GET(
                 $uri,
                 $self->auth_headers,
@@ -158,6 +191,9 @@ sub paging {
     (repeat {
         $log->tracef('GET %s', "$uri");
         $self->rate_limiting->then(sub {
+            $self->hook('on_api_hit', {
+                GET => $uri
+            });
             $self->ua->GET(
                 $uri,
                 $self->auth_headers,
@@ -235,8 +271,13 @@ instance on successful completion.
 sub applicant_create {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('applicants');
+        $self->hook('on_api_hit', {
+            POST => $uri,
+            body => \%args,
+        });
         $self->ua->POST(
-            $self->endpoint('applicants'),
+            $uri,
             encode_json_utf8(\%args),
             content_type => 'application/json',
             $self->auth_headers,
@@ -271,8 +312,13 @@ Returns a L<Future> which resolves to empty on success.
 sub applicant_update {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('applicant', %args);
+        $self->hook('on_api_hit', {
+            PUT => $uri,
+            body => \%args,
+        });
         $self->ua->PUT(
-            $self->endpoint('applicant', %args),
+            $uri,
             encode_json_utf8(\%args),
             content_type => 'application/json',
             $self->auth_headers,
@@ -302,8 +348,12 @@ Returns a L<Future> which resolves to empty on success.
 sub applicant_delete {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('applicant', %args);
+        $self->hook('on_api_hit', {
+            DELETE => $uri,
+        });
         $self->ua->do_request(
-            uri => $self->endpoint('applicant', %args),
+            uri => $uri,
             method => 'DELETE',
             $self->auth_headers,
         )
@@ -333,8 +383,12 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 sub applicant_get {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('applicant', %args);
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
-            uri => $self->endpoint('applicant', %args),
+            uri => $uri,
             method => 'GET',
             $self->auth_headers,
         )
@@ -360,8 +414,12 @@ sub applicant_get {
 sub check_get {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('check', %args);
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
-            uri    => $self->endpoint('check', %args),
+            uri    => $uri,
             method => 'GET',
             $self->auth_headers,
         )
@@ -408,6 +466,9 @@ sub document_list {
     $uri->query('applicant_id=' . uri_escape_utf8($args{applicant_id}));
 
     $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -462,6 +523,9 @@ sub get_document_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('document', %args);
     return $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -509,6 +573,9 @@ sub photo_list {
     my $src = $self->source;
     my $uri = $self->endpoint('photos', %args);
     $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -561,6 +628,9 @@ sub get_photo_details {
     my ($self, %args) = @_;
     my $uri = $self->endpoint('photo', %args);
     return $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->GET(
             $uri,
             $self->auth_headers,
@@ -621,6 +691,11 @@ sub document_upload {
         %{$self->auth_headers},
     );
     return $self->rate_limiting->then(sub {
+        delete $args{data};
+        $self->hook('on_api_hit', {
+            POST => $uri,
+            body => \%args
+        });
         $self->ua->do_request(
             request => $req,
         )
@@ -689,6 +764,11 @@ sub live_photo_upload {
     );
     $log->tracef('Photo upload: %s', $req->as_string("\n"));
     return $self->rate_limiting->then(sub {
+        delete $args{data};
+        $self->hook('on_api_hit', {
+            POST => $uri,
+            body => \%args
+        });
         $self->ua->do_request(
             request => $req,
         )
@@ -765,8 +845,13 @@ sub applicant_check {
     my ($self, %args) = @_;
     use Path::Tiny;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('checks');
+        $self->hook('on_api_hit', {
+            POST => $uri,
+            body => \%args
+        });
         $self->ua->POST(
-            $self->endpoint('checks'),
+            $uri,
             encode_json_utf8(\%args),
             content_type => 'application/json',
             $self->auth_headers,
@@ -812,6 +897,9 @@ sub check_list {
 
     $log->tracef('GET %s', "$uri");
     $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
             uri    => $uri,
             method => 'GET',
@@ -847,8 +935,12 @@ sub check_list {
 sub report_get {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('report', %args);
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
-            uri => $self->endpoint('report', %args),
+            uri => $uri,
             method => 'GET',
             $self->auth_headers,
         )
@@ -884,6 +976,9 @@ sub report_list {
     $log->tracef('GET %s', "$uri");
 
     $self->rate_limiting->then(sub {
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
             uri    => $uri,
             method => 'GET',
@@ -933,8 +1028,12 @@ Returns a photo file blob
 sub download_photo {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('photo_download', %args);
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
-            uri => $self->endpoint('photo_download', %args),
+            uri => $uri,
             method => 'GET',
             $self->auth_headers,
         )
@@ -974,8 +1073,12 @@ Returns a document file blob
 sub download_document {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('document_download', %args);
+        $self->hook('on_api_hit', {
+            GET => $uri,
+        });
         $self->ua->do_request(
-            uri => $self->endpoint('document_download', %args),
+            uri => $uri,
             method => 'GET',
             $self->auth_headers,
         )
@@ -1086,8 +1189,13 @@ Takes the following named parameters:
 sub sdk_token {
     my ($self, %args) = @_;
     return $self->rate_limiting->then(sub {
+        my $uri = $self->endpoint('sdk_token');
+        $self->hook('on_api_hit', {
+            POST => $uri,
+            body => \%args,
+        });
         $self->ua->POST(
-            $self->endpoint('sdk_token'),
+            $uri,
             encode_json_utf8(\%args),
             content_type => 'application/json',
             $self->auth_headers,
@@ -1221,6 +1329,10 @@ sub rate_limiting {
         })
     };
     return Future->done unless $self->requests_per_minute and ++$self->{request_count} >= $self->requests_per_minute;
+    $self->hook('on_rate_limit', {
+        requests_count => $self->{request_count},
+        requests_per_minute => $self->requests_per_minute,
+    });
     return $self->{rate_limit};
 }
 
