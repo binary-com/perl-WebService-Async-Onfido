@@ -4,7 +4,7 @@ package WebService::Async::Onfido;
 use strict;
 use warnings;
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 use parent qw(IO::Async::Notifier);
 
