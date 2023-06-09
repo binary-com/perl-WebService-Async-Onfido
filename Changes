@@ -3,6 +3,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.005     2023-06-08 00:49:24+00:00 UTC
+    Replace Mojolicious with Net::Async::HTTP::Server
+
 0.004     2023-05-19 09:14:40+00:00 UTC
     Fix test error.
 
