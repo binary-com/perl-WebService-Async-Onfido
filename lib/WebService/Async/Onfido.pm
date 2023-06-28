@@ -1,4 +1,5 @@
 package WebService::Async::Onfido;
+
 # ABSTRACT: Webservice to connect to Onfido API
 
 use strict;
@@ -38,7 +39,7 @@ use HTTP::Request::Common;
 use JSON::MaybeUTF8 qw(:v1);
 use JSON::MaybeXS;
 use File::ShareDir;
-use URI::Escape qw(uri_escape_utf8);
+use URI::Escape  qw(uri_escape_utf8);
 use Scalar::Util qw(blessed);
 
 use WebService::Async::Onfido::Applicant;
@@ -50,7 +51,8 @@ use WebService::Async::Onfido::Check;
 use WebService::Async::Onfido::Report;
 
 use Log::Any qw($log);
-use constant SUPPORTED_COUNTRIES_URL => 'https://documentation.onfido.com/identityISOsupported.json';
+use constant SUPPORTED_COUNTRIES_URL =>
+  'https://documentation.onfido.com/identityISOsupported.json';
 
 # Mapping file extension to mime type for currently
 # supported document types
@@ -62,11 +64,46 @@ my %FILE_MIME_TYPE_MAPPING = (
 );
 
 sub configure {
-    my ($self, %args) = @_;
-    for my $k (qw(token requests_per_minute base_uri)) {
+    my ( $self, %args ) = @_;
+    for my $k (
+        qw(token requests_per_minute base_uri on_api_hit on_rate_limit rate_limit_delay)
+      )
+    {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
+
+    $self->{rate_limit_delay} //= 60;
     return $self->next::method(%args);
+}
+
+=head2 hook
+
+Executes a hook, if specified at configure time.
+
+Takes the following:
+
+=over 4
+
+=item * C<$hook> - the hook to execute
+
+=item * C<$data> - data to pass to the sub
+
+=back
+
+It returns C<undef>
+
+=cut
+
+sub hook {
+    my ( $self, $hook, $data ) = @_;
+
+    return undef unless $self->{$hook};
+
+    return undef unless ref( $self->{$hook} ) eq 'CODE';
+
+    $self->{$hook}->($data);
+
+    return undef;
 }
 
 =head2 applicant_list
@@ -80,52 +117,66 @@ each applicant found.
 
 sub applicant_list {
     my ($self) = @_;
-    my $src = $self->source;
-    my $f = $src->completed;
-    my $uri = $self->endpoint('applicants');
-    (repeat {
-        $log->tracef('GET %s', "$uri");
-        $self->rate_limiting->then(sub {
-            $self->ua->GET(
-                $uri,
-                $self->auth_headers,
-            )
-        })->then(sub {
-            try {
-                my ($res) = @_;
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                my ($total) = $res->header('X-Total-Count');
-                $log->tracef('Expected total count %d', $total);
-                for(@{$data->{applicants}}) {
-                    return $f if $f->is_ready;
-                    $src->emit(
-                        WebService::Async::Onfido::Applicant->new(
-                            %$_,
-                            onfido => $self
-                        )
+    my $src    = $self->source;
+    my $f      = $src->completed;
+    my $uri    = $self->endpoint('applicants');
+    (
+        repeat {
+            $log->tracef( 'GET %s', "$uri" );
+            $self->rate_limiting->then(
+                sub {
+                    $self->hook(
+                        'on_api_hit',
+                        {
+                            GET => $uri
+                        }
                     );
+                    $self->ua->GET( $uri, $self->auth_headers, );
                 }
-                $log->tracef('Links are %s', [ $res->header('Link') ]);
-                my %links = $self->extract_links($res->header('Link'));
-                if(my $next = $links{next}) {
-                    ($uri) = $next;
-                } else {
-                    $src->finish;
+            )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        my $data = decode_json_utf8( $res->content );
+                        $log->tracef( 'Have response %s', $data );
+                        my ($total) = $res->header('X-Total-Count');
+                        $log->tracef( 'Expected total count %d', $total );
+                        for ( @{ $data->{applicants} } ) {
+                            return $f if $f->is_ready;
+                            $src->emit(
+                                WebService::Async::Onfido::Applicant->new(
+                                    %$_, onfido => $self
+                                )
+                            );
+                        }
+                        $log->tracef( 'Links are %s',
+                            [ $res->header('Link') ] );
+                        my %links =
+                          $self->extract_links( $res->header('Link') );
+                        if ( my $next = $links{next} ) {
+                            ($uri) = $next;
+                        }
+                        else {
+                            $src->finish;
+                        }
+                        return Future->done;
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf( 'Failed - %s', $err );
+                        return Future->fail($err);
+                    }
+                },
+                sub {
+                    my ( $err, @details ) = @_;
+                    $log->errorf( 'Failed to request document_list: %s', $err );
+                    $src->fail( $err, @details ) unless $src->is_ready;
+                    Future->fail( $err, @details );
                 }
-                return Future->done;
-            } catch {
-                my ($err) = $@;
-                $log->errorf('Failed - %s', $err);
-                return Future->fail($err);
-            }
-        }, sub {
-            my ($err, @details) = @_;
-            $log->errorf('Failed to request document_list: %s', $err);
-            $src->fail($err, @details) unless $src->is_ready;
-            Future->fail($err, @details);
-        })
-    } until => sub { $f->is_ready })->retain;
+            )
+        }
+        until => sub { $f->is_ready }
+    )->retain;
     return $src;
 }
 
@@ -147,49 +198,66 @@ Returns a L<Ryu::Source>.
 =cut
 
 sub paging {
-    my ($self, $starting_uri, $factory) = @_;
-    my $uri = ref($starting_uri)
-    ? $starting_uri->clone
-    : URI->new($starting_uri);
+    my ( $self, $starting_uri, $factory ) = @_;
+    my $uri =
+      ref($starting_uri)
+      ? $starting_uri->clone
+      : URI->new($starting_uri);
 
-    my $src = $self->source;
-    my $f = $src->completed;
+    my $src  = $self->source;
+    my $f    = $src->completed;
     my $code = $factory->($src);
-    (repeat {
-        $log->tracef('GET %s', "$uri");
-        $self->rate_limiting->then(sub {
-            $self->ua->GET(
-                $uri,
-                $self->auth_headers,
-            )
-        })->then(sub {
-            try {
-                my ($res) = @_;
-                my $data = decode_json_utf8($res->content);
-                $log->tracef('Have response %s', $data);
-                my ($total) = $res->header('X-Total-Count');
-                $log->tracef('Expected total count %d', $total);
-                $code->($data);
-                $log->tracef('Links are %s', [ $res->header('Link') ]);
-                my %links = $self->extract_links($res->header('Link'));
-                if(my $next = $links{next}) {
-                    ($uri) = $next;
-                } else {
-                    $src->finish;
+    (
+        repeat {
+            $log->tracef( 'GET %s', "$uri" );
+            $self->rate_limiting->then(
+                sub {
+                    $self->hook(
+                        'on_api_hit',
+                        {
+                            GET => $uri
+                        }
+                    );
+                    $self->ua->GET( $uri, $self->auth_headers, );
                 }
-                return Future->done;
-            } catch {
-                my ($err) = $@;
-                $log->errorf('Failed - %s', $err);
-                return Future->fail($err);
-            }
-        }, sub {
-            my ($err, @details) = @_;
-            $log->errorf('Failed to request %s: %s', $uri, $err);
-            $src->fail($err, @details) unless $src->is_ready;
-            Future->fail($err, @details);
-        })
-    } until => sub { $f->is_ready })->retain;
+            )->then(
+                sub {
+                    try {
+                        my ($res) = @_;
+                        my $data = decode_json_utf8( $res->content );
+                        $log->tracef( 'Have response %s', $data );
+                        my ($total) = $res->header('X-Total-Count');
+                        $log->tracef( 'Expected total count %d', $total );
+                        $code->($data);
+                        $log->tracef( 'Links are %s',
+                            [ $res->header('Link') ] );
+                        my %links =
+                          $self->extract_links( $res->header('Link') );
+
+                        if ( my $next = $links{next} ) {
+                            ($uri) = $next;
+                        }
+                        else {
+                            $src->finish;
+                        }
+                        return Future->done;
+                    }
+                    catch {
+                        my ($err) = $@;
+                        $log->errorf( 'Failed - %s', $err );
+                        return Future->fail($err);
+                    }
+                },
+                sub {
+                    my ( $err, @details ) = @_;
+                    $log->errorf( 'Failed to request %s: %s', $uri, $err );
+                    $src->fail( $err, @details ) unless $src->is_ready;
+                    Future->fail( $err, @details );
+                }
+            )
+        }
+        until => sub { $f->is_ready }
+    )->retain;
     return $src;
 }
 
@@ -208,16 +276,17 @@ and the value is a L<URI> instance.
 =cut
 
 sub extract_links {
-    my ($self, @links) = @_;
+    my ( $self, @links ) = @_;
     my %links;
-    for (map { split /\h*,\h*/ } @links) {
+    for ( map { split /\h*,\h*/ } @links ) {
+
         # Format is like:
         # <https://api.eu.onfido.com/v3.4/applicants?page=2>; rel="next"
-        if(my ($url, $rel) = m{<(http[^>]+)>;\h*rel="([^"]+)"}) {
-            $links{lc $rel} = URI->new($url);
+        if ( my ( $url, $rel ) = m{<(http[^>]+)>;\h*rel="([^"]+)"} ) {
+            $links{ lc $rel } = URI->new($url);
         }
     }
-    return %links
+    return %links;
 }
 
 =head2 applicant_create
@@ -233,31 +302,43 @@ instance on successful completion.
 =cut
 
 sub applicant_create {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->POST(
-            $self->endpoint('applicants'),
-            encode_json_utf8(\%args),
-            content_type => 'application/json',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Applicant->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint('applicants');
+            $self->hook(
+                'on_api_hit',
+                {
+                    POST => $uri,
+                    body => \%args,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Applicant creation failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->POST(
+                $uri,
+                encode_json_utf8( \%args ),
+                content_type => 'application/json',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Applicant->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Applicant creation failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 applicant_update
@@ -269,26 +350,39 @@ Returns a L<Future> which resolves to empty on success.
 =cut
 
 sub applicant_update {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->PUT(
-            $self->endpoint('applicant', %args),
-            encode_json_utf8(\%args),
-            content_type => 'application/json',
-            $self->auth_headers,
-        )
-    })->then( sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done();
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Applicant update failed - %s', $err);
-            return Future->fail($err);
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'applicant', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    PUT  => $uri,
+                    body => \%args,
+                }
+            );
+            $self->ua->PUT(
+                $uri,
+                encode_json_utf8( \%args ),
+                content_type => 'application/json',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done();
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Applicant update failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 applicant_delete
@@ -300,26 +394,38 @@ Returns a L<Future> which resolves to empty on success.
 =cut
 
 sub applicant_delete {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri => $self->endpoint('applicant', %args),
-            method => 'DELETE',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            return Future->done if $res->code == 204;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->fail($data);
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Applicant delete failed - %s', $err);
-            return Future->fail($err);
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'applicant', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    DELETE => $uri,
+                }
+            );
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'DELETE',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                return Future->done if $res->code == 204;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->fail($data);
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Applicant delete failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 applicant_get
@@ -331,57 +437,79 @@ Returns a L<Future> which resolves to a L<WebService::Async::Onfido::Applicant>
 =cut
 
 sub applicant_get {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri => $self->endpoint('applicant', %args),
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Applicant->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'applicant', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Applicant->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 sub check_get {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri    => $self->endpoint('check', %args),
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Check->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'check', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Check->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 document_list
@@ -402,41 +530,49 @@ each document found.
 =cut
 
 sub document_list {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
     my $src = $self->source;
     my $uri = $self->endpoint('documents');
-    $uri->query('applicant_id=' . uri_escape_utf8($args{applicant_id}));
+    $uri->query( 'applicant_id=' . uri_escape_utf8( $args{applicant_id} ) );
 
-    $self->rate_limiting->then(sub {
-        $self->ua->GET(
-            $uri,
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->content);
-            my $f = $src->completed;
-            $log->tracef('Have response %s', $data);
-            for(@{$data->{documents}}) {
-                return $f if $f->is_ready;
-                $src->emit(
-                    WebService::Async::Onfido::Document->new(
-                        %$_,
-                        onfido => $self
-                    )
-                );
-            }
-            $src->finish;
-            return Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            $src->fail('Failed to get document list.') unless $src->is_ready;
-            return Future->fail($err);
+    $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
+            );
+            $self->ua->GET( $uri, $self->auth_headers, );
         }
-    })->retain;
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                $log->tracef( "GET %s => %s", $uri, $res->decoded_content );
+                my $data = decode_json_utf8( $res->content );
+                my $f    = $src->completed;
+                $log->tracef( 'Have response %s', $data );
+                for ( @{ $data->{documents} } ) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Document->new(
+                            %$_, onfido => $self
+                        )
+                    );
+                }
+                $src->finish;
+                return Future->done;
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                $src->fail('Failed to get document list.')
+                  unless $src->is_ready;
+                return Future->fail($err);
+            }
+        }
+    )->retain;
     return $src;
 }
 
@@ -459,33 +595,39 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Documen
 =cut
 
 sub get_document_details {
-    my ($self, %args) = @_;
-    my $uri = $self->endpoint('document', %args);
-    return $self->rate_limiting->then(sub {
-        $self->ua->GET(
-            $uri,
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Document->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    my $uri = $self->endpoint( 'document', %args );
+    return $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->GET( $uri, $self->auth_headers, );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                $log->tracef( "GET %s => %s", $uri, $res->decoded_content );
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Document->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
-
 
 =head2 photo_list
 
@@ -505,39 +647,46 @@ each photo found.
 =cut
 
 sub photo_list {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
     my $src = $self->source;
-    my $uri = $self->endpoint('photos', %args);
-    $self->rate_limiting->then(sub {
-        $self->ua->GET(
-            $uri,
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->content);
-            my $f = $src->completed;
-            $log->tracef('Have response %s', $data);
-            for(@{$data->{live_photos}}) {
-                return $f if $f->is_ready;
-                $src->emit(
-                    WebService::Async::Onfido::Photo->new(
-                        %$_,
-                        onfido => $self
-                    )
-                );
-            }
-            $src->finish;
-            return Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            $src->fail('Failed to get photo list.') unless $src->is_ready;
-            return Future->fail($err);
+    my $uri = $self->endpoint( 'photos', %args );
+    $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
+            );
+            $self->ua->GET( $uri, $self->auth_headers, );
         }
-    })->retain;
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                $log->tracef( "GET %s => %s", $uri, $res->decoded_content );
+                my $data = decode_json_utf8( $res->content );
+                my $f    = $src->completed;
+                $log->tracef( 'Have response %s', $data );
+                for ( @{ $data->{live_photos} } ) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Photo->new(
+                            %$_, onfido => $self
+                        )
+                    );
+                }
+                $src->finish;
+                return Future->done;
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                $src->fail('Failed to get photo list.') unless $src->is_ready;
+                return Future->fail($err);
+            }
+        }
+    )->retain;
     return $src;
 }
 
@@ -558,31 +707,38 @@ Returns a Future object which consists of a L<WebService::Async::Onfido::Photo>
 =cut
 
 sub get_photo_details {
-    my ($self, %args) = @_;
-    my $uri = $self->endpoint('photo', %args);
-    return $self->rate_limiting->then(sub {
-        $self->ua->GET(
-            $uri,
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            $log->tracef("GET %s => %s", $uri, $res->decoded_content);
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Photo->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    my $uri = $self->endpoint( 'photo', %args );
+    return $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->GET( $uri, $self->auth_headers, );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                $log->tracef( "GET %s => %s", $uri, $res->decoded_content );
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Photo->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 document_upload
@@ -608,50 +764,65 @@ Takes the following named parameters:
 =cut
 
 sub document_upload {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
     my $uri = $self->endpoint('documents');
 
     my $req = HTTP::Request::Common::POST(
         $uri,
         content_type => 'form-data',
-        content => [
-            %args{grep { exists $args{$_} } qw(type side issuing_country applicant_id)},
-            file => [ undef, $args{filename}, 'Content-Type' => _get_mime_type($args{filename}), Content => $args{data} ],
+        content      => [
+            %args{
+                grep { exists $args{$_} }
+                  qw(type side issuing_country applicant_id)
+            },
+            file => [
+                undef, $args{filename},
+                'Content-Type' => _get_mime_type( $args{filename} ),
+                Content        => $args{data}
+            ],
         ],
-        %{$self->auth_headers},
+        %{ $self->auth_headers },
     );
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            request => $req,
-        )
-    })->catch(
+    return $self->rate_limiting->then(
+        sub {
+            delete $args{data};
+            $self->hook(
+                'on_api_hit',
+                {
+                    POST => $uri,
+                    body => \%args
+                }
+            );
+            $self->ua->do_request( request => $req, );
+        }
+    )->catch(
         http => sub {
-            my ($message, undef, $response, $request) = @_;
-            $log->errorf('Request %s received %s with full response as %s',
-                $request->uri,
-                $message,
-                $response->content,
-            );
+            my ( $message, undef, $response, $request ) = @_;
+            $log->errorf( 'Request %s received %s with full response as %s',
+                $request->uri, $message, $response->content, );
+
             # Just pass it on
-            Future->fail($message, http => $response, $request);
+            Future->fail( $message, http => $response, $request );
         }
-    )->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Document->new(
-                    %$data,
-                    onfido => $self
-                )
-            );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Document->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
         }
-    })
+    );
 }
 
 =head2 live_photo_upload
@@ -675,51 +846,65 @@ Takes the following named parameters:
 =cut
 
 sub live_photo_upload {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
     my $uri = $self->endpoint('photo_upload');
     $args{advanced_validation} = $args{advanced_validation} ? 'true' : 'false';
     my $req = HTTP::Request::Common::POST(
         $uri,
         content_type => 'form-data',
-        content => [
-            %args{grep { exists $args{$_} } qw(advanced_validation applicant_id)},
-            file => [ undef, $args{filename}, 'Content-Type' => _get_mime_type($args{filename}), Content => $args{data} ],
+        content      => [
+            %args{
+                grep { exists $args{$_} } qw(advanced_validation applicant_id)
+            },
+            file => [
+                undef, $args{filename},
+                'Content-Type' => _get_mime_type( $args{filename} ),
+                Content        => $args{data}
+            ],
         ],
-        %{$self->auth_headers},
+        %{ $self->auth_headers },
     );
-    $log->tracef('Photo upload: %s', $req->as_string("\n"));
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            request => $req,
-        )
-    })->catch(
+    $log->tracef( 'Photo upload: %s', $req->as_string("\n") );
+    return $self->rate_limiting->then(
+        sub {
+            delete $args{data};
+            $self->hook(
+                'on_api_hit',
+                {
+                    POST => $uri,
+                    body => \%args
+                }
+            );
+            $self->ua->do_request( request => $req, );
+        }
+    )->catch(
         http => sub {
-            my ($message, undef, $response, $request) = @_;
-            $log->errorf('Request %s received %s with full response as %s',
-                $request->uri,
-                $message,
-                $response->content,
-            );
+            my ( $message, undef, $response, $request ) = @_;
+            $log->errorf( 'Request %s received %s with full response as %s',
+                $request->uri, $message, $response->content, );
+
             # Just pass it on
-            Future->fail($message, http => $response, $request);
+            Future->fail( $message, http => $response, $request );
         }
-    )->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Photo->new(
-                    %$data,
-                    onfido => $self
-                )
-            );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Photo->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
         }
-    })
+    );
 }
 
 =head2 applicant_check
@@ -762,155 +947,196 @@ Returns a L<Future> which will resolve with the result.
 =cut
 
 sub applicant_check {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
     use Path::Tiny;
-    return $self->rate_limiting->then(sub {
-        $self->ua->POST(
-            $self->endpoint('checks'),
-            encode_json_utf8(\%args),
-            content_type => 'application/json',
-            $self->auth_headers,
-        )
-    })->catch(
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint('checks');
+            $self->hook(
+                'on_api_hit',
+                {
+                    POST => $uri,
+                    body => \%args
+                }
+            );
+            $self->ua->POST(
+                $uri,
+                encode_json_utf8( \%args ),
+                content_type => 'application/json',
+                $self->auth_headers,
+            );
+        }
+    )->catch(
         http => sub {
-            my ($message, undef, $response, $request) = @_;
+            my ( $message, undef, $response, $request ) = @_;
 
-            $log->errorf('Request %s received %s with full response as %s',
-                $request->uri,
-                $message,
-                $response->content,
-            );
+            $log->errorf( 'Request %s received %s with full response as %s',
+                $request->uri, $message, $response->content, );
+
             # Just pass it on
-            Future->fail($message, http => $response, $request);
+            Future->fail( $message, http => $response, $request );
         }
-    )->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Check->new(
-                    %$data,
-                    onfido => $self
-                )
-            );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
-        }
-    })
-}
-
-sub check_list {
-    my ($self, %args) = @_;
-    my $applicant_id = delete $args{applicant_id} or die 'Need an applicant ID';
-    my $src = $self->source;
-    my $f = $src->completed;
-    my $uri = $self->endpoint('checks');
-    $uri->query('applicant_id=' . uri_escape_utf8($applicant_id));
-
-    $log->tracef('GET %s', "$uri");
-    $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri    => $uri,
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            my ($total) = $res->header('X-Total-Count');
-            $log->tracef('Expected total count %d', $total);
-            for(@{$data->{checks}}) {
-                return $f if $f->is_ready;
-                $src->emit(
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
                     WebService::Async::Onfido::Check->new(
-                        %$_,
-                        onfido => $self
+                        %$data, onfido => $self
                     )
                 );
             }
-            $src->finish;
-            Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
         }
-    })->retain;
+    );
+}
+
+sub check_list {
+    my ( $self, %args ) = @_;
+    my $applicant_id = delete $args{applicant_id} or die 'Need an applicant ID';
+    my $src          = $self->source;
+    my $f            = $src->completed;
+    my $uri          = $self->endpoint('checks');
+    $uri->query( 'applicant_id=' . uri_escape_utf8($applicant_id) );
+
+    $log->tracef( 'GET %s', "$uri" );
+    $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
+            );
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
+        }
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                my ($total) = $res->header('X-Total-Count');
+                $log->tracef( 'Expected total count %d', $total );
+                for ( @{ $data->{checks} } ) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Check->new(
+                            %$_, onfido => $self
+                        )
+                    );
+                }
+                $src->finish;
+                Future->done;
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    )->retain;
     return $src;
 }
 
 sub report_get {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri => $self->endpoint('report', %args),
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done(
-                WebService::Async::Onfido::Report->new(
-                    %$data,
-                    onfido => $self
-                )
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'report', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done(
+                    WebService::Async::Onfido::Report->new(
+                        %$data, onfido => $self
+                    )
+                );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 sub report_list {
-    my ($self, %args) = @_;
+    my ( $self, %args ) = @_;
 
     my $check_id = delete $args{check_id} or die 'Need a check ID';
 
     my $src = $self->source;
-    my $f = $src->completed;
+    my $f   = $src->completed;
 
-    my $uri = $self->endpoint('reports', check_id => $check_id);
-    $uri->query('check_id=' . uri_escape_utf8($check_id));
-    $log->tracef('GET %s', "$uri");
+    my $uri = $self->endpoint( 'reports', check_id => $check_id );
+    $uri->query( 'check_id=' . uri_escape_utf8($check_id) );
+    $log->tracef( 'GET %s', "$uri" );
 
-    $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri    => $uri,
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-
-            my $data = decode_json_utf8($res->content);
-            for(@{$data->{reports}}) {
-                return $f if $f->is_ready;
-                $src->emit(
-                    WebService::Async::Onfido::Report->new(
-                        %$_,
-                        onfido => $self
-                    )
-                );
-            }
-            $src->finish;
-            Future->done;
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+    $self->rate_limiting->then(
+        sub {
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
+            );
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })->retain;
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+
+                my $data = decode_json_utf8( $res->content );
+                for ( @{ $data->{reports} } ) {
+                    return $f if $f->is_ready;
+                    $src->emit(
+                        WebService::Async::Onfido::Report->new(
+                            %$_, onfido => $self
+                        )
+                    );
+                }
+                $src->finish;
+                Future->done;
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    )->retain;
     return $src;
 }
 
@@ -931,26 +1157,36 @@ Returns a photo file blob
 =cut
 
 sub download_photo {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri => $self->endpoint('photo_download', %args),
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = $res->content;
-            return Future->done(
-                $data
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'photo_download', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = $res->content;
+                return Future->done($data);
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 download_document
@@ -972,26 +1208,36 @@ Returns a document file blob
 =cut
 
 sub download_document {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->do_request(
-            uri => $self->endpoint('document_download', %args),
-            method => 'GET',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = $res->content;
-            return Future->done(
-                $data
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint( 'document_download', %args );
+            $self->hook(
+                'on_api_hit',
+                {
+                    GET => $uri,
+                }
             );
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+            $self->ua->do_request(
+                uri    => $uri,
+                method => 'GET',
+                $self->auth_headers,
+            );
         }
-    })
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = $res->content;
+                return Future->done($data);
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 countries_list
@@ -1004,19 +1250,24 @@ as their value.
 sub countries_list {
     my ($self) = @_;
 
-    return $self->ua->GET(SUPPORTED_COUNTRIES_URL)->then(sub {
-        try {
-            my ($res) = @_;
-            my $onfido_countries = decode_json_utf8($res->content);
+    return $self->ua->GET(SUPPORTED_COUNTRIES_URL)->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $onfido_countries = decode_json_utf8( $res->content );
 
-            my %countries_list = map { $_->{alpha3} => $_->{supported_identity_report} + 0 } @$onfido_countries;
-            return Future->done(\%countries_list);
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Failed - %s', $err);
-            return Future->fail($err);
+                my %countries_list =
+                  map { $_->{alpha3} => $_->{supported_identity_report} + 0 }
+                  @$onfido_countries;
+                return Future->done( \%countries_list );
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Failed - %s', $err );
+                return Future->fail($err);
+            }
         }
-    });
+    );
 }
 
 =head2 supported_documents_list
@@ -1026,14 +1277,14 @@ Returns an array of hashes of supported_documents for each country
 =cut
 
 sub supported_documents_list {
-    my $path = Path::Tiny::path(__DIR__)->parent(3)->child('share/supported_documents.json');
+    my $path = Path::Tiny::path(__DIR__)->parent(3)
+      ->child('share/supported_documents.json');
     $path = Path::Tiny::path(
         File::ShareDir::dist_file(
-            'WebService-Async-Onfido',
-            'supported_documents.json'
+            'WebService-Async-Onfido', 'supported_documents.json'
         )
     ) unless $path->exists;
-    my $supported_documents = decode_json_text($path->slurp_utf8);
+    my $supported_documents = decode_json_text( $path->slurp_utf8 );
     return $supported_documents;
 }
 
@@ -1044,9 +1295,10 @@ Returns the supported_documents_list for the country
 =cut
 
 sub supported_documents_for_country {
-    my ($self, $country_code) = @_;
+    my ( $self, $country_code ) = @_;
 
-    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
+    my %country_details =
+      map { $_->{country_code} => $_ } @{ supported_documents_list() };
 
     return $country_details{$country_code}->{doc_types_list} // [];
 }
@@ -1058,9 +1310,10 @@ Returns 1 if country supported and 0 for unsupported
 =cut
 
 sub is_country_supported {
-    my ($self, $country_code) = @_;
+    my ( $self, $country_code ) = @_;
 
-    my %country_details = map { $_->{country_code} => $_ } @{supported_documents_list()};
+    my %country_details =
+      map { $_->{country_code} => $_ } @{ supported_documents_list() };
 
     return $country_details{$country_code} ? 1 : 0;
 }
@@ -1084,26 +1337,39 @@ Takes the following named parameters:
 =cut
 
 sub sdk_token {
-    my ($self, %args) = @_;
-    return $self->rate_limiting->then(sub {
-        $self->ua->POST(
-            $self->endpoint('sdk_token'),
-            encode_json_utf8(\%args),
-            content_type => 'application/json',
-            $self->auth_headers,
-        )
-    })->then(sub {
-        try {
-            my ($res) = @_;
-            my $data = decode_json_utf8($res->content);
-            $log->tracef('Have response %s', $data);
-            return Future->done($data);
-        } catch {
-            my ($err) = $@;
-            $log->errorf('Token generation failed - %s', $err);
-            return Future->fail($err);
+    my ( $self, %args ) = @_;
+    return $self->rate_limiting->then(
+        sub {
+            my $uri = $self->endpoint('sdk_token');
+            $self->hook(
+                'on_api_hit',
+                {
+                    POST => $uri,
+                    body => \%args,
+                }
+            );
+            $self->ua->POST(
+                $uri,
+                encode_json_utf8( \%args ),
+                content_type => 'application/json',
+                $self->auth_headers,
+            );
         }
-    });
+    )->then(
+        sub {
+            try {
+                my ($res) = @_;
+                my $data = decode_json_utf8( $res->content );
+                $log->tracef( 'Have response %s', $data );
+                return Future->done($data);
+            }
+            catch {
+                my ($err) = $@;
+                $log->errorf( 'Token generation failed - %s', $err );
+                return Future->fail($err);
+            }
+        }
+    );
 }
 
 =head2 endpoints
@@ -1116,17 +1382,17 @@ templates, used by L</endpoint>.
 sub endpoints {
     my ($self) = @_;
     return $self->{endpoints} ||= do {
-        my $path = Path::Tiny::path(__DIR__)->parent(3)->child('share/endpoints.json');
+        my $path =
+          Path::Tiny::path(__DIR__)->parent(3)->child('share/endpoints.json');
         $path = Path::Tiny::path(
             File::ShareDir::dist_file(
-                'WebService-Async-Onfido',
-                'endpoints.json'
+                'WebService-Async-Onfido', 'endpoints.json'
             )
         ) unless $path->exists;
-        my $endpoints = decode_json_text($path->slurp_utf8);
-        my $base_uri = $self->base_uri;
+        my $endpoints = decode_json_text( $path->slurp_utf8 );
+        my $base_uri  = $self->base_uri;
         $_ = $base_uri . $_ for values %$endpoints;
-        $endpoints
+        $endpoints;
     };
 }
 
@@ -1140,20 +1406,19 @@ Returns a L<URI> instance.
 =cut
 
 sub endpoint {
-    my ($self, $endpoint, %args) = @_;
-    return URI::Template->new(
-        $self->endpoints->{$endpoint}
-    )->process(%args);
+    my ( $self, $endpoint, %args ) = @_;
+    return URI::Template->new( $self->endpoints->{$endpoint} )->process(%args);
 }
 
 sub base_uri {
     my $self = shift;
-    return $self->{base_uri} if blessed($self->{base_uri});
-    $self->{base_uri} = URI->new($self->{base_uri} // 'https://api.eu.onfido.com');
+    return $self->{base_uri} if blessed( $self->{base_uri} );
+    $self->{base_uri} =
+      URI->new( $self->{base_uri} // 'https://api.eu.onfido.com' );
     return $self->{base_uri};
 }
 
-sub token {return shift->{token} }
+sub token { return shift->{token} }
 
 sub ua {
     my ($self) = @_;
@@ -1165,27 +1430,24 @@ sub ua {
                 pipeline                 => 0,
                 stall_timeout            => 60,
                 max_connections_per_host => 2,
-                user_agent               => 'Mozilla/4.0 (WebService::Async::Onfido; DERIV@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
+                user_agent               =>
+'Mozilla/4.0 (WebService::Async::Onfido; DERIV@cpan.org; https://metacpan.org/pod/WebService::Async::Onfido)',
             )
         );
-        $ua
+        $ua;
     }
 }
 
 sub auth_headers {
     my ($self) = @_;
-    return headers => {
-        'Authorization' => 'Token token=' . $self->token
-    }
+    return headers => { 'Authorization' => 'Token token=' . $self->token };
 }
 
 sub ryu {
     my ($self) = @_;
     return $self->{ryu} //= do {
-        $self->add_child(
-            my $ryu = Ryu::Async->new
-        );
-        $ryu
+        $self->add_child( my $ryu = Ryu::Async->new );
+        $ryu;
     }
 }
 
@@ -1199,7 +1461,8 @@ May eventually be updated to return number of seconds that you need to wait.
 
 sub is_rate_limited {
     my ($self) = @_;
-    return $self->{rate_limit} && $self->{request_count} >= $self->requests_per_minute;
+    return $self->{rate_limit}
+      && $self->{request_count} >= $self->requests_per_minute;
 }
 
 =head2 rate_limiting
@@ -1213,30 +1476,42 @@ Returns a L<Future> which will resolve once it's safe to send further requests.
 sub rate_limiting {
     my ($self) = @_;
     $self->{rate_limit} //= do {
-        $self->loop->delay_future(
-            after => 60
-        )->on_ready(sub {
-            $self->{request_count} = 0;
-            delete $self->{rate_limit};
-        })
+        $self->loop->delay_future( after => $self->{rate_limit_delay} )
+          ->on_ready(
+            sub {
+                $self->{request_count} = 0;
+                delete $self->{rate_limit};
+            }
+          );
     };
-    return Future->done unless $self->requests_per_minute and ++$self->{request_count} >= $self->requests_per_minute;
+
+    return Future->done
+      unless $self->requests_per_minute
+      and ++$self->{request_count} >= $self->requests_per_minute;
+    $self->hook(
+        'on_rate_limit',
+        {
+            requests_count      => $self->{request_count},
+            requests_per_minute => $self->requests_per_minute,
+        }
+    );
     return $self->{rate_limit};
 }
 
-sub requests_per_minute {return shift->{requests_per_minute} //= 300 }
+sub requests_per_minute { return shift->{requests_per_minute} //= 300 }
 
 sub source {
     my ($self) = shift;
-    return $self->ryu->source(@_)
+    return $self->ryu->source(@_);
 }
 
 sub _get_mime_type {
     my $filename = shift;
 
-    my $ext = (fileparse($filename, "[^.]+"))[2];
+    my $ext = ( fileparse( $filename, "[^.]+" ) )[2];
 
-    return $FILE_MIME_TYPE_MAPPING{lc($ext // '')} // 'application/octet-stream';
+    return $FILE_MIME_TYPE_MAPPING{ lc( $ext // '' ) }
+      // 'application/octet-stream';
 }
 
 1;
