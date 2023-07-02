@@ -6,6 +6,17 @@ WebService::Async::Onfido - unofficial support for the Onfido identity verificat
 
 # DESCRIPTION
 
+## hook
+
+Executes a hook, if specified at configure time.
+
+Takes the following:
+
+- `$hook` - the hook to execute
+- `$data` - data to pass to the sub
+
+It returns `undef`
+
 ## applicant\_list
 
 Retrieves a list of all known applicants.
