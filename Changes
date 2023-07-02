@@ -2,6 +2,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+    Add hook
 
 0.005     2023-06-08 00:49:24+00:00 UTC
     Replace Mojolicious with Net::Async::HTTP::Server
