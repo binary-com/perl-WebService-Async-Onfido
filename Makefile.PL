@@ -80,11 +80,12 @@ my %WriteMakefileArgs = (
     "Path::Tiny" => 0,
     "Test::CheckDeps" => "0.010",
     "Test::Exception" => 0,
+    "Test::MockModule" => 0,
     "Test::More" => "0.98",
     "Test::NoWarnings" => 0,
     "URI" => 0
   },
-  "VERSION" => "0.006",
+  "VERSION" => "0.007",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -125,6 +126,7 @@ my %FallbackPrereqs = (
   "Template" => 0,
   "Test::CheckDeps" => "0.010",
   "Test::Exception" => 0,
+  "Test::MockModule" => 0,
   "Test::More" => "0.98",
   "Test::NoWarnings" => 0,
   "URI" => 0,
