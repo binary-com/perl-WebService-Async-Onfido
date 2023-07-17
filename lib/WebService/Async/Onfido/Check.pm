@@ -37,6 +37,14 @@ sub reports {
 	)->map(sub { $log->debugf('Have report %s', $_->as_string);  $_->{check} = $self; $_ });
 }
 
+sub download {
+	my ($self) = @_;
+
+	return $self->onfido->download_check(
+		check_id => $self->id,
+	);
+}
+
 1;
 
 __END__

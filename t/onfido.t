@@ -12,6 +12,7 @@ use WebService::Async::Onfido;
 use URI;
 use FindBin     qw($Bin);
 use URI::Escape qw(uri_escape_utf8);
+use MIME::Base64;
 
 my $pid = fork();
 die "fork error " unless defined($pid);
@@ -223,6 +224,18 @@ $check->{status} = 'complete';    # after get check, it will be 'complete';
 is_deeply( $check2, $check, 'result is ok' );
 is $check->applicant_id, $app->id, 'Expected applicant id';
 
+# download the check as PDF
+my $pdf;
+
+lives_ok {
+    ok $pdf, 'There is a downloaded PDF';
+}
+"get check ok";
+
+$pdf = $check2->download($check_get->%*)->get;
+
+ok base64_encode($pdf) =~ /^JVBERi0xL/, 'Somehow a PDF'; 
+
 # check list
 my $check_list     = { applicant_id => $app->id };
 my $check_list_uri = $onfido->endpoint('checks');
@@ -306,6 +319,7 @@ is_deeply(
         { GET => $onfido->endpoint( 'photo_download', $photo_download->%* ) },
         { POST   => $onfido->endpoint('checks'), body => $applicant_check },
         { GET    => $onfido->endpoint( 'check', $check_get->%* ) },
+        { GET    => $onfido->endpoint( 'check_download', $check_get->%* ) },
         { GET    => $check_list_uri },
         { GET    => $report_list_uri },
         { GET    => $onfido->endpoint( 'report', $report_get->%* ) },
