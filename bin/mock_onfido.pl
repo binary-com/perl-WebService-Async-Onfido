@@ -285,7 +285,7 @@ my $router = {
                 return json_response( $req, { status => 'Not Found' } );
             }
 
-            return pdf_response( $req, $photo_id );
+            return pdf_response( $req, $check_id );
         },
         '/v3.4/checks/:check_id' => sub {
             my $req      = shift;

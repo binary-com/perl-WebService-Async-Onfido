@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 68;
+use Test::More tests => 70;
 use Test::Exception;
 use Test::NoWarnings;
 use Test::MockModule;
@@ -19,8 +19,8 @@ die "fork error " unless defined($pid);
 
 unless ($pid) {
     my $mock_server = "$Bin/../bin/mock_onfido.pl";
-    open( STDOUT, '>/dev/null' );
-    open( STDERR, '>/dev/null' );
+    # open( STDOUT, '>/dev/null' );
+    # open( STDERR, '>/dev/null' );
     exec( $^X, $mock_server );
 }
 
@@ -228,13 +228,11 @@ is $check->applicant_id, $app->id, 'Expected applicant id';
 my $pdf;
 
 lives_ok {
-    ok $pdf, 'There is a downloaded PDF';
+    $pdf = $check2->download($check_get->%*)->get;
 }
 "get check ok";
 
-$pdf = $check2->download($check_get->%*)->get;
-
-ok base64_encode($pdf) =~ /^JVBERi0xL/, 'Somehow a PDF'; 
+ok encode_base64($pdf) =~ /^JVBERi0xL/, 'Somehow a PDF'; 
 
 # check list
 my $check_list     = { applicant_id => $app->id };
