@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 70;
+use Test::More tests => 72;
 use Test::Exception;
 use Test::NoWarnings;
 use Test::MockModule;
@@ -228,9 +228,16 @@ is $check->applicant_id, $app->id, 'Expected applicant id';
 my $pdf;
 
 lives_ok {
-    $pdf = $check2->download($check_get->%*)->get;
+    $pdf = $check2->download()->get;
 }
-"get check ok";
+"get pdf check ok";
+
+ok encode_base64($pdf) =~ /^JVBERi0xL/, 'Somehow a PDF'; 
+
+lives_ok {
+    $pdf = $onfido->download_check($check_get->%*)->get;
+}
+"get pdf check ok";
 
 ok encode_base64($pdf) =~ /^JVBERi0xL/, 'Somehow a PDF'; 
 
@@ -317,6 +324,7 @@ is_deeply(
         { GET => $onfido->endpoint( 'photo_download', $photo_download->%* ) },
         { POST   => $onfido->endpoint('checks'), body => $applicant_check },
         { GET    => $onfido->endpoint( 'check', $check_get->%* ) },
+        { GET    => $onfido->endpoint( 'check_download', $check_get->%* ) },
         { GET    => $onfido->endpoint( 'check_download', $check_get->%* ) },
         { GET    => $check_list_uri },
         { GET    => $report_list_uri },
