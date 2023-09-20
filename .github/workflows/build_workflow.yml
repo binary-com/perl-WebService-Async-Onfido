@@ -36,7 +36,8 @@ jobs:
         cpanm --installdeps .
         dzil listdeps --author --missing --cpanm-versions | xargs cpanm -n
     - name: Run Tests
-      run: dzil smoke --release --author && dzil cover -test -report codecov && dzil xtest
+      run: |
+        dzil smoke --release --author && dzil cover -test -report codecov && dzil xtest
   release:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
