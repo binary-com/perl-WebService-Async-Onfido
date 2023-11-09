@@ -166,6 +166,16 @@ service account
 
 Returns a [Future](https://metacpan.org/pod/Future) which will resolve with the result.
 
+## download\_check
+
+Gets the PDF report for a given [WebService::Async::Onfido::Check](https://metacpan.org/pod/WebService%3A%3AAsync%3A%3AOnfido%3A%3ACheck).
+
+Takes the following named parameters:
+
+- `check_id` - the ["id" in WebService::Async::Onfido::Check](https://metacpan.org/pod/WebService%3A%3AAsync%3A%3AOnfido%3A%3ACheck#id) for the check to query
+
+Returns a PDF file blob
+
 ## download\_photo
 
 Gets a live\_photo in a form of binary data for a given [WebService::Async::Onfido::Photo](https://metacpan.org/pod/WebService%3A%3AAsync%3A%3AOnfido%3A%3APhoto).
